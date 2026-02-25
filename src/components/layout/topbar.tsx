@@ -1,7 +1,8 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { Menu, LogOut, Check, Building, Maximize } from "lucide-react";
+import { Menu, LogOut, Check, Building, Maximize, Sun, Moon } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -16,6 +17,7 @@ import { useRouter } from "next/navigation";
 export default function Topbar({ user, companies }: { user: any, companies?: { id: string, name: string }[] }) {
     const { data: session, update } = useSession();
     const router = useRouter();
+    const { theme, setTheme } = useTheme();
 
     const handleCompanySwitch = async (companyId: string) => {
         // Uses NextAuth update to push the change into the JWT cookie for Server Components
@@ -38,8 +40,8 @@ export default function Topbar({ user, companies }: { user: any, companies?: { i
                 {user.role === "SUPER_ADMIN" && companies && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="hidden sm:flex border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium">
-                                <Building className="mr-2 h-4 w-4 text-blue-600" />
+                            <Button variant="outline" className="hidden sm:flex border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium dark:bg-blue-900/50 dark:border-blue-800/50 dark:text-blue-400">
+                                <Building className="mr-2 h-4 w-4 text-blue-600 dark:text-blue-400" />
                                 God Mode: {companies.find(c => c.id === session?.user?.companyId)?.name || "All Companies"}
                             </Button>
                         </DropdownMenuTrigger>
@@ -61,7 +63,11 @@ export default function Topbar({ user, companies }: { user: any, companies?: { i
                     </DropdownMenu>
                 )}
 
-                <Button variant="ghost" size="sm" onClick={() => signOut({ callbackUrl: '/login' })} className="text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg font-medium">
+                <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="text-slate-500 rounded-lg">
+                    {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                </Button>
+
+                <Button variant="ghost" size="sm" onClick={() => signOut({ callbackUrl: '/login' })} className="text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg font-medium dark:hover:bg-red-900/50 dark:hover:text-red-400">
                     <LogOut className="h-4 w-4 mr-0 sm:mr-2" />
                     <span className="hidden sm:block">Log out</span>
                 </Button>

@@ -26,6 +26,8 @@ model Company {
   emailAccounts   EmailAccount[]
   itRequests      ITRequest[]
   mobileSIMs      MobileSIM[]
+  expenseAccruals ExpenseAccrual[]
+  systemSettings  SystemSetting[]
 }
 
 model Location {
@@ -121,4 +123,27 @@ model ITRequest {
   createdAt  DateTime @default(now())
 
   @@index([companyId])
+}
+
+model ExpenseAccrual {
+  id          String   @id @default(uuid())
+  title       String
+  category    String
+  amount      Float
+  date        DateTime
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([companyId])
+}
+
+model SystemSetting {
+  id          String   @id @default(uuid())
+  key         String
+  value       String   // STORE AS JSON IF NEEDED
+  companyId   String?  // nullable if it's a global setting handled by SUPER_ADMIN
+  company     Company?  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([key, companyId])
 }

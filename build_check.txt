@@ -1,0 +1,68 @@
+
+> it-assist-app@0.1.0 build
+> prisma generate && next build
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+
+Γ£ö Generated Prisma Client (v6.4.1) to .\node_modules\@prisma\client in 88ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Interested in query caching in just a few lines of code? Try Accelerate today! https://pris.ly/tip-3-accelerate
+
+  Γû▓ Next.js 14.2.14
+  - Environments: .env
+
+   Creating an optimized production build ...
+ Γ£ô (pwa) Compiling for server...
+ Γ£ô (pwa) Compiling for server...
+ Γ£ô (pwa) Compiling for client (static)...
+ Γùï (pwa) Service worker: D:\IT-Assit-App\public\sw.js
+ Γùï (pwa)   URL: /sw.js
+ Γùï (pwa)   Scope: /
+ Γ£ô Compiled successfully
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/19) ...
+   Generating static pages (4/19) 
+   Generating static pages (9/19) 
+   Generating static pages (14/19) 
+ Γ£ô Generating static pages (19/19)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+Γöî ╞Æ /                                    143 B          89.8 kB
+Γö£ Γùï /_not-found                          876 B          90.5 kB
+Γö£ ╞Æ /api/assets                          0 B                0 B
+Γö£ ╞Æ /api/assets/[id]                     0 B                0 B
+Γö£ ╞Æ /api/auth/[...nextauth]              0 B                0 B
+Γö£ ╞Æ /api/companies                       0 B                0 B
+Γö£ ╞Æ /api/cron/check-expiries             0 B                0 B
+Γö£ ╞Æ /api/licenses                        0 B                0 B
+Γö£ ╞Æ /api/licenses/[id]                   0 B                0 B
+Γö£ ╞Æ /api/tickets                         0 B                0 B
+Γö£ ╞Æ /api/tickets/[id]                    0 B                0 B
+Γö£ ╞Æ /api/users                           0 B                0 B
+Γö£ ╞Æ /api/users/[id]                      0 B                0 B
+Γö£ ╞Æ /dashboard                           113 kB          202 kB
+Γö£ ╞Æ /dashboard/assets                    111 kB          287 kB
+Γö£ ╞Æ /dashboard/expenses                  2.23 kB         101 kB
+Γö£ ╞Æ /dashboard/licenses                  5.08 kB         158 kB
+Γö£ ╞Æ /dashboard/settings                  143 B          89.8 kB
+Γö£ ╞Æ /dashboard/tickets                   2.58 kB         179 kB
+Γö£ ╞Æ /dashboard/users                     2.74 kB         179 kB
+Γöö Γùï /login                               3.18 kB         153 kB
++ First Load JS shared by all            89.6 kB
+  Γö£ chunks/997-bf1a1ff4ddef10d7.js       34 kB
+  Γö£ chunks/fd9d1056-a636400bec710ede.js  53.6 kB
+  Γöö other shared chunks (total)          2.02 kB
+
+
+╞Æ Middleware                             49.4 kB
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+
