@@ -11,7 +11,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Search, Download, MonitorSmartphone, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, Download, MonitorSmartphone, Pencil, Trash2, QrCode } from "lucide-react";
+import { QRScanner } from "@/components/ui/qr-scanner";
 
 const assetSchema = z.object({
     department: z.string().min(1, "Required"),
@@ -22,7 +23,7 @@ const assetSchema = z.object({
     osVersion: z.string().min(1, "Required"),
     config: z.string().min(1, "Required"),
     status: z.string().min(1, "Required"),
-    cost: z.coerce.number().optional(),
+    cost: z.any().transform(v => v ? Number(v) : undefined),
 });
 
 type AssetForm = z.infer<typeof assetSchema>;
@@ -47,6 +48,7 @@ export default function AssetsPage() {
     const [search, setSearch] = useState("");
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [scannerOpen, setScannerOpen] = useState(false);
 
     const form = useForm<AssetForm>({
         resolver: zodResolver(assetSchema),
@@ -68,6 +70,7 @@ export default function AssetsPage() {
         await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
         form.reset();
         setEditingId(null);
+        setScannerOpen(false);
         setDialogOpen(false);
         fetchAssets();
     };
@@ -110,7 +113,7 @@ export default function AssetsPage() {
                     <Button variant="outline" onClick={exportCSV} className="border-slate-200">
                         <Download className="h-4 w-4 mr-2" />Export
                     </Button>
-                    <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) { setEditingId(null); form.reset(); } }}>
+                    <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) { setEditingId(null); form.reset(); setScannerOpen(false); } }}>
                         <DialogTrigger asChild>
                             <Button className="bg-blue-600 hover:bg-blue-700"><Plus className="h-4 w-4 mr-2" />Add Asset</Button>
                         </DialogTrigger>
@@ -118,41 +121,64 @@ export default function AssetsPage() {
                             <DialogHeader>
                                 <DialogTitle className="text-xl font-bold">{editingId ? "Edit" : "Add New"} Asset</DialogTitle>
                             </DialogHeader>
-                            <Form {...form}>
-                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        {(["department", "location", "product", "serialNo", "make", "osVersion", "config"] as const).map((field) => (
-                                            <FormField key={field} control={form.control} name={field} render={({ field: f }) => (
-                                                <FormItem>
-                                                    <FormLabel className="capitalize">{field.replace(/([A-Z])/g, ' $1')}</FormLabel>
-                                                    <FormControl><Input {...f} /></FormControl>
+                            {scannerOpen ? (
+                                <QRScanner
+                                    onScan={(text) => {
+                                        form.setValue("serialNo", text);
+                                        setScannerOpen(false);
+                                    }}
+                                    onClose={() => setScannerOpen(false)}
+                                />
+                            ) : (
+                                <Form {...form}>
+                                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <FormField control={form.control} name="serialNo" render={({ field: f }) => (
+                                                <FormItem className="col-span-2 sm:col-span-1">
+                                                    <FormLabel>Serial No</FormLabel>
+                                                    <div className="flex gap-2">
+                                                        <FormControl><Input {...f} /></FormControl>
+                                                        <Button type="button" variant="outline" size="icon" onClick={() => setScannerOpen(true)}>
+                                                            <QrCode className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
                                                     <FormMessage />
                                                 </FormItem>
                                             )} />
-                                        ))}
-                                        <FormField control={form.control} name="status" render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Status</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                                    <SelectContent>
-                                                        {["Active", "In Repair", "Decommissioned", "In Stock"].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )} />
-                                        <FormField control={form.control} name="cost" render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Cost ($)</FormLabel>
-                                                <FormControl><Input type="number" {...field} /></FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )} />
-                                    </div>
-                                    <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 h-11">{editingId ? "Update" : "Create"} Asset</Button>
-                                </form>
-                            </Form>
+
+                                            {(["department", "location", "product", "make", "osVersion", "config"] as const).map((field) => (
+                                                <FormField key={field} control={form.control} name={field} render={({ field: f }) => (
+                                                    <FormItem>
+                                                        <FormLabel className="capitalize">{field.replace(/([A-Z])/g, ' $1')}</FormLabel>
+                                                        <FormControl><Input {...f} /></FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )} />
+                                            ))}
+                                            <FormField control={form.control} name="status" render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Status</FormLabel>
+                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                                        <SelectContent>
+                                                            {["Active", "In Repair", "Decommissioned", "In Stock"].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )} />
+                                            <FormField control={form.control} name="cost" render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Cost ($)</FormLabel>
+                                                    <FormControl><Input type="number" {...field} /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )} />
+                                        </div>
+                                        <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 h-11">{editingId ? "Update" : "Create"} Asset</Button>
+                                    </form>
+                                </Form>
+                            )}
                         </DialogContent>
                     </Dialog>
                 </div>
@@ -217,6 +243,6 @@ export default function AssetsPage() {
                     </div>
                 </CardContent>
             </Card>
-        </div>
+        </div >
     );
 }

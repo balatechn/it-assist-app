@@ -16,9 +16,9 @@ const licenseSchema = z.object({
     softwareName: z.string().min(1, "Required"),
     category: z.string().min(1, "Required"),
     licenseType: z.string().min(1, "Required"),
-    totalPurchased: z.coerce.number().min(1),
-    licensesInUse: z.coerce.number().min(0),
-    cost: z.coerce.number().min(0),
+    totalPurchased: z.any().transform(v => Number(v)),
+    licensesInUse: z.any().transform(v => Number(v)),
+    cost: z.any().transform(v => Number(v)),
     vendor: z.string().min(1, "Required"),
     renewalDate: z.string().optional(),
 });

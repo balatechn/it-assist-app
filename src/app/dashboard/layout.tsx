@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Sidebar from "@/components/layout/sidebar";
 import Topbar from "@/components/layout/topbar";
+import BottomNav from "@/components/layout/bottom-nav";
 import prisma from "@/lib/db";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -21,7 +22,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     }
 
     return (
-        <div className="flex h-screen bg-slate-50 text-slate-900 overflow-hidden w-full">
+        <div className="flex h-screen bg-slate-50 text-slate-900 overflow-hidden w-full relative">
             <Sidebar user={session.user} />
             <div className="flex-1 flex flex-col min-w-0 transition-all duration-300">
                 <Topbar user={session.user} companies={companies} />
@@ -29,6 +30,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                     {children}
                 </main>
             </div>
+            <BottomNav />
         </div>
     );
 }
