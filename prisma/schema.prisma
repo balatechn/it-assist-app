@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  IT_ADMIN
+  COMPANY_ADMIN
+  HR
+  VIEWER
+}
+
+model Company {
+  id              String            @id @default(uuid())
+  name            String
+  domain          String?
+  locations       Location[]
+  users           User[]
+  systemAssets    SystemAsset[]
+  softwareLicenses SoftwareLicense[]
+  emailAccounts   EmailAccount[]
+  itRequests      ITRequest[]
+  mobileSIMs      MobileSIM[]
+}
+
+model Location {
+  id        String   @id @default(uuid())
+  name      String
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id        String        @id @default(uuid())
+  name      String
+  email     String        @unique
+  password  String?       // For credentials login if needed, or NextAuth provider links
+  role      Role          @default(VIEWER)
+  companyId String
+  company   Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  assets    SystemAsset[]
+}
+
+model SystemAsset {
+  id           String    @id @default(uuid())
+  userId       String?
+  user         User?     @relation(fields: [userId], references: [id])
+  companyId    String
+  company      Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  department   String
+  location     String
+  product      String
+  serialNo     String
+  make         String
+  osVersion    String
+  config       String
+  status       String
+  purchaseDate DateTime?
+  warrantyDate DateTime?
+  cost         Float?
+  invoiceUrl   String?
+  createdAt    DateTime  @default(now())
+
+  @@index([companyId])
+}
+
+model SoftwareLicense {
+  id             String    @id @default(uuid())
+  companyId      String
+  company        Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  softwareName   String
+  category       String
+  licenseType    String
+  totalPurchased Int
+  licensesInUse  Int
+  cost           Float
+  renewalDate    DateTime?
+  vendor         String
+  createdAt      DateTime  @default(now())
+
+  @@index([companyId])
+}
+
+model MobileSIM {
+  id        String  @id @default(uuid())
+  name      String
+  location  String
+  simNumber String
+  plan      String
+  status    String
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+model EmailAccount {
+  id        String   @id @default(uuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  email     String
+  status    String
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+}
+
+model ITRequest {
+  id         String   @id @default(uuid())
+  employee   String
+  title      String?
+  department String
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  status     String
+  createdAt  DateTime @default(now())
+
+  @@index([companyId])
+}
