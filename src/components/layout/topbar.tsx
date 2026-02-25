@@ -24,12 +24,12 @@ export default function Topbar({ user, companies }: { user: any, companies?: { i
     };
 
     return (
-        <header className="h-16 border-b border-slate-200 bg-white/70 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-4 lg:px-6 shadow-sm">
+        <header className="h-16 border-b border-slate-200 dark:border-slate-800/60 bg-white/70 dark:bg-[#0f172a]/70 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-4 lg:px-6 shadow-sm">
             <div className="flex items-center gap-4">
                 <Button variant="ghost" size="icon" className="lg:hidden text-slate-500 rounded-lg">
                     <Menu className="h-5 w-5" />
                 </Button>
-                <div className="font-semibold text-slate-800 text-sm md:text-base hidden sm:block tracking-tight">
+                <div className="font-semibold text-slate-800 dark:text-slate-200 text-sm md:text-base hidden sm:block tracking-tight">
                     {user.role === "SUPER_ADMIN" ? "Global Administration View" : "Corporate Portal"}
                 </div>
             </div>

@@ -46,11 +46,11 @@ export default function Sidebar({ user }: { user: any }) {
                     className={cn(
                         "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all group",
                         isActive
-                            ? "bg-blue-50 text-blue-700"
-                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                            ? "bg-blue-50 text-blue-700 dark:bg-slate-800 dark:text-slate-100"
+                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200"
                     )}
                 >
-                    <Icon className={cn("h-5 w-5", isActive ? "text-blue-700" : "text-slate-400 group-hover:text-slate-600")} />
+                    <Icon className={cn("h-5 w-5", isActive ? "text-blue-700 dark:text-slate-100" : "text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300")} />
                     {item.label}
                 </Link>
             );
@@ -58,13 +58,13 @@ export default function Sidebar({ user }: { user: any }) {
     );
 
     return (
-        <aside className="hidden lg:flex flex-col w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-full sticky left-0 top-0">
+        <aside className="hidden lg:flex flex-col w-64 border-r border-slate-200 dark:border-slate-800/60 bg-white dark:bg-[#0f172a] h-full sticky left-0 top-0">
             <div className="p-6 flex items-center gap-3">
                 <div className="bg-blue-600 p-2 rounded-lg shadow-sm">
                     <ShieldCheck className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                    <h1 className="text-lg font-bold text-slate-900 tracking-tight">IT Assist</h1>
+                    <h1 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">IT Assist</h1>
                     <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">{user.role.replace("_", " ")}</p>
                 </div>
             </div>
@@ -107,7 +107,7 @@ export default function Sidebar({ user }: { user: any }) {
                         {user.name?.charAt(0) || "U"}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-slate-900 truncate">{user.name}</p>
+                        <p className="text-sm font-bold text-slate-900 dark:text-slate-200 truncate">{user.name}</p>
                         <p className="text-xs text-slate-500 truncate">{user.email}</p>
                     </div>
                 </div>

@@ -48,7 +48,7 @@ export default async function DashboardPage() {
     return (
         <div className="space-y-6">
             <div className="flex flex-col gap-1">
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
                     Executive Dashboard
                 </h1>
                 <p className="text-slate-500 text-sm">
@@ -58,9 +58,9 @@ export default async function DashboardPage() {
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 {stats.map((stat, i) => (
-                    <Card key={i} className="border-0 shadow-lg bg-white overflow-hidden group">
-                        <CardHeader className="flex flex-row items-center justify-between pb-2 bg-slate-50 border-b border-slate-100 p-4">
-                            <CardTitle className="text-sm font-semibold tracking-tight text-slate-600">
+                    <Card key={i} className="border-0 shadow-lg bg-white dark:bg-card overflow-hidden group dark:border dark:border-border">
+                        <CardHeader className="flex flex-row items-center justify-between pb-2 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-border p-4">
+                            <CardTitle className="text-sm font-semibold tracking-tight text-slate-600 dark:text-slate-300">
                                 {stat.title}
                             </CardTitle>
                             <div className={`p-2 rounded-xl text-white shadow-lg ${stat.color} ${stat.shadow} group-hover:scale-110 transition-transform duration-300`}>
@@ -68,7 +68,7 @@ export default async function DashboardPage() {
                             </div>
                         </CardHeader>
                         <CardContent className="p-4 pt-6">
-                            <div className="text-4xl font-black text-slate-900 tracking-tighter">
+                            <div className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">
                                 {stat.value}
                             </div>
                         </CardContent>
@@ -77,38 +77,38 @@ export default async function DashboardPage() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="lg:col-span-4 border-0 shadow-xl p-1 rounded-2xl">
+                <Card className="lg:col-span-4 border-0 shadow-xl p-1 rounded-2xl dark:bg-card dark:border dark:border-border">
                     <CardHeader className="pb-8 pt-6 px-6">
                         <div className="flex items-center gap-2">
-                            <div className="p-2 bg-rose-100 text-rose-600 rounded-lg">
+                            <div className="p-2 bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 rounded-lg">
                                 <Activity className="h-5 w-5" />
                             </div>
                             <div>
-                                <CardTitle className="text-lg font-bold">Monthly Expense Accrual</CardTitle>
-                                <p className="text-xs font-medium text-slate-500 tracking-wide mt-1">LAST 6 MONTHS IT SPEND TREND</p>
+                                <CardTitle className="text-lg font-bold dark:text-white">Monthly Expense Accrual</CardTitle>
+                                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 tracking-wide mt-1">LAST 6 MONTHS IT SPEND TREND</p>
                             </div>
                         </div>
                     </CardHeader>
                     <CardContent className="h-[300px] w-full pb-8">
-                        <Suspense fallback={<div className="h-full w-full animate-pulse bg-slate-100 rounded-xl" />}>
+                        <Suspense fallback={<div className="h-full w-full animate-pulse bg-slate-100 dark:bg-slate-800 rounded-xl" />}>
                             <ExpenseChart />
                         </Suspense>
                     </CardContent>
                 </Card>
 
-                <Card className="lg:col-span-3 border-0 shadow-xl rounded-2xl">
+                <Card className="lg:col-span-3 border-0 shadow-xl rounded-2xl dark:bg-card dark:border dark:border-border">
                     <CardHeader>
-                        <CardTitle className="text-lg font-bold">Recent Priority Tickets</CardTitle>
+                        <CardTitle className="text-lg font-bold dark:text-white">Recent Priority Tickets</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {[1, 2, 3].map((_, i) => (
-                            <div key={i} className="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100 hover:border-slate-300 transition-colors">
-                                <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center font-black">
+                            <div key={i} className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-slate-300 transition-colors">
+                                <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400 flex items-center justify-center font-black">
                                     P{i + 1}
                                 </div>
                                 <div>
-                                    <div className="font-bold text-slate-900 tracking-tight text-sm">Need Access to VPN Config</div>
-                                    <div className="text-xs text-slate-500 font-medium">Reported by Sarah J. • 2h ago</div>
+                                    <div className="font-bold text-slate-900 dark:text-white tracking-tight text-sm">Need Access to VPN Config</div>
+                                    <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Reported by Sarah J. • 2h ago</div>
                                 </div>
                             </div>
                         ))}
