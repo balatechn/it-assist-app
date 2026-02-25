@@ -10,8 +10,11 @@ import {
     LifeBuoy,
     Database,
     ShieldCheck,
-    Settings
+    Settings,
+    Sun,
+    Moon
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -29,6 +32,7 @@ const adminItems = [
 
 export default function Sidebar({ user }: { user: any }) {
     const pathname = usePathname();
+    const { theme, setTheme } = useTheme();
 
     const renderLinks = (items: typeof navItems) => (
         items.map((item) => {
@@ -54,7 +58,7 @@ export default function Sidebar({ user }: { user: any }) {
     );
 
     return (
-        <aside className="hidden lg:flex flex-col w-64 border-r border-slate-200 bg-white h-full sticky left-0 top-0">
+        <aside className="hidden lg:flex flex-col w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-full sticky left-0 top-0">
             <div className="p-6 flex items-center gap-3">
                 <div className="bg-blue-600 p-2 rounded-lg shadow-sm">
                     <ShieldCheck className="h-5 w-5 text-white" />
@@ -81,8 +85,24 @@ export default function Sidebar({ user }: { user: any }) {
                 )}
             </nav>
 
-            <div className="p-4 border-t border-slate-100">
-                <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-50 border border-slate-100">
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+                <button
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    className="flex w-full items-center gap-3 px-3 py-2.5 mb-3 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                >
+                    {theme === 'dark' ? (
+                        <>
+                            <Sun className="h-5 w-5 text-slate-400 group-hover:text-amber-500" />
+                            Light Mode
+                        </>
+                    ) : (
+                        <>
+                            <Moon className="h-5 w-5 text-slate-400 group-hover:text-slate-600" />
+                            Dark Mode
+                        </>
+                    )}
+                </button>
+                <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50">
                     <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">
                         {user.name?.charAt(0) || "U"}
                     </div>

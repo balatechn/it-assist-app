@@ -1,8 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { Menu, LogOut, Check, Building, Maximize, Sun, Moon } from "lucide-react";
-import { useTheme } from "next-themes";
+import { Menu, LogOut, Check, Building, Maximize } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -17,7 +16,6 @@ import { useRouter } from "next/navigation";
 export default function Topbar({ user, companies }: { user: any, companies?: { id: string, name: string }[] }) {
     const { data: session, update } = useSession();
     const router = useRouter();
-    const { theme, setTheme } = useTheme();
 
     const handleCompanySwitch = async (companyId: string) => {
         // Uses NextAuth update to push the change into the JWT cookie for Server Components
@@ -62,10 +60,6 @@ export default function Topbar({ user, companies }: { user: any, companies?: { i
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )}
-
-                <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="text-slate-500 rounded-lg">
-                    {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                </Button>
 
                 <Button variant="ghost" size="sm" onClick={() => signOut({ callbackUrl: '/login' })} className="text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg font-medium dark:hover:bg-red-900/50 dark:hover:text-red-400">
                     <LogOut className="h-4 w-4 mr-0 sm:mr-2" />
