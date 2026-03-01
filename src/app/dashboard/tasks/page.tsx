@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
-    CheckSquare, Clock, Target, Calendar, MessageSquare, Paperclip, Filter,
+    CheckSquare, Calendar, MessageSquare,
 } from "lucide-react"
 import { cn, formatDate, getInitials, getStatusColor, getPriorityColor } from "@/lib/utils"
 import { TaskDetailModal } from "@/components/task-detail-modal"
@@ -25,7 +25,7 @@ interface Task {
 }
 
 export default function TasksPage() {
-    const { data: session } = useSession()
+    useSession()
     const [tasks, setTasks] = useState<Task[]>([])
     const [loading, setLoading] = useState(true)
     const [filter, setFilter] = useState<string>("ALL")
@@ -36,6 +36,7 @@ export default function TasksPage() {
 
     useEffect(() => {
         fetchTasks()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page])
 
     const fetchTasks = async () => {

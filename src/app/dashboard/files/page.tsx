@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Cloud, FolderOpen, Upload, Link2, HardDrive, File as FileIcon, Search, MoreVertical, Loader2, ArrowLeft, ChevronRight, Home } from "lucide-react"
+import { Cloud, FolderOpen, Upload, Link2, HardDrive, File as FileIcon, Search, Loader2, ArrowLeft, ChevronRight, Home } from "lucide-react"
 
 interface OneDriveItem {
     id: string

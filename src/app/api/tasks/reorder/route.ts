@@ -41,7 +41,7 @@ export async function PUT(req: NextRequest) {
                     where: { id: update.id },
                     data: {
                         sortOrder: update.sortOrder,
-                        status: update.status,
+                        status: update.status as "TODO" | "IN_PROGRESS" | "DONE",
                     },
                 })
             )

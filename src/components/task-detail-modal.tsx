@@ -26,7 +26,7 @@ import {
     Calendar, User, Flag, MessageSquare, Paperclip,
     Save, Loader2, Clock, AlertTriangle, Trash2,
 } from "lucide-react"
-import { cn, formatDate, getInitials, getPriorityColor, timeAgo } from "@/lib/utils"
+import { formatDate, getInitials, timeAgo } from "@/lib/utils"
 
 interface TaskComment {
     id: string

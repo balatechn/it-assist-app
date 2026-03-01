@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,14 @@ import { Input } from "@/components/ui/input"
 import { Zap, Mail, Lock, ArrowRight, AlertCircle } from "lucide-react"
 
 export default function LoginPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" /></div>}>
+            <LoginContent />
+        </Suspense>
+    )
+}
+
+function LoginContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const [email, setEmail] = useState("")

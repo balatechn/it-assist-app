@@ -44,6 +44,7 @@ export default function ProjectsPage() {
 
     useEffect(() => {
         fetchProjects()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page])
 
     const fetchProjects = async () => {

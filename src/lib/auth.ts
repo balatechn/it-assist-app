@@ -56,6 +56,7 @@ export const authOptions: NextAuthOptions = {
         }),
     ],
     callbacks: {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         async signIn({ user, account, profile }) {
             if (account?.provider === "azure-ad") {
                 if (!user.email) return false;

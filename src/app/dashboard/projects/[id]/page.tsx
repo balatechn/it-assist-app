@@ -245,12 +245,12 @@ export default function ProjectDetailPage() {
                             </Badge>
                             {canEditProject && (
                                 <Button
-                                    variant=\"ghost\"
-                                    size=\"icon-sm\"
+                                    variant="ghost"
+                                    size="icon-sm"
                                     onClick={() => setShowEditProject(true)}
-                                    title=\"Edit project\"
+                                    title="Edit project"
                                 >
-                                    <Pencil className=\"w-4 h-4\" />
+                                    <Pencil className="w-4 h-4" />
                                 </Button>
                             )}
                         </div>

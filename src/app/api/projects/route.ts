@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
                 clientName,
                 startDate: startDate ? new Date(startDate) : null,
                 endDate: endDate ? new Date(endDate) : null,
-                budget: budget ? parseFloat(budget) : null,
+                budget: budget ? parseFloat(String(budget)) : null,
                 status: status || "PLANNED",
                 color,
                 organizationId: session.user.organizationId,

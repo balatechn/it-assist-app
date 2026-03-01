@@ -23,7 +23,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import {
-    Save, Loader2, Pencil, DollarSign,
+    Save, Loader2, DollarSign,
     Calendar, User, FolderKanban,
 } from "lucide-react"
 import { cn, getInitials, getStatusColor } from "@/lib/utils"
