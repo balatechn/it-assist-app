@@ -347,13 +347,24 @@ export default function OutlookPage() {
             {/* Header — compact */}
             <div className="flex items-center justify-between gap-2 px-2 md:px-0 pt-2 md:pt-0 shrink-0">
                 <div className="flex items-center gap-2 min-w-0">
-                    {/* Mobile back button when viewing email */}
+                    {/* Back button when viewing email */}
                     {selectedMessage && (
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="md:hidden h-8 w-8 shrink-0"
+                            className="h-8 w-8 shrink-0"
                             onClick={() => setSelectedMessage(null)}
+                        >
+                            <ChevronLeft className="w-4 h-4" />
+                        </Button>
+                    )}
+                    {/* Back button when composing */}
+                    {!selectedMessage && showCompose && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0"
+                            onClick={() => { setShowCompose(false); setShowReply(false) }}
                         >
                             <ChevronLeft className="w-4 h-4" />
                         </Button>
@@ -407,8 +418,8 @@ export default function OutlookPage() {
             )}
 
             <div className="flex gap-3 flex-1 min-h-0 px-2 md:px-0 pb-2 md:pb-0">
-                {/* Folder sidebar — compact */}
-                <div className="w-40 shrink-0 space-y-0.5 hidden md:block">
+                {/* Folder sidebar — compact, hidden when viewing email/compose */}
+                <div className={cn("w-40 shrink-0 space-y-0.5 hidden md:block", (selectedMessage || showCompose) && "md:hidden")}>
                     {folders.map((f) => (
                         <button
                             key={f.id}
@@ -450,11 +461,10 @@ export default function OutlookPage() {
                     ))}
                 </div>
 
-                {/* Message list — compact */}
+                {/* Message list — hidden entirely when viewing email/compose */}
                 <Card className={cn(
                     "flex-1 overflow-hidden",
-                    selectedMessage && "hidden md:block md:max-w-[340px]",
-                    showCompose && "hidden md:block md:max-w-[340px]"
+                    (selectedMessage || showCompose) && "hidden"
                 )}>
                     <div className="h-full overflow-y-auto divide-y divide-border/50">
                         {loading ? (
@@ -530,9 +540,9 @@ export default function OutlookPage() {
                     </div>
                 </Card>
 
-                {/* Message detail / compose */}
+                {/* Message detail / compose — full width */}
                 {(selectedMessage || showCompose) && (
-                    <Card className={cn("flex-1 overflow-hidden flex flex-col", !selectedMessage && !showCompose && "hidden md:flex")}>
+                    <Card className="flex-1 overflow-hidden flex flex-col">
                         {showCompose ? (
                             /* Compose view */
                             <div className="flex flex-col h-full">
@@ -763,16 +773,7 @@ export default function OutlookPage() {
                     </Card>
                 )}
 
-                {/* Empty state for no selected message on desktop */}
-                {!selectedMessage && !showCompose && (
-                    <Card className="flex-1 hidden md:flex items-center justify-center">
-                        <div className="text-center">
-                            <MailOpen className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3" />
-                            <h3 className="text-sm font-semibold mb-1">Select an email</h3>
-                            <p className="text-xs text-muted-foreground">Choose an email from the list to read it here</p>
-                        </div>
-                    </Card>
-                )}
+
             </div>
         </div>
     )

@@ -8,7 +8,7 @@ import {
     CheckSquare,
     Mail,
     Bell,
-    Settings,
+    HardDrive,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -18,7 +18,7 @@ const bottomNavItems = [
     { href: "/dashboard/tasks", label: "Tasks", icon: CheckSquare },
     { href: "/dashboard/outlook", label: "Outlook", icon: Mail },
     { href: "/dashboard/notifications", label: "Alerts", icon: Bell },
-    { href: "/dashboard/settings", label: "Settings", icon: Settings },
+    { href: "/dashboard/files", label: "OneDrive", icon: HardDrive },
 ]
 
 export function MobileBottomNav() {
