@@ -1,38 +1,23 @@
 import { NextAuthOptions } from "next-auth"
+import AzureADProvider from "next-auth/providers/azure-ad"
 import prisma from "@/lib/db"
 import { Role } from "@prisma/client"
 
 export const authOptions: NextAuthOptions = {
+    debug: true,
     secret: process.env.NEXTAUTH_SECRET,
     session: { strategy: "jwt", maxAge: 24 * 60 * 60 },
     providers: [
-        {
-            id: "microsoft-entra-id",
-            name: "Microsoft",
-            type: "oauth",
+        AzureADProvider({
             clientId: process.env.AZURE_AD_CLIENT_ID!,
             clientSecret: process.env.AZURE_AD_CLIENT_SECRET!,
+            tenantId: process.env.AZURE_AD_TENANT_ID!,
             authorization: {
-                url: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID}/oauth2/v2.0/authorize`,
                 params: {
                     scope: "openid profile email User.Read offline_access",
-                    response_type: "code",
                 },
             },
-            token: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID}/oauth2/v2.0/token`,
-            userinfo: "https://graph.microsoft.com/oidc/userinfo",
-            issuer: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID}/v2.0`,
-            jwks_endpoint: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID}/discovery/v2.0/keys`,
-            checks: ["none"],
-            idToken: true,
-            profile(profile) {
-                return {
-                    id: profile.sub,
-                    name: profile.name ?? profile.preferred_username,
-                    email: profile.email ?? profile.preferred_username,
-                }
-            },
-        },
+        }),
     ],
     callbacks: {
         async signIn({ user, account }) {

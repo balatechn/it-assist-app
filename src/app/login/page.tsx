@@ -22,10 +22,11 @@ function LoginContent() {
     const searchParams = useSearchParams()
     const [loading, setLoading] = useState(false)
     const error = searchParams.get("error")
+    const errorDesc = searchParams.get("error_description")
 
     const handleLogin = () => {
         setLoading(true)
-        signIn("microsoft-entra-id", { callbackUrl: "/dashboard" })
+        signIn("azure-ad", { callbackUrl: "/dashboard" })
     }
 
     return (
@@ -87,9 +88,13 @@ function LoginContent() {
                     </div>
 
                     {error && (
-                        <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
-                            <AlertCircle className="w-4 h-4 shrink-0" />
-                            <span>Authentication failed. Please try again.</span>
+                        <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm space-y-1">
+                            <div className="flex items-center gap-2">
+                                <AlertCircle className="w-4 h-4 shrink-0" />
+                                <span className="font-medium">Error: {error}</span>
+                            </div>
+                            {errorDesc && <p className="text-xs opacity-75 pl-6">{errorDesc}</p>}
+                            <p className="text-xs opacity-75 pl-6">Callback: /api/auth/callback/microsoft-entra-id</p>
                         </div>
                     )}
 
