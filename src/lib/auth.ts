@@ -6,18 +6,6 @@ import { Role } from "@prisma/client"
 export const authOptions: NextAuthOptions = {
     debug: true,
     session: { strategy: "jwt", maxAge: 24 * 60 * 60 },
-    cookies: {
-        pkceCodeVerifier: {
-            name: "next-auth.pkce.code_verifier",
-            options: {
-                httpOnly: true,
-                sameSite: "none",
-                path: "/",
-                secure: true,
-                maxAge: 900,
-            },
-        },
-    },
     providers: [
         AzureADProvider({
             clientId: process.env.AZURE_AD_CLIENT_ID!,
@@ -25,11 +13,9 @@ export const authOptions: NextAuthOptions = {
             tenantId: process.env.AZURE_AD_TENANT_ID!,
             authorization: {
                 params: {
-                    scope: "openid profile email User.Read Files.ReadWrite.All offline_access",
+                    scope: "openid profile email User.Read offline_access",
                 },
             },
-            httpOptions: { timeout: 10000 },
-            checks: ["pkce", "state"],
         }),
     ],
     callbacks: {
