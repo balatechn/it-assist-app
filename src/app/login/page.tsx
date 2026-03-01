@@ -2,10 +2,9 @@
 
 import { Suspense, useState } from "react"
 import { signIn } from "next-auth/react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Zap, Mail, Lock, ArrowRight, AlertCircle } from "lucide-react"
+import { Zap, AlertCircle, Shield } from "lucide-react"
 
 export default function LoginPage() {
     return (
@@ -16,30 +15,13 @@ export default function LoginPage() {
 }
 
 function LoginContent() {
-    const router = useRouter()
     const searchParams = useSearchParams()
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
     const [loading, setLoading] = useState(false)
-    const [error, setError] = useState(searchParams.get("error") || "")
+    const error = searchParams.get("error") || ""
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setError("")
+    const handleMicrosoftLogin = () => {
         setLoading(true)
-
-        const result = await signIn("credentials", {
-            email,
-            password,
-            redirect: false,
-        })
-
-        if (result?.error) {
-            setError("Invalid email or password")
-            setLoading(false)
-        } else {
-            router.push("/dashboard")
-        }
+        signIn("azure-ad", { callbackUrl: "/dashboard" })
     }
 
     return (
@@ -95,7 +77,7 @@ function LoginContent() {
                 </div>
             </div>
 
-            {/* Right panel - login form */}
+            {/* Right panel - login */}
             <div className="flex-1 flex items-center justify-center p-8 bg-background">
                 <div className="w-full max-w-[400px] space-y-8">
                     {/* Mobile logo */}
@@ -109,95 +91,42 @@ function LoginContent() {
                         </div>
                     </div>
 
-                    <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Welcome back</h2>
-                        <p className="text-muted-foreground mt-1">Sign in to your account to continue</p>
+                    <div className="text-center space-y-2">
+                        <h2 className="text-2xl font-bold tracking-tight">Welcome to TaskFlow Pro</h2>
+                        <p className="text-muted-foreground">Sign in with your organization account</p>
                     </div>
 
                     {error && (
                         <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
                             <AlertCircle className="w-4 h-4 shrink-0" />
-                            <span>{error}</span>
+                            <span>Authentication failed. Please try again.</span>
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="space-y-2">
-                            <label htmlFor="email" className="text-sm font-medium">Email</label>
-                            <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="admin@acmecorp.com"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="pl-10"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label htmlFor="password" className="text-sm font-medium">Password</label>
-                            <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="pl-10"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <Button
-                            type="submit"
-                            className="w-full h-11 gradient-primary text-white font-semibold shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all duration-300"
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            ) : (
-                                <>
-                                    Sign In
-                                    <ArrowRight className="w-4 h-4 ml-2" />
-                                </>
-                            )}
-                        </Button>
-                    </form>
-
-                    {/* Azure AD button placeholder */}
-                    <div className="relative">
-                        <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t border-border" />
-                        </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-                        </div>
-                    </div>
-
                     <Button
-                        variant="outline"
-                        className="w-full h-11"
-                        onClick={() => signIn("azure-ad")}
-                        type="button"
+                        className="w-full h-12 text-base font-semibold shadow-lg transition-all duration-300 hover:shadow-xl"
+                        onClick={handleMicrosoftLogin}
+                        disabled={loading}
                     >
-                        <svg className="w-5 h-5 mr-2" viewBox="0 0 21 21" fill="none">
-                            <path d="M10 0H0V10H10V0Z" fill="#F25022" />
-                            <path d="M21 0H11V10H21V0Z" fill="#7FBA00" />
-                            <path d="M10 11H0V21H10V11Z" fill="#00A4EF" />
-                            <path d="M21 11H11V21H21V11Z" fill="#FFB900" />
-                        </svg>
-                        Microsoft 365
+                        {loading ? (
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                            <>
+                                <svg className="w-5 h-5 mr-3" viewBox="0 0 21 21" fill="none">
+                                    <path d="M10 0H0V10H10V0Z" fill="#F25022" />
+                                    <path d="M21 0H11V10H21V0Z" fill="#7FBA00" />
+                                    <path d="M10 11H0V21H10V11Z" fill="#00A4EF" />
+                                    <path d="M21 11H11V21H21V11Z" fill="#FFB900" />
+                                </svg>
+                                Sign in with Microsoft
+                            </>
+                        )}
                     </Button>
 
-                    <p className="text-center text-xs text-muted-foreground">
-                        Demo: <span className="font-mono text-foreground/70">admin@acmecorp.com</span> / <span className="font-mono text-foreground/70">admin123</span>
-                    </p>
+                    <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                        <Shield className="w-3.5 h-3.5" />
+                        <span>Secured by Microsoft Entra ID</span>
+                    </div>
                 </div>
             </div>
         </div>

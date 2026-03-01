@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-    User, Building2, Shield, LogOut, Cloud, Save, Loader2, Key,
+    User, Building2, Shield, LogOut, Cloud, Save, Loader2,
 } from "lucide-react"
 import { getInitials } from "@/lib/utils"
 
@@ -20,13 +20,6 @@ export default function SettingsPage() {
     const [profileName, setProfileName] = useState(session?.user?.name || "")
     const [savingProfile, setSavingProfile] = useState(false)
     const [profileMsg, setProfileMsg] = useState("")
-
-    // Password change state
-    const [currentPassword, setCurrentPassword] = useState("")
-    const [newPassword, setNewPassword] = useState("")
-    const [confirmPassword, setConfirmPassword] = useState("")
-    const [savingPassword, setSavingPassword] = useState(false)
-    const [passwordMsg, setPasswordMsg] = useState("")
 
     const handleSaveProfile = async () => {
         if (!profileName.trim()) return
@@ -40,7 +33,6 @@ export default function SettingsPage() {
             })
             if (res.ok) {
                 setProfileMsg("Profile updated successfully!")
-                // Trigger session refresh
                 await updateSession({ name: profileName.trim() })
             } else {
                 const err = await res.json()
@@ -50,40 +42,6 @@ export default function SettingsPage() {
             setProfileMsg("Network error")
         } finally {
             setSavingProfile(false)
-        }
-    }
-
-    const handleChangePassword = async () => {
-        if (!currentPassword || !newPassword) return
-        if (newPassword !== confirmPassword) {
-            setPasswordMsg("Passwords don't match")
-            return
-        }
-        if (newPassword.length < 6) {
-            setPasswordMsg("Password must be at least 6 characters")
-            return
-        }
-        setSavingPassword(true)
-        setPasswordMsg("")
-        try {
-            const res = await fetch("/api/profile", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ currentPassword, newPassword }),
-            })
-            if (res.ok) {
-                setPasswordMsg("Password changed successfully!")
-                setCurrentPassword("")
-                setNewPassword("")
-                setConfirmPassword("")
-            } else {
-                const err = await res.json()
-                setPasswordMsg(err.error || "Failed to change password")
-            }
-        } catch {
-            setPasswordMsg("Network error")
-        } finally {
-            setSavingPassword(false)
         }
     }
 
@@ -136,62 +94,6 @@ export default function SettingsPage() {
                             </p>
                         )}
                     </div>
-                </CardContent>
-            </Card>
-
-            {/* Change Password */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-base">
-                        <Key className="w-4 h-4" /> Change Password
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="current-pw" className="text-xs font-medium">Current Password</Label>
-                        <Input
-                            id="current-pw"
-                            type="password"
-                            value={currentPassword}
-                            onChange={(e) => setCurrentPassword(e.target.value)}
-                            placeholder="Enter current password"
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="new-pw" className="text-xs font-medium">New Password</Label>
-                            <Input
-                                id="new-pw"
-                                type="password"
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                placeholder="Min. 6 characters"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="confirm-pw" className="text-xs font-medium">Confirm Password</Label>
-                            <Input
-                                id="confirm-pw"
-                                type="password"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                placeholder="Repeat password"
-                            />
-                        </div>
-                    </div>
-                    {passwordMsg && (
-                        <p className={`text-xs ${passwordMsg.includes("success") ? "text-emerald-500" : "text-destructive"}`}>
-                            {passwordMsg}
-                        </p>
-                    )}
-                    <Button
-                        size="sm"
-                        onClick={handleChangePassword}
-                        disabled={savingPassword || !currentPassword || !newPassword || !confirmPassword}
-                    >
-                        {savingPassword ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : null}
-                        {savingPassword ? "Changing..." : "Change Password"}
-                    </Button>
                 </CardContent>
             </Card>
 
