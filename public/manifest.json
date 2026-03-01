@@ -1,11 +1,11 @@
 {
-    "name": "IT Asset & Inventory Management",
-    "short_name": "IT Assist",
-    "description": "Enterprise IT Asset and Inventory Management System",
+    "name": "National Group India — IT Management",
+    "short_name": "NGI IT",
+    "description": "Enterprise IT Asset and Project Management Platform",
     "start_url": "/dashboard",
     "display": "standalone",
     "background_color": "#ffffff",
-    "theme_color": "#2563eb",
+    "theme_color": "#059669",
     "icons": [
         {
             "src": "/icon-192x192.png",

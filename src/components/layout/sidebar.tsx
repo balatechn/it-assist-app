@@ -19,7 +19,7 @@ import {
     Sun,
     ChevronLeft,
     ChevronRight,
-    Zap,
+    Building2,
     Users,
     X,
 } from "lucide-react"
@@ -77,13 +77,13 @@ export function Sidebar() {
             >
             {/* Logo */}
             <div className="flex items-center gap-3 px-5 h-16 border-b border-white/5">
-                <div className="flex items-center justify-center w-9 h-9 rounded-lg gradient-primary shadow-lg">
-                    <Zap className="w-5 h-5 text-white" />
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg">
+                    <Building2 className="w-5 h-5 text-white" />
                 </div>
                 {(!collapsed || mobileSidebarOpen) && (
                     <div className="flex flex-col flex-1">
-                        <span className="text-sm font-bold text-white tracking-tight">TaskFlow</span>
-                        <span className="text-[10px] text-blue-400 font-medium tracking-widest uppercase">PRO</span>
+                        <span className="text-sm font-bold text-white tracking-tight">National Group</span>
+                        <span className="text-[10px] text-emerald-400 font-medium tracking-widest uppercase">India</span>
                     </div>
                 )}
                 {/* Mobile close button */}

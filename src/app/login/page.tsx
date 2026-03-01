@@ -4,7 +4,7 @@ import { Suspense, useState } from "react"
 import { signIn } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Zap, AlertCircle, Shield } from "lucide-react"
+import { AlertCircle, Shield, Building2 } from "lucide-react"
 
 export default function LoginPage() {
     return (
@@ -32,10 +32,10 @@ function LoginContent() {
     return (
         <div className="min-h-screen flex">
             {/* Left panel */}
-            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950">
+            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-emerald-950 via-teal-950 to-cyan-950">
                 <div className="absolute inset-0">
-                    <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
-                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+                    <div className="absolute top-20 left-20 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl animate-pulse" />
+                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
                 </div>
                 <div className="absolute inset-0 opacity-[0.03]" style={{
                     backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
@@ -43,28 +43,31 @@ function LoginContent() {
                 }} />
                 <div className="relative z-10 flex flex-col justify-center px-16">
                     <div className="flex items-center gap-3 mb-8">
-                        <div className="flex items-center justify-center w-12 h-12 rounded-xl gradient-primary shadow-lg shadow-blue-500/25">
-                            <Zap className="w-7 h-7 text-white" />
+                        <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/25">
+                            <Building2 className="w-7 h-7 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold text-white tracking-tight">TaskFlow</h1>
-                            <span className="text-xs text-blue-400 font-semibold tracking-[0.2em] uppercase">PRO</span>
+                            <h1 className="text-2xl font-bold text-white tracking-tight">National Group</h1>
+                            <span className="text-xs text-emerald-400 font-semibold tracking-[0.15em] uppercase">India</span>
                         </div>
                     </div>
                     <h2 className="text-4xl font-bold text-white leading-tight mb-4">
-                        Manage projects.<br />
-                        <span className="gradient-text">Deliver results.</span>
+                        IT Asset &amp; Project<br />
+                        <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">Management Platform</span>
                     </h2>
-                    <p className="text-lg text-blue-200/60 max-w-md leading-relaxed">
-                        Project &amp; task management integrated with Microsoft OneDrive. Kanban boards, Gantt charts, and real-time file collaboration.
+                    <p className="text-lg text-emerald-200/60 max-w-md leading-relaxed">
+                        Streamline your IT operations with project tracking, task management, and Microsoft 365 integration — all in one place.
                     </p>
                     <div className="mt-12 space-y-4">
-                        {["Kanban & Gantt project views", "OneDrive file integration", "Role-based access control", "Real-time notifications"].map((f, i) => (
+                        {["Kanban & Gantt project views", "Microsoft OneDrive integration", "Role-based access control", "Real-time notifications & audit logs"].map((f, i) => (
                             <div key={i} className="flex items-center gap-3">
-                                <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                                <span className="text-sm text-blue-200/50">{f}</span>
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                <span className="text-sm text-emerald-200/50">{f}</span>
                             </div>
                         ))}
+                    </div>
+                    <div className="mt-16 text-xs text-emerald-200/30">
+                        nationalgroupindia.com
                     </div>
                 </div>
             </div>
@@ -73,17 +76,17 @@ function LoginContent() {
             <div className="flex-1 flex items-center justify-center p-8 bg-background">
                 <div className="w-full max-w-[400px] space-y-8">
                     <div className="lg:hidden flex items-center gap-3 mb-4">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-lg gradient-primary shadow-lg">
-                            <Zap className="w-6 h-6 text-white" />
+                        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg">
+                            <Building2 className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <span className="text-lg font-bold">TaskFlow</span>
-                            <span className="text-[10px] text-blue-500 font-bold tracking-[0.2em] uppercase ml-1">PRO</span>
+                            <span className="text-lg font-bold">National Group</span>
+                            <span className="text-[10px] text-emerald-600 font-bold tracking-[0.15em] uppercase ml-1">India</span>
                         </div>
                     </div>
 
                     <div className="text-center space-y-2">
-                        <h2 className="text-2xl font-bold tracking-tight">Welcome to TaskFlow Pro</h2>
+                        <h2 className="text-2xl font-bold tracking-tight">Welcome to National Group India</h2>
                         <p className="text-muted-foreground">Sign in with your organization account</p>
                     </div>
 
@@ -94,7 +97,7 @@ function LoginContent() {
                                 <span className="font-medium">Error: {error}</span>
                             </div>
                             {errorDesc && <p className="text-xs opacity-75 pl-6">{errorDesc}</p>}
-                            <p className="text-xs opacity-75 pl-6">Callback: /api/auth/callback/microsoft-entra-id</p>
+                            <p className="text-xs opacity-75 pl-6">Callback: /api/auth/callback/azure-ad</p>
                         </div>
                     )}
 

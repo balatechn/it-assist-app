@@ -3,9 +3,9 @@ import { Providers } from "@/components/providers"
 import "./globals.css"
 
 export const metadata: Metadata = {
-    title: "TaskFlow Pro — Project & Task Management",
-    description: "Modern project management with Microsoft OneDrive integration. Plan, track, and collaborate with your team.",
-    keywords: "project management, task planner, OneDrive, collaboration, kanban",
+    title: "National Group India — IT Asset & Project Management",
+    description: "Enterprise IT asset and project management platform with Microsoft 365 integration. Plan, track, and collaborate.",
+    keywords: "national group india, IT management, project management, task planner, OneDrive, collaboration",
 }
 
 export default function RootLayout({

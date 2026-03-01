@@ -14,7 +14,7 @@ export const authOptions: NextAuthOptions = {
             tenantId: process.env.AZURE_AD_TENANT_ID!,
             authorization: {
                 params: {
-                    scope: "openid profile email User.Read offline_access",
+                    scope: "openid profile email User.Read Files.ReadWrite.All offline_access",
                 },
             },
         }),
