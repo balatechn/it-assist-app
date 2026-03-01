@@ -3,22 +3,27 @@ import prisma from "@/lib/db"
 import { Role } from "@prisma/client"
 
 export const authOptions: NextAuthOptions = {
+    secret: process.env.NEXTAUTH_SECRET,
     session: { strategy: "jwt", maxAge: 24 * 60 * 60 },
     providers: [
         {
             id: "azure-ad",
             name: "Microsoft",
             type: "oauth",
-            wellKnown: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID}/v2.0/.well-known/openid-configuration`,
             clientId: process.env.AZURE_AD_CLIENT_ID!,
             clientSecret: process.env.AZURE_AD_CLIENT_SECRET!,
             authorization: {
+                url: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID}/oauth2/v2.0/authorize`,
                 params: {
                     scope: "openid profile email User.Read offline_access",
                     response_type: "code",
                 },
             },
-            checks: ["state"],
+            token: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID}/oauth2/v2.0/token`,
+            userinfo: "https://graph.microsoft.com/oidc/userinfo",
+            issuer: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID}/v2.0`,
+            jwks_endpoint: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID}/discovery/v2.0/keys`,
+            checks: ["none"],
             idToken: true,
             profile(profile) {
                 return {
