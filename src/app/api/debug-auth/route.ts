@@ -1,5 +1,17 @@
 import { NextResponse } from "next/server"
 
+// Simple in-memory log capture for debugging
+const authLogs: string[] = []
+
+export function captureLog(msg: string) {
+    authLogs.push(`[${new Date().toISOString()}] ${msg}`)
+    if (authLogs.length > 50) authLogs.shift()
+}
+
+export function getAuthLogs() {
+    return authLogs
+}
+
 export async function GET() {
     const clientId = process.env.AZURE_AD_CLIENT_ID
     const clientSecret = process.env.AZURE_AD_CLIENT_SECRET
@@ -48,5 +60,6 @@ export async function GET() {
             ok: tokenEndpointOk,
             error: tokenError || undefined,
         },
+        recentAuthLogs: authLogs,
     })
 }
