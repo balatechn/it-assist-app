@@ -4,6 +4,7 @@ import prisma from "@/lib/db"
 import { Role } from "@prisma/client"
 
 export const authOptions: NextAuthOptions = {
+    debug: true,
     session: { strategy: "jwt", maxAge: 24 * 60 * 60 },
     providers: [
         AzureADProvider({
@@ -17,6 +18,7 @@ export const authOptions: NextAuthOptions = {
     ],
     callbacks: {
         async signIn({ user, account }) {
+            console.log("[AUTH] signIn callback hit", { email: user.email, provider: account?.provider });
             if (!user.email) return false;
 
             let dbUser = await prisma.user.findUnique({
