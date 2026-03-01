@@ -19,7 +19,6 @@ import {
     Sun,
     ChevronLeft,
     ChevronRight,
-    Building2,
     Users,
     X,
     Mail,
@@ -79,13 +78,12 @@ export function Sidebar() {
             >
             {/* Logo */}
             <div className="flex items-center gap-3 px-5 h-16 border-b border-white/5">
-                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg">
-                    <Building2 className="w-5 h-5 text-white" />
-                </div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/logo.webp" alt="National Group India" className={cn("transition-all duration-300", collapsed && !mobileSidebarOpen ? "h-8 w-auto" : "h-9 w-auto")} />
                 {(!collapsed || mobileSidebarOpen) && (
                     <div className="flex flex-col flex-1">
                         <span className="text-sm font-bold text-white tracking-tight">National Group</span>
-                        <span className="text-[10px] text-emerald-400 font-medium tracking-widest uppercase">India</span>
+                        <span className="text-[10px] font-medium tracking-widest uppercase" style={{ color: '#e2bf79' }}>India</span>
                     </div>
                 )}
                 {/* Mobile close button */}
@@ -121,11 +119,11 @@ export function Sidebar() {
                         >
                             <item.icon className={cn(
                                 "w-5 h-5 shrink-0 transition-colors",
-                                isActive ? "text-blue-400" : "text-sidebar-foreground/40 group-hover:text-blue-400/70"
+                                isActive ? "text-[#e2bf79]" : "text-sidebar-foreground/40 group-hover:text-[#e2bf79]/70"
                             )} />
                             {(!collapsed || mobileSidebarOpen) && <span>{item.label}</span>}
                             {isActive && (!collapsed || mobileSidebarOpen) && (
-                                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#e2bf79] animate-pulse" />
                             )}
                         </Link>
                     )
@@ -151,7 +149,7 @@ export function Sidebar() {
                                             : "text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent/50"
                                     )}
                                 >
-                                    <item.icon className="w-5 h-5 shrink-0 text-sidebar-foreground/40 group-hover:text-blue-400/70" />
+                                    <item.icon className="w-5 h-5 shrink-0 text-sidebar-foreground/40 group-hover:text-[#e2bf79]/70" />
                                     {(!collapsed || mobileSidebarOpen) && <span>{item.label}</span>}
                                 </Link>
                             )
@@ -189,7 +187,7 @@ export function Sidebar() {
                         collapsed && !mobileSidebarOpen && "justify-center"
                     )}>
                         <Avatar className="w-8 h-8">
-                            <AvatarFallback className="bg-blue-600 text-white text-xs">
+                            <AvatarFallback className="bg-[#916f44] text-white text-xs">
                                 {getInitials(session.user.name)}
                             </AvatarFallback>
                         </Avatar>

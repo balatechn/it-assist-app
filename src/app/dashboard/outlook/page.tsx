@@ -324,14 +324,14 @@ export default function OutlookPage() {
                 <Card className="border-dashed">
                     <CardContent className="py-16">
                         <div className="text-center max-w-md mx-auto">
-                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/20">
+                            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg" style={{ background: 'linear-gradient(135deg, #916f44, #e2bf79)', boxShadow: '0 10px 25px -5px rgba(145, 111, 68, 0.2)' }}>
                                 <Mail className="w-8 h-8 text-white" />
                             </div>
                             <h3 className="text-xl font-bold mb-2">Connect Outlook</h3>
                             <p className="text-sm text-muted-foreground mb-6">
                                 Sign in with your Microsoft account to access your emails directly within the app.
                             </p>
-                            <Button className="gradient-primary text-white shadow-lg shadow-blue-500/20" onClick={() => signIn("azure-ad")}>
+                            <Button className="gradient-primary text-white shadow-lg" style={{ boxShadow: '0 10px 25px -5px rgba(145, 111, 68, 0.2)' }} onClick={() => signIn("azure-ad")}>
                                 <Link2 className="w-4 h-4 mr-2" />
                                 Connect Microsoft 365
                             </Button>

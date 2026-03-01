@@ -4,7 +4,7 @@ import { Suspense, useState } from "react"
 import { signIn } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { AlertCircle, Shield, Building2 } from "lucide-react"
+import { AlertCircle, Shield } from "lucide-react"
 
 export default function LoginPage() {
     return (
@@ -32,41 +32,36 @@ function LoginContent() {
     return (
         <div className="min-h-screen flex">
             {/* Left panel */}
-            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-emerald-950 via-teal-950 to-cyan-950">
+            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #2a1f10 0%, #3d2b15 40%, #1a1510 100%)' }}>
                 <div className="absolute inset-0">
-                    <div className="absolute top-20 left-20 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl animate-pulse" />
-                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+                    <div className="absolute top-20 left-20 w-72 h-72 rounded-full blur-3xl animate-pulse" style={{ background: 'rgba(145, 111, 68, 0.1)' }} />
+                    <div className="absolute bottom-20 right-20 w-96 h-96 rounded-full blur-3xl animate-pulse" style={{ background: 'rgba(226, 191, 121, 0.08)', animationDelay: '1s' }} />
                 </div>
                 <div className="absolute inset-0 opacity-[0.03]" style={{
                     backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
                     backgroundSize: "60px 60px",
                 }} />
                 <div className="relative z-10 flex flex-col justify-center px-16">
-                    <div className="flex items-center gap-3 mb-8">
-                        <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/25">
-                            <Building2 className="w-7 h-7 text-white" />
-                        </div>
-                        <div>
-                            <h1 className="text-2xl font-bold text-white tracking-tight">National Group</h1>
-                            <span className="text-xs text-emerald-400 font-semibold tracking-[0.15em] uppercase">India</span>
-                        </div>
+                    <div className="flex items-center gap-4 mb-8">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/logo.webp" alt="National Group India" className="h-12" />
                     </div>
                     <h2 className="text-4xl font-bold text-white leading-tight mb-4">
                         IT Asset &amp; Project<br />
-                        <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">Management Platform</span>
+                        <span style={{ background: 'linear-gradient(90deg, #e2bf79, #ac8c66)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Management Platform</span>
                     </h2>
-                    <p className="text-lg text-emerald-200/60 max-w-md leading-relaxed">
+                    <p className="text-lg max-w-md leading-relaxed" style={{ color: 'rgba(226, 191, 121, 0.5)' }}>
                         Streamline your IT operations with project tracking, task management, and Microsoft 365 integration — all in one place.
                     </p>
                     <div className="mt-12 space-y-4">
-                        {["Kanban & Gantt project views", "Microsoft OneDrive integration", "Role-based access control", "Real-time notifications & audit logs"].map((f, i) => (
+                        {["Kanban & Gantt project views", "Microsoft OneDrive & Outlook", "Role-based access control", "Real-time notifications & audit logs"].map((f, i) => (
                             <div key={i} className="flex items-center gap-3">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                                <span className="text-sm text-emerald-200/50">{f}</span>
+                                <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#e2bf79' }} />
+                                <span className="text-sm" style={{ color: 'rgba(226, 191, 121, 0.45)' }}>{f}</span>
                             </div>
                         ))}
                     </div>
-                    <div className="mt-16 text-xs text-emerald-200/30">
+                    <div className="mt-16 text-xs" style={{ color: 'rgba(226, 191, 121, 0.25)' }}>
                         nationalgroupindia.com
                     </div>
                 </div>
@@ -76,13 +71,8 @@ function LoginContent() {
             <div className="flex-1 flex items-center justify-center p-8 bg-background">
                 <div className="w-full max-w-[400px] space-y-8">
                     <div className="lg:hidden flex items-center gap-3 mb-4">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg">
-                            <Building2 className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                            <span className="text-lg font-bold">National Group</span>
-                            <span className="text-[10px] text-emerald-600 font-bold tracking-[0.15em] uppercase ml-1">India</span>
-                        </div>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/logo.webp" alt="National Group India" className="h-10" />
                     </div>
 
                     <div className="text-center space-y-2">
