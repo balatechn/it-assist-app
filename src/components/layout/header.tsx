@@ -25,6 +25,7 @@ const pageTitles: Record<string, string> = {
     "/dashboard/notifications": "Notifications",
     "/dashboard/settings": "Settings",
     "/dashboard/audit-logs": "Audit Logs",
+    "/dashboard/outlook": "Outlook",
 }
 
 export function Header() {
@@ -109,7 +110,7 @@ export function Header() {
         if (pathname.startsWith("/dashboard/projects/") && pathname !== "/dashboard/projects") {
             return "Project Details"
         }
-        return pageTitles[pathname] || "TaskFlow Pro"
+        return pageTitles[pathname] || "National Group India"
     }
 
     return (

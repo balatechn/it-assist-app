@@ -30,6 +30,7 @@ export const config = {
         "/api/audit-logs/:path*",
         "/api/dashboard/:path*",
         "/api/onedrive/:path*",
+        "/api/outlook/:path*",
         "/api/files/:path*",
         "/api/search/:path*",
         "/api/profile/:path*",
