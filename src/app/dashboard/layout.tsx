@@ -2,6 +2,7 @@
 
 import { Sidebar } from "@/components/layout/sidebar"
 import { Header } from "@/components/layout/header"
+import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav"
 import { useSession } from "next-auth/react"
 import { redirect } from "next/navigation"
 import { useLayoutStore } from "@/lib/store"
@@ -40,10 +41,11 @@ export default function DashboardLayout({
                 sidebarCollapsed ? "md:ml-[70px]" : "md:ml-[260px]"
             )}>
                 <Header />
-                <main className="p-3 md:p-6">
+                <main className="p-3 md:p-6 pb-20 md:pb-6">
                     {children}
                 </main>
             </div>
+            <MobileBottomNav />
         </div>
     )
 }
