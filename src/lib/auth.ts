@@ -7,7 +7,7 @@ export const authOptions: NextAuthOptions = {
     session: { strategy: "jwt", maxAge: 24 * 60 * 60 },
     providers: [
         {
-            id: "azure-ad",
+            id: "microsoft-entra-id",
             name: "Microsoft",
             type: "oauth",
             clientId: process.env.AZURE_AD_CLIENT_ID!,

@@ -25,7 +25,7 @@ function LoginContent() {
 
     const handleLogin = () => {
         setLoading(true)
-        signIn("azure-ad", { callbackUrl: "/dashboard" })
+        signIn("microsoft-entra-id", { callbackUrl: "/dashboard" })
     }
 
     return (
