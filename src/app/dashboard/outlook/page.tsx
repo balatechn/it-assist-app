@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { signIn } from "next-auth/react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -38,6 +38,11 @@ interface Attachment {
     size: number
 }
 
+interface PersonSuggestion {
+    name: string
+    email: string
+}
+
 const folders = [
     { id: "inbox", label: "Inbox", icon: Inbox },
     { id: "sent", label: "Sent", icon: Send },
@@ -66,6 +71,67 @@ export default function OutlookPage() {
     const [composeSubject, setComposeSubject] = useState("")
     const [composeBody, setComposeBody] = useState("")
     const [sending, setSending] = useState(false)
+
+    // Autocomplete state
+    const [toSuggestions, setToSuggestions] = useState<PersonSuggestion[]>([])
+    const [ccSuggestions, setCcSuggestions] = useState<PersonSuggestion[]>([])
+    const [showToDropdown, setShowToDropdown] = useState(false)
+    const [showCcDropdown, setShowCcDropdown] = useState(false)
+    const toRef = useRef<HTMLDivElement>(null)
+    const ccRef = useRef<HTMLDivElement>(null)
+    const searchDebounce = useRef<NodeJS.Timeout | null>(null)
+
+    const searchPeople = useCallback(async (query: string, field: "to" | "cc") => {
+        if (query.length < 2) {
+            if (field === "to") setToSuggestions([])
+            else setCcSuggestions([])
+            return
+        }
+        try {
+            const res = await fetch(`/api/outlook/people?q=${encodeURIComponent(query)}`)
+            if (res.ok) {
+                const data = await res.json()
+                if (field === "to") {
+                    setToSuggestions(data.people || [])
+                    setShowToDropdown((data.people || []).length > 0)
+                } else {
+                    setCcSuggestions(data.people || [])
+                    setShowCcDropdown((data.people || []).length > 0)
+                }
+            }
+        } catch { /* ignore */ }
+    }, [])
+
+    const handleEmailFieldChange = (value: string, field: "to" | "cc") => {
+        if (field === "to") setComposeTo(value)
+        else setComposeCc(value)
+        // Get text after last comma for search
+        const parts = value.split(",")
+        const current = parts[parts.length - 1].trim()
+        if (searchDebounce.current) clearTimeout(searchDebounce.current)
+        searchDebounce.current = setTimeout(() => searchPeople(current, field), 300)
+    }
+
+    const selectSuggestion = (person: PersonSuggestion, field: "to" | "cc") => {
+        const setter = field === "to" ? setComposeTo : setComposeCc
+        const current = field === "to" ? composeTo : composeCc
+        const parts = current.split(",").map(s => s.trim()).filter(Boolean)
+        parts.pop() // remove partial typed text
+        parts.push(person.email)
+        setter(parts.join(", ") + ", ")
+        if (field === "to") { setShowToDropdown(false); setToSuggestions([]) }
+        else { setShowCcDropdown(false); setCcSuggestions([]) }
+    }
+
+    // Close dropdowns on outside click
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (toRef.current && !toRef.current.contains(e.target as Node)) setShowToDropdown(false)
+            if (ccRef.current && !ccRef.current.contains(e.target as Node)) setShowCcDropdown(false)
+        }
+        document.addEventListener("mousedown", handler)
+        return () => document.removeEventListener("mousedown", handler)
+    }, [])
 
     const fetchMessages = useCallback(async (folder: string, search?: string) => {
         setLoading(true)
@@ -277,54 +343,54 @@ export default function OutlookPage() {
     }
 
     return (
-        <div className="space-y-4">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h2 className="text-2xl font-bold tracking-tight">Outlook</h2>
-                    <p className="text-muted-foreground mt-1">
+        <div className="space-y-2">
+            {/* Header — compact */}
+            <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                    <h2 className="text-base font-semibold tracking-tight whitespace-nowrap">Outlook</h2>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
                         {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"} · {messages.length} messages
-                    </p>
+                    </span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                         <Input
                             placeholder="Search emails..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                            className="pl-9 w-64 bg-background"
+                            className="pl-8 w-48 h-8 text-xs bg-background"
                         />
                     </div>
-                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={refreshing}>
-                        <RefreshCw className={cn("w-4 h-4", refreshing && "animate-spin")} />
+                    <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleRefresh} disabled={refreshing}>
+                        <RefreshCw className={cn("w-3.5 h-3.5", refreshing && "animate-spin")} />
                     </Button>
-                    <Button onClick={startCompose}>
-                        <Plus className="w-4 h-4 mr-2" />
+                    <Button size="sm" className="h-8 text-xs" onClick={startCompose}>
+                        <Plus className="w-3.5 h-3.5 mr-1" />
                         Compose
                     </Button>
                 </div>
             </div>
 
-            <div className="flex gap-4 h-[calc(100vh-13rem)]">
-                {/* Folder sidebar */}
-                <div className="w-48 shrink-0 space-y-1 hidden md:block">
+            <div className="flex gap-3 h-[calc(100vh-8.5rem)]">
+                {/* Folder sidebar — compact */}
+                <div className="w-40 shrink-0 space-y-0.5 hidden md:block">
                     {folders.map((f) => (
                         <button
                             key={f.id}
                             onClick={() => { setActiveFolder(f.id); setSelectedMessage(null) }}
                             className={cn(
-                                "flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                                "flex items-center gap-2.5 w-full px-2.5 py-2 rounded-md text-xs font-medium transition-colors",
                                 activeFolder === f.id
                                     ? "bg-primary/10 text-primary"
                                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                             )}
                         >
-                            <f.icon className="w-4 h-4" />
+                            <f.icon className="w-3.5 h-3.5" />
                             <span>{f.label}</span>
                             {f.id === "inbox" && unreadCount > 0 && (
-                                <Badge variant="default" className="ml-auto text-[10px] px-1.5 py-0">
+                                <Badge variant="default" className="ml-auto text-[9px] px-1.5 py-0 leading-4">
                                     {unreadCount}
                                 </Badge>
                             )}
@@ -351,18 +417,18 @@ export default function OutlookPage() {
                     ))}
                 </div>
 
-                {/* Message list */}
-                <Card className={cn("flex-1 overflow-hidden", selectedMessage && "hidden md:block md:max-w-[400px]")}>
+                {/* Message list — compact */}
+                <Card className={cn("flex-1 overflow-hidden", selectedMessage && "hidden md:block md:max-w-[340px]")}>
                     <div className="h-full overflow-y-auto divide-y divide-border/50">
                         {loading ? (
                             <div className="flex items-center justify-center h-full">
-                                <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                                <Loader2 className="w-5 h-5 text-primary animate-spin" />
                             </div>
                         ) : messages.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full text-center py-12">
-                                <Mail className="w-12 h-12 text-muted-foreground/30 mb-4" />
-                                <h3 className="text-lg font-semibold mb-1">No emails</h3>
-                                <p className="text-sm text-muted-foreground">
+                            <div className="flex flex-col items-center justify-center h-full text-center py-8">
+                                <Mail className="w-10 h-10 text-muted-foreground/30 mb-3" />
+                                <h3 className="text-sm font-semibold mb-1">No emails</h3>
+                                <p className="text-xs text-muted-foreground">
                                     {searchQuery ? "No emails match your search" : `Your ${activeFolder} is empty`}
                                 </p>
                             </div>
@@ -372,52 +438,52 @@ export default function OutlookPage() {
                                     key={msg.id}
                                     onClick={() => openMessage(msg)}
                                     className={cn(
-                                        "flex items-start gap-3 p-4 cursor-pointer transition-colors hover:bg-muted/50",
+                                        "flex items-start gap-2.5 px-3 py-2.5 cursor-pointer transition-colors hover:bg-muted/50",
                                         selectedMessage?.id === msg.id && "bg-primary/5 border-l-2 border-primary",
                                         !msg.isRead && "bg-primary/[0.02]"
                                     )}
                                 >
-                                    <Avatar className="w-9 h-9 shrink-0 mt-0.5">
+                                    <Avatar className="w-8 h-8 shrink-0 mt-0.5">
                                         <AvatarFallback className={cn(
-                                            "text-xs",
+                                            "text-[10px]",
                                             !msg.isRead ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
                                         )}>
                                             {getInitials(msg.from.emailAddress.name)}
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-0.5">
+                                        <div className="flex items-center gap-1.5 mb-0.5">
                                             <span className={cn(
-                                                "text-sm truncate",
+                                                "text-xs truncate",
                                                 !msg.isRead ? "font-semibold" : "font-medium text-muted-foreground"
                                             )}>
                                                 {msg.from.emailAddress.name || msg.from.emailAddress.address}
                                             </span>
-                                            <span className="text-[10px] text-muted-foreground/60 whitespace-nowrap ml-auto shrink-0">
+                                            <span className="text-[9px] text-muted-foreground/60 whitespace-nowrap ml-auto shrink-0">
                                                 {formatDistanceToNow(new Date(msg.receivedDateTime), { addSuffix: true })}
                                             </span>
                                         </div>
                                         <p className={cn(
-                                            "text-sm truncate mb-0.5",
+                                            "text-xs truncate mb-0.5",
                                             !msg.isRead ? "font-medium" : "text-muted-foreground"
                                         )}>
                                             {msg.subject || "(No subject)"}
                                         </p>
-                                        <p className="text-xs text-muted-foreground/60 truncate">
+                                        <p className="text-[11px] text-muted-foreground/60 truncate">
                                             {msg.bodyPreview}
                                         </p>
-                                        <div className="flex items-center gap-2 mt-1.5">
+                                        <div className="flex items-center gap-1.5 mt-1">
                                             {msg.importance === "high" && (
-                                                <AlertTriangle className="w-3 h-3 text-destructive" />
+                                                <AlertTriangle className="w-2.5 h-2.5 text-destructive" />
                                             )}
                                             {msg.hasAttachments && (
-                                                <Paperclip className="w-3 h-3 text-muted-foreground/50" />
+                                                <Paperclip className="w-2.5 h-2.5 text-muted-foreground/50" />
                                             )}
                                             {msg.flag?.flagStatus === "flagged" && (
-                                                <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                                                <Star className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />
                                             )}
                                             {!msg.isRead && (
-                                                <div className="w-2 h-2 rounded-full bg-primary" />
+                                                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                                             )}
                                         </div>
                                     </div>
@@ -433,58 +499,107 @@ export default function OutlookPage() {
                         {showCompose ? (
                             /* Compose view */
                             <div className="flex flex-col h-full">
-                                <div className="flex items-center justify-between p-4 border-b">
-                                    <h3 className="font-semibold">
+                                <div className="flex items-center justify-between px-4 py-2.5 border-b">
+                                    <h3 className="text-sm font-semibold">
                                         {showReply ? "Reply" : "New Email"}
                                     </h3>
-                                    <Button variant="ghost" size="icon" onClick={() => { setShowCompose(false); setShowReply(false) }}>
-                                        <X className="w-4 h-4" />
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setShowCompose(false); setShowReply(false) }}>
+                                        <X className="w-3.5 h-3.5" />
                                     </Button>
                                 </div>
-                                <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                                    <div>
-                                        <label className="text-xs font-medium text-muted-foreground mb-1 block">To</label>
+                                <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
+                                    {/* To field with autocomplete */}
+                                    <div ref={toRef} className="relative">
+                                        <label className="text-[10px] font-medium text-muted-foreground mb-0.5 block">To</label>
                                         <Input
-                                            placeholder="recipient@example.com (comma-separated)"
+                                            placeholder="Start typing a name or email..."
                                             value={composeTo}
-                                            onChange={(e) => setComposeTo(e.target.value)}
+                                            onChange={(e) => handleEmailFieldChange(e.target.value, "to")}
+                                            onFocus={() => { if (toSuggestions.length > 0) setShowToDropdown(true) }}
+                                            className="h-8 text-xs"
                                         />
+                                        {showToDropdown && toSuggestions.length > 0 && (
+                                            <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-lg max-h-48 overflow-y-auto">
+                                                {toSuggestions.map((person, i) => (
+                                                    <button
+                                                        key={i}
+                                                        className="flex items-center gap-2.5 w-full px-3 py-2 text-left hover:bg-muted transition-colors"
+                                                        onMouseDown={(e) => { e.preventDefault(); selectSuggestion(person, "to") }}
+                                                    >
+                                                        <Avatar className="w-6 h-6 shrink-0">
+                                                            <AvatarFallback className="text-[9px] bg-primary/10 text-primary">
+                                                                {getInitials(person.name)}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <div className="min-w-0">
+                                                            <p className="text-xs font-medium truncate">{person.name}</p>
+                                                            <p className="text-[10px] text-muted-foreground truncate">{person.email}</p>
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
-                                    <div>
-                                        <label className="text-xs font-medium text-muted-foreground mb-1 block">Cc</label>
+                                    {/* Cc field with autocomplete */}
+                                    <div ref={ccRef} className="relative">
+                                        <label className="text-[10px] font-medium text-muted-foreground mb-0.5 block">Cc</label>
                                         <Input
-                                            placeholder="cc@example.com (optional)"
+                                            placeholder="Start typing a name or email... (optional)"
                                             value={composeCc}
-                                            onChange={(e) => setComposeCc(e.target.value)}
+                                            onChange={(e) => handleEmailFieldChange(e.target.value, "cc")}
+                                            onFocus={() => { if (ccSuggestions.length > 0) setShowCcDropdown(true) }}
+                                            className="h-8 text-xs"
                                         />
+                                        {showCcDropdown && ccSuggestions.length > 0 && (
+                                            <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-lg max-h-48 overflow-y-auto">
+                                                {ccSuggestions.map((person, i) => (
+                                                    <button
+                                                        key={i}
+                                                        className="flex items-center gap-2.5 w-full px-3 py-2 text-left hover:bg-muted transition-colors"
+                                                        onMouseDown={(e) => { e.preventDefault(); selectSuggestion(person, "cc") }}
+                                                    >
+                                                        <Avatar className="w-6 h-6 shrink-0">
+                                                            <AvatarFallback className="text-[9px] bg-primary/10 text-primary">
+                                                                {getInitials(person.name)}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <div className="min-w-0">
+                                                            <p className="text-xs font-medium truncate">{person.name}</p>
+                                                            <p className="text-[10px] text-muted-foreground truncate">{person.email}</p>
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                     <div>
-                                        <label className="text-xs font-medium text-muted-foreground mb-1 block">Subject</label>
+                                        <label className="text-[10px] font-medium text-muted-foreground mb-0.5 block">Subject</label>
                                         <Input
                                             placeholder="Email subject"
                                             value={composeSubject}
                                             onChange={(e) => setComposeSubject(e.target.value)}
+                                            className="h-8 text-xs"
                                         />
                                     </div>
                                     <div className="flex-1">
-                                        <label className="text-xs font-medium text-muted-foreground mb-1 block">Message</label>
+                                        <label className="text-[10px] font-medium text-muted-foreground mb-0.5 block">Message</label>
                                         <textarea
-                                            className="w-full min-h-[200px] p-3 rounded-lg border bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                                            className="w-full min-h-[180px] p-2.5 rounded-md border bg-background text-xs resize-none focus:outline-none focus:ring-2 focus:ring-ring"
                                             placeholder="Write your message..."
                                             value={composeBody}
                                             onChange={(e) => setComposeBody(e.target.value)}
                                         />
                                     </div>
                                 </div>
-                                <div className="p-4 border-t flex justify-end gap-2">
-                                    <Button variant="outline" onClick={() => { setShowCompose(false); setShowReply(false) }}>
+                                <div className="px-3 py-2.5 border-t flex justify-end gap-2">
+                                    <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => { setShowCompose(false); setShowReply(false) }}>
                                         Cancel
                                     </Button>
-                                    <Button onClick={handleSend} disabled={sending || !composeTo || !composeSubject || !composeBody}>
+                                    <Button size="sm" className="h-8 text-xs" onClick={handleSend} disabled={sending || !composeTo || !composeSubject || !composeBody}>
                                         {sending ? (
-                                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
                                         ) : (
-                                            <Send className="w-4 h-4 mr-2" />
+                                            <Send className="w-3.5 h-3.5 mr-1.5" />
                                         )}
                                         Send
                                     </Button>
@@ -494,54 +609,54 @@ export default function OutlookPage() {
                             /* Message detail view */
                             <div className="flex flex-col h-full">
                                 {/* Message header */}
-                                <div className="p-4 border-b space-y-3">
-                                    <div className="flex items-start justify-between gap-3">
+                                <div className="px-4 py-2.5 border-b space-y-2">
+                                    <div className="flex items-start justify-between gap-2">
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="md:hidden shrink-0"
+                                            className="md:hidden shrink-0 h-7 w-7"
                                             onClick={() => setSelectedMessage(null)}
                                         >
-                                            <ChevronLeft className="w-4 h-4" />
+                                            <ChevronLeft className="w-3.5 h-3.5" />
                                         </Button>
-                                        <h3 className="text-lg font-semibold flex-1 leading-tight">
+                                        <h3 className="text-sm font-semibold flex-1 leading-tight">
                                             {selectedMessage.subject || "(No subject)"}
                                         </h3>
-                                        <div className="flex items-center gap-1 shrink-0">
-                                            <Button variant="ghost" size="icon" onClick={() => startReply(selectedMessage)} title="Reply">
-                                                <Reply className="w-4 h-4" />
+                                        <div className="flex items-center gap-0.5 shrink-0">
+                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startReply(selectedMessage)} title="Reply">
+                                                <Reply className="w-3.5 h-3.5" />
                                             </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => startForward(selectedMessage)} title="Forward">
-                                                <Forward className="w-4 h-4" />
+                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startForward(selectedMessage)} title="Forward">
+                                                <Forward className="w-3.5 h-3.5" />
                                             </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => handleToggleRead(selectedMessage)} title={selectedMessage.isRead ? "Mark unread" : "Mark read"}>
-                                                {selectedMessage.isRead ? <Mail className="w-4 h-4" /> : <MailOpen className="w-4 h-4" />}
+                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleToggleRead(selectedMessage)} title={selectedMessage.isRead ? "Mark unread" : "Mark read"}>
+                                                {selectedMessage.isRead ? <Mail className="w-3.5 h-3.5" /> : <MailOpen className="w-3.5 h-3.5" />}
                                             </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => handleToggleFlag(selectedMessage)} title="Flag">
-                                                <Star className={cn("w-4 h-4", selectedMessage.flag?.flagStatus === "flagged" && "text-amber-500 fill-amber-500")} />
+                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleToggleFlag(selectedMessage)} title="Flag">
+                                                <Star className={cn("w-3.5 h-3.5", selectedMessage.flag?.flagStatus === "flagged" && "text-amber-500 fill-amber-500")} />
                                             </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(selectedMessage.id)} title="Delete" className="text-destructive hover:text-destructive">
-                                                <Trash2 className="w-4 h-4" />
+                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(selectedMessage.id)} title="Delete" className="h-7 w-7 text-destructive hover:text-destructive">
+                                                <Trash2 className="w-3.5 h-3.5" />
                                             </Button>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <Avatar className="w-10 h-10">
-                                            <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                                    <div className="flex items-center gap-2.5">
+                                        <Avatar className="w-8 h-8">
+                                            <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
                                                 {getInitials(selectedMessage.from.emailAddress.name)}
                                             </AvatarFallback>
                                         </Avatar>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium">
+                                            <p className="text-xs font-medium">
                                                 {selectedMessage.from.emailAddress.name}
                                             </p>
-                                            <p className="text-xs text-muted-foreground">
+                                            <p className="text-[10px] text-muted-foreground">
                                                 {selectedMessage.from.emailAddress.address}
                                             </p>
                                         </div>
                                         <div className="text-right shrink-0">
-                                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                                <Clock className="w-3 h-3" />
+                                            <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                                <Clock className="w-2.5 h-2.5" />
                                                 {format(new Date(selectedMessage.receivedDateTime), "PPp")}
                                             </p>
                                         </div>
@@ -601,9 +716,9 @@ export default function OutlookPage() {
                                 </div>
 
                                 {/* Quick reply bar */}
-                                <div className="p-3 border-t">
-                                    <Button variant="outline" className="w-full justify-start text-muted-foreground" onClick={() => startReply(selectedMessage)}>
-                                        <Reply className="w-4 h-4 mr-2" />
+                                <div className="px-3 py-2 border-t">
+                                    <Button variant="outline" size="sm" className="w-full justify-start text-muted-foreground text-xs h-8" onClick={() => startReply(selectedMessage)}>
+                                        <Reply className="w-3.5 h-3.5 mr-1.5" />
                                         Reply to {selectedMessage.from.emailAddress.name || "sender"}...
                                     </Button>
                                 </div>
@@ -623,9 +738,9 @@ export default function OutlookPage() {
                 {!selectedMessage && !showCompose && (
                     <Card className="flex-1 hidden md:flex items-center justify-center">
                         <div className="text-center">
-                            <MailOpen className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
-                            <h3 className="text-lg font-semibold mb-1">Select an email</h3>
-                            <p className="text-sm text-muted-foreground">Choose an email from the list to read it here</p>
+                            <MailOpen className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3" />
+                            <h3 className="text-sm font-semibold mb-1">Select an email</h3>
+                            <p className="text-xs text-muted-foreground">Choose an email from the list to read it here</p>
                         </div>
                     </Card>
                 )}
