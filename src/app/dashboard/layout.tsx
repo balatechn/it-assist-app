@@ -40,7 +40,7 @@ export default function DashboardLayout({
                 sidebarCollapsed ? "md:ml-[70px]" : "md:ml-[260px]"
             )}>
                 <Header />
-                <main className="p-6">
+                <main className="p-3 md:p-6">
                     {children}
                 </main>
             </div>

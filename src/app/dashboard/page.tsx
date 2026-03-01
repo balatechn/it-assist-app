@@ -126,17 +126,17 @@ export default function DashboardPage() {
     return (
         <div className="space-y-6">
             {/* Welcome */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight">
+                    <h2 className="text-xl md:text-2xl font-bold tracking-tight">
                         Welcome back, {session?.user?.name?.split(" ")[0]} 👋
                     </h2>
-                    <p className="text-muted-foreground mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                         Here&apos;s what&apos;s happening with your projects today.
                     </p>
                 </div>
                 <Link href="/dashboard/projects/new">
-                    <Button className="gradient-primary text-white shadow-lg shadow-blue-500/20">
+                    <Button className="gradient-primary text-white shadow-lg shadow-blue-500/20 w-full sm:w-auto">
                         <Plus className="w-4 h-4 mr-2" />
                         New Project
                     </Button>
@@ -199,7 +199,7 @@ export default function DashboardPage() {
                                         {project.clientName || "No client"} • {project._count.tasks} tasks
                                     </p>
                                 </div>
-                                <div className="flex items-center gap-3 shrink-0">
+                                <div className="flex items-center gap-3 shrink-0 hidden sm:flex">
                                     <div className="w-24">
                                         <Progress value={project.progress} className="h-1.5" />
                                     </div>
@@ -298,18 +298,18 @@ export default function DashboardPage() {
                                 <Badge className={cn("text-[10px] shrink-0", getPriorityColor(task.priority))}>
                                     {task.priority}
                                 </Badge>
-                                <Badge className={cn("text-[10px] shrink-0", getStatusColor(task.status))}>
+                                <Badge className={cn("text-[10px] shrink-0 hidden sm:inline-flex", getStatusColor(task.status))}>
                                     {task.status.replace("_", " ")}
                                 </Badge>
                                 {task.assignee && (
-                                    <Avatar className="w-7 h-7 shrink-0">
+                                    <Avatar className="w-7 h-7 shrink-0 hidden sm:flex">
                                         <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
                                             {getInitials(task.assignee.name)}
                                         </AvatarFallback>
                                     </Avatar>
                                 )}
                                 {task.dueDate && (
-                                    <span className="text-xs text-muted-foreground shrink-0">
+                                    <span className="text-xs text-muted-foreground shrink-0 hidden lg:block">
                                         {formatDate(task.dueDate)}
                                     </span>
                                 )}

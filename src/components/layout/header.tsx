@@ -113,23 +113,36 @@ export function Header() {
         return pageTitles[pathname] || "National Group India"
     }
 
+    // Mobile search state
+    const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
+
     return (
-        <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-6 border-b border-border/50 bg-background/80 backdrop-blur-xl">
-            <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-30 flex items-center justify-between h-14 md:h-16 px-3 md:px-6 border-b border-border/50 bg-background/80 backdrop-blur-xl">
+            <div className="flex items-center gap-2 md:gap-3 min-w-0">
                 {/* Mobile hamburger */}
                 <Button
                     variant="ghost"
                     size="icon-sm"
-                    className="md:hidden"
+                    className="md:hidden shrink-0"
                     onClick={() => setMobileSidebarOpen(true)}
                 >
                     <Menu className="w-5 h-5" />
                 </Button>
-                <h1 className="text-xl font-bold text-foreground tracking-tight">{getTitle()}</h1>
+                <h1 className="text-base md:text-xl font-bold text-foreground tracking-tight truncate">{getTitle()}</h1>
             </div>
 
-            <div className="flex items-center gap-3">
-                {/* Search */}
+            <div className="flex items-center gap-1.5 md:gap-3">
+                {/* Mobile search toggle */}
+                <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className="md:hidden"
+                    onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+                >
+                    <Search className="w-4.5 h-4.5 text-muted-foreground" />
+                </Button>
+
+                {/* Desktop search */}
                 <div className="relative hidden md:block" ref={searchRef}>
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     {searching && (
@@ -222,7 +235,7 @@ export function Header() {
                     <Button variant="ghost" size="icon-sm" className="relative">
                         <Bell className="w-5 h-5 text-muted-foreground" />
                         {unreadCount > 0 && (
-                            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-blue-500 rounded-full text-[10px] text-white flex items-center justify-center font-bold">
+                            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-[10px] text-white flex items-center justify-center font-bold" style={{ background: '#ac8c66' }}>
                                 {unreadCount > 9 ? "9+" : unreadCount}
                             </span>
                         )}
@@ -231,7 +244,7 @@ export function Header() {
 
                 {/* User menu */}
                 {session?.user && (
-                    <div className="flex items-center gap-2 pl-3 border-l border-border/50">
+                    <div className="flex items-center gap-1.5 md:gap-2 pl-2 md:pl-3 border-l border-border/50">
                         <Avatar className="w-8 h-8">
                             <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
                                 {getInitials(session.user.name)}
@@ -252,6 +265,62 @@ export function Header() {
                     </div>
                 )}
             </div>
+
+            {/* Mobile search overlay */}
+            {mobileSearchOpen && (
+                <div className="absolute top-full left-0 right-0 md:hidden border-b border-border/50 bg-background/95 backdrop-blur-xl px-3 py-2 z-40">
+                    <div className="relative" ref={searchRef}>
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        {searching && (
+                            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground animate-spin" />
+                        )}
+                        <Input
+                            placeholder="Search projects, tasks..."
+                            className="w-full pl-9 bg-muted/50 border-0 focus-visible:ring-1"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onFocus={() => { if (searchResults) setShowResults(true) }}
+                            autoFocus
+                        />
+                        {showResults && searchResults && (
+                            <div className="absolute top-full left-0 right-0 mt-1 bg-popover border border-border rounded-lg shadow-lg z-50 max-h-[300px] overflow-y-auto">
+                                {searchResults.projects.length === 0 && searchResults.tasks.length === 0 ? (
+                                    <div className="p-4 text-center text-sm text-muted-foreground">
+                                        No results for &quot;{searchQuery}&quot;
+                                    </div>
+                                ) : (
+                                    <>
+                                        {searchResults.projects.map((p) => (
+                                            <button
+                                                key={p.id}
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 text-left"
+                                                onClick={() => { router.push(`/dashboard/projects/${p.id}`); setShowResults(false); setMobileSearchOpen(false) }}
+                                            >
+                                                <div className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold shrink-0" style={{ backgroundColor: p.color || "#3B82F6" }}>
+                                                    {p.name.charAt(0)}
+                                                </div>
+                                                <p className="text-sm font-medium truncate flex-1">{p.name}</p>
+                                                <Badge className={cn("text-[9px]", getStatusColor(p.status))}>{p.status.replace("_", " ")}</Badge>
+                                            </button>
+                                        ))}
+                                        {searchResults.tasks.map((t) => (
+                                            <button
+                                                key={t.id}
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 text-left"
+                                                onClick={() => { router.push(`/dashboard/projects/${t.project.id}`); setShowResults(false); setMobileSearchOpen(false) }}
+                                            >
+                                                <CheckSquare className="w-4 h-4 text-muted-foreground shrink-0" />
+                                                <p className="text-sm font-medium truncate flex-1">{t.title}</p>
+                                                <Badge className={cn("text-[9px]", getPriorityColor(t.priority))}>{t.priority}</Badge>
+                                            </button>
+                                        ))}
+                                    </>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </header>
     )
 }
