@@ -343,16 +343,56 @@ export default function OutlookPage() {
     }
 
     return (
-        <div className="space-y-2">
+        <div className="space-y-2 md:space-y-2 h-full flex flex-col">
             {/* Header — compact */}
-            <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                    <h2 className="text-base font-semibold tracking-tight whitespace-nowrap">Outlook</h2>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">
-                        {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"} · {messages.length} messages
-                    </span>
+            <div className="flex items-center justify-between gap-2 px-2 md:px-0 pt-2 md:pt-0 shrink-0">
+                <div className="flex items-center gap-2 min-w-0">
+                    {/* Mobile back button when viewing email */}
+                    {selectedMessage && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="md:hidden h-8 w-8 shrink-0"
+                            onClick={() => setSelectedMessage(null)}
+                        >
+                            <ChevronLeft className="w-4 h-4" />
+                        </Button>
+                    )}
+                    <h2 className="text-sm md:text-base font-semibold tracking-tight whitespace-nowrap">
+                        {selectedMessage ? "Email" : "Outlook"}
+                    </h2>
+                    {!selectedMessage && (
+                        <span className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap">
+                            {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"} · {messages.length}
+                        </span>
+                    )}
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1">
+                    {!selectedMessage && (
+                        <div className="relative hidden sm:block">
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                            <Input
+                                placeholder="Search emails..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                                className="pl-8 w-36 md:w-48 h-8 text-xs bg-background"
+                            />
+                        </div>
+                    )}
+                    <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleRefresh} disabled={refreshing}>
+                        <RefreshCw className={cn("w-3.5 h-3.5", refreshing && "animate-spin")} />
+                    </Button>
+                    <Button size="sm" className="h-8 text-xs" onClick={startCompose}>
+                        <Plus className="w-3.5 h-3.5 mr-1" />
+                        <span className="hidden sm:inline">Compose</span>
+                    </Button>
+                </div>
+            </div>
+
+            {/* Mobile search bar */}
+            {!selectedMessage && !showCompose && (
+                <div className="sm:hidden px-2 shrink-0">
                     <div className="relative">
                         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                         <Input
@@ -360,20 +400,13 @@ export default function OutlookPage() {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                            className="pl-8 w-48 h-8 text-xs bg-background"
+                            className="pl-8 h-8 text-xs bg-muted/50 border-0 w-full"
                         />
                     </div>
-                    <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleRefresh} disabled={refreshing}>
-                        <RefreshCw className={cn("w-3.5 h-3.5", refreshing && "animate-spin")} />
-                    </Button>
-                    <Button size="sm" className="h-8 text-xs" onClick={startCompose}>
-                        <Plus className="w-3.5 h-3.5 mr-1" />
-                        Compose
-                    </Button>
                 </div>
-            </div>
+            )}
 
-            <div className="flex gap-3 h-[calc(100vh-8.5rem)]">
+            <div className="flex gap-3 flex-1 min-h-0 px-2 md:px-0 pb-2 md:pb-0">
                 {/* Folder sidebar — compact */}
                 <div className="w-40 shrink-0 space-y-0.5 hidden md:block">
                     {folders.map((f) => (
@@ -418,7 +451,11 @@ export default function OutlookPage() {
                 </div>
 
                 {/* Message list — compact */}
-                <Card className={cn("flex-1 overflow-hidden", selectedMessage && "hidden md:block md:max-w-[340px]")}>
+                <Card className={cn(
+                    "flex-1 overflow-hidden",
+                    selectedMessage && "hidden md:block md:max-w-[340px]",
+                    showCompose && "hidden md:block md:max-w-[340px]"
+                )}>
                     <div className="h-full overflow-y-auto divide-y divide-border/50">
                         {loading ? (
                             <div className="flex items-center justify-center h-full">
@@ -611,14 +648,6 @@ export default function OutlookPage() {
                                 {/* Message header */}
                                 <div className="px-4 py-2.5 border-b space-y-2">
                                     <div className="flex items-start justify-between gap-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="md:hidden shrink-0 h-7 w-7"
-                                            onClick={() => setSelectedMessage(null)}
-                                        >
-                                            <ChevronLeft className="w-3.5 h-3.5" />
-                                        </Button>
                                         <h3 className="text-sm font-semibold flex-1 leading-tight">
                                             {selectedMessage.subject || "(No subject)"}
                                         </h3>

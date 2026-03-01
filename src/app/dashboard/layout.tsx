@@ -4,7 +4,7 @@ import { Sidebar } from "@/components/layout/sidebar"
 import { Header } from "@/components/layout/header"
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav"
 import { useSession } from "next-auth/react"
-import { redirect } from "next/navigation"
+import { redirect, usePathname } from "next/navigation"
 import { useLayoutStore } from "@/lib/store"
 import { cn } from "@/lib/utils"
 
@@ -14,6 +14,7 @@ export default function DashboardLayout({
     children: React.ReactNode
 }) {
     const sidebarCollapsed = useLayoutStore((state) => state.sidebarCollapsed)
+    const pathname = usePathname()
 
     const { status } = useSession({
         required: true,
@@ -21,6 +22,9 @@ export default function DashboardLayout({
             redirect("/login")
         },
     })
+
+    // Pages that can go full-screen on mobile (hide header+nav when active)
+    const isFullScreenMobilePage = pathname === "/dashboard/outlook"
 
     if (status === "loading") {
         return (
@@ -41,7 +45,10 @@ export default function DashboardLayout({
                 sidebarCollapsed ? "md:ml-[70px]" : "md:ml-[260px]"
             )}>
                 <Header />
-                <main className="p-3 md:p-6 pb-20 md:pb-6">
+                <main className={cn(
+                    "p-3 md:p-6 pb-20 md:pb-6",
+                    isFullScreenMobilePage && "mobile-fullscreen-page"
+                )}>
                     {children}
                 </main>
             </div>

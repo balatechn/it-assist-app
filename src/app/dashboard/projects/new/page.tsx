@@ -18,6 +18,7 @@ export default function NewProjectPage() {
     const router = useRouter()
     const { data: session } = useSession()
     const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
 
     // Redirect unauthorized roles
     useEffect(() => {
@@ -40,18 +41,29 @@ export default function NewProjectPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
+        setError(null)
 
         try {
             const res = await fetch("/api/projects", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(form),
+                body: JSON.stringify({
+                    ...form,
+                    startDate: form.startDate || null,
+                    endDate: form.endDate || null,
+                    budget: form.budget || null,
+                }),
             })
 
             if (res.ok) {
                 const project = await res.json()
                 router.push(`/dashboard/projects/${project.id}`)
+            } else {
+                const data = await res.json().catch(() => ({}))
+                setError(data.error || `Failed to create project (${res.status})`)
             }
+        } catch {
+            setError("Network error. Please try again.")
         } finally {
             setLoading(false)
         }
@@ -72,8 +84,13 @@ export default function NewProjectPage() {
             </div>
 
             <Card>
-                <CardContent className="p-6">
+                <CardContent className="p-4 md:p-6">
                     <form onSubmit={handleSubmit} className="space-y-5">
+                        {error && (
+                            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+                                {error}
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Project Name *</label>
                             <Input
