@@ -22,6 +22,8 @@ import {
     Building2,
     Users,
     X,
+    Mail,
+    ExternalLink,
 } from "lucide-react"
 import { useLayoutStore } from "@/lib/store"
 
@@ -33,6 +35,10 @@ const navItems = [
     { href: "/dashboard/files", label: "OneDrive", icon: Cloud },
     { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
     { href: "/dashboard/settings", label: "Settings", icon: Settings },
+]
+
+const externalLinks = [
+    { href: "https://outlook.office.com/mail", label: "Outlook", icon: Mail },
 ]
 
 const adminItems = [
@@ -156,6 +162,30 @@ export function Sidebar() {
                         })}
                     </>
                 )}
+
+                {/* External links */}
+                {(!collapsed || mobileSidebarOpen) && (
+                    <p className="px-3 mt-6 mb-2 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
+                        Microsoft 365
+                    </p>
+                )}
+                {externalLinks.map((item) => (
+                    <a
+                        key={item.href}
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent/50"
+                    >
+                        <item.icon className="w-5 h-5 shrink-0 text-sidebar-foreground/40 group-hover:text-blue-400/70" />
+                        {(!collapsed || mobileSidebarOpen) && (
+                            <>
+                                <span>{item.label}</span>
+                                <ExternalLink className="ml-auto w-3.5 h-3.5 text-sidebar-foreground/30 group-hover:text-sidebar-foreground/50" />
+                            </>
+                        )}
+                    </a>
+                ))}
             </nav>
 
             {/* Bottom section */}
