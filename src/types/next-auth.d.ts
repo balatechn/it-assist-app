@@ -3,9 +3,9 @@ import "next-auth"
 
 declare module "next-auth" {
     interface User {
-        role: Role
-        organizationId: string
-        organizationName: string
+        role?: Role
+        organizationId?: string
+        organizationName?: string
         avatar?: string
     }
 

@@ -8,7 +8,11 @@ import { Zap, AlertCircle, Shield } from "lucide-react"
 
 export default function LoginPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" /></div>}>
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
+            </div>
+        }>
             <LoginContent />
         </Suspense>
     )
@@ -17,30 +21,25 @@ export default function LoginPage() {
 function LoginContent() {
     const searchParams = useSearchParams()
     const [loading, setLoading] = useState(false)
-    const error = searchParams.get("error") || ""
+    const error = searchParams.get("error")
 
-    const handleMicrosoftLogin = () => {
+    const handleLogin = () => {
         setLoading(true)
         signIn("azure-ad", { callbackUrl: "/dashboard" })
     }
 
     return (
         <div className="min-h-screen flex">
-            {/* Left panel - branding */}
+            {/* Left panel */}
             <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950">
-                {/* Animated background elements */}
                 <div className="absolute inset-0">
                     <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
                     <div className="absolute bottom-20 right-20 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
-                    <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-cyan-500/5 rounded-full blur-2xl animate-pulse" style={{ animationDelay: "2s" }} />
                 </div>
-
-                {/* Grid pattern overlay */}
                 <div className="absolute inset-0 opacity-[0.03]" style={{
-                    backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-                    backgroundSize: '60px 60px'
+                    backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
+                    backgroundSize: "60px 60px",
                 }} />
-
                 <div className="relative z-10 flex flex-col justify-center px-16">
                     <div className="flex items-center gap-3 mb-8">
                         <div className="flex items-center justify-center w-12 h-12 rounded-xl gradient-primary shadow-lg shadow-blue-500/25">
@@ -51,36 +50,27 @@ function LoginContent() {
                             <span className="text-xs text-blue-400 font-semibold tracking-[0.2em] uppercase">PRO</span>
                         </div>
                     </div>
-
                     <h2 className="text-4xl font-bold text-white leading-tight mb-4">
                         Manage projects.<br />
                         <span className="gradient-text">Deliver results.</span>
                     </h2>
                     <p className="text-lg text-blue-200/60 max-w-md leading-relaxed">
-                        Project & task management integrated with Microsoft OneDrive. Kanban boards, Gantt charts, and real-time file collaboration.
+                        Project &amp; task management integrated with Microsoft OneDrive. Kanban boards, Gantt charts, and real-time file collaboration.
                     </p>
-
-                    {/* Feature highlights */}
                     <div className="mt-12 space-y-4">
-                        {[
-                            "Kanban & Gantt project views",
-                            "OneDrive file integration",
-                            "Role-based access control",
-                            "Real-time notifications",
-                        ].map((feature, i) => (
+                        {["Kanban & Gantt project views", "OneDrive file integration", "Role-based access control", "Real-time notifications"].map((f, i) => (
                             <div key={i} className="flex items-center gap-3">
                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                                <span className="text-sm text-blue-200/50">{feature}</span>
+                                <span className="text-sm text-blue-200/50">{f}</span>
                             </div>
                         ))}
                     </div>
                 </div>
             </div>
 
-            {/* Right panel - login */}
+            {/* Right panel */}
             <div className="flex-1 flex items-center justify-center p-8 bg-background">
                 <div className="w-full max-w-[400px] space-y-8">
-                    {/* Mobile logo */}
                     <div className="lg:hidden flex items-center gap-3 mb-4">
                         <div className="flex items-center justify-center w-10 h-10 rounded-lg gradient-primary shadow-lg">
                             <Zap className="w-6 h-6 text-white" />
@@ -105,7 +95,7 @@ function LoginContent() {
 
                     <Button
                         className="w-full h-12 text-base font-semibold shadow-lg transition-all duration-300 hover:shadow-xl"
-                        onClick={handleMicrosoftLogin}
+                        onClick={handleLogin}
                         disabled={loading}
                     >
                         {loading ? (
