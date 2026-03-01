@@ -1,211 +1,268 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Save, Mail } from "lucide-react";
-
-const smtpSchema = z.object({
-    smtpProvider: z.string().min(1, "Required"),
-    smtpHost: z.string().min(1, "Required"),
-    smtpPort: z.string().min(1, "Required"),
-    smtpUser: z.string().email("Must be a valid email"),
-    smtpPassword: z.string().min(1, "Required"),
-});
-
-type SMTPFormValues = z.infer<typeof smtpSchema>;
+import { useState } from "react"
+import { useSession, signOut } from "next-auth/react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+    User, Building2, Shield, LogOut, Cloud, Save, Loader2, Key,
+} from "lucide-react"
+import { getInitials } from "@/lib/utils"
 
 export default function SettingsPage() {
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
+    const { data: session, update: updateSession } = useSession()
 
-    const form = useForm<SMTPFormValues>({
-        resolver: zodResolver(smtpSchema),
-        defaultValues: {
-            smtpProvider: "google",
-            smtpHost: "smtp.gmail.com",
-            smtpPort: "587",
-            smtpUser: "",
-            smtpPassword: "",
-        },
-    });
+    // Profile edit state
+    const [profileName, setProfileName] = useState(session?.user?.name || "")
+    const [savingProfile, setSavingProfile] = useState(false)
+    const [profileMsg, setProfileMsg] = useState("")
 
-    useEffect(() => {
-        const fetchSettings = async () => {
-            setLoading(true);
-            const res = await fetch("/api/settings");
+    // Password change state
+    const [currentPassword, setCurrentPassword] = useState("")
+    const [newPassword, setNewPassword] = useState("")
+    const [confirmPassword, setConfirmPassword] = useState("")
+    const [savingPassword, setSavingPassword] = useState(false)
+    const [passwordMsg, setPasswordMsg] = useState("")
+
+    const handleSaveProfile = async () => {
+        if (!profileName.trim()) return
+        setSavingProfile(true)
+        setProfileMsg("")
+        try {
+            const res = await fetch("/api/profile", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: profileName.trim() }),
+            })
             if (res.ok) {
-                const data = await res.json();
-                const settingsMap = data.reduce((acc: any, curr: any) => ({ ...acc, [curr.key]: curr.value }), {});
-
-                if (settingsMap.smtpProvider) {
-                    form.reset({
-                        smtpProvider: settingsMap.smtpProvider,
-                        smtpHost: settingsMap.smtpHost || "",
-                        smtpPort: settingsMap.smtpPort || "",
-                        smtpUser: settingsMap.smtpUser || "",
-                        smtpPassword: settingsMap.smtpPassword || "",
-                    });
-                }
+                setProfileMsg("Profile updated successfully!")
+                // Trigger session refresh
+                await updateSession({ name: profileName.trim() })
+            } else {
+                const err = await res.json()
+                setProfileMsg(err.error || "Failed to update")
             }
-            setLoading(false);
-        };
-        fetchSettings();
-    }, [form]);
-
-    const handleProviderChange = (provider: string) => {
-        form.setValue("smtpProvider", provider);
-        if (provider === "google") {
-            form.setValue("smtpHost", "smtp.gmail.com");
-            form.setValue("smtpPort", "587");
-        } else if (provider === "microsoft") {
-            form.setValue("smtpHost", "smtp.office365.com");
-            form.setValue("smtpPort", "587");
-        } else {
-            form.setValue("smtpHost", "");
-            form.setValue("smtpPort", "");
+        } catch {
+            setProfileMsg("Network error")
+        } finally {
+            setSavingProfile(false)
         }
-    };
+    }
 
-    const onSubmit = async (data: SMTPFormValues) => {
-        setSaving(true);
-        await fetch("/api/settings", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-        setSaving(false);
-        alert("SMTP Configuration saved successfully!");
-    };
+    const handleChangePassword = async () => {
+        if (!currentPassword || !newPassword) return
+        if (newPassword !== confirmPassword) {
+            setPasswordMsg("Passwords don't match")
+            return
+        }
+        if (newPassword.length < 6) {
+            setPasswordMsg("Password must be at least 6 characters")
+            return
+        }
+        setSavingPassword(true)
+        setPasswordMsg("")
+        try {
+            const res = await fetch("/api/profile", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ currentPassword, newPassword }),
+            })
+            if (res.ok) {
+                setPasswordMsg("Password changed successfully!")
+                setCurrentPassword("")
+                setNewPassword("")
+                setConfirmPassword("")
+            } else {
+                const err = await res.json()
+                setPasswordMsg(err.error || "Failed to change password")
+            }
+        } catch {
+            setPasswordMsg("Network error")
+        } finally {
+            setSavingPassword(false)
+        }
+    }
 
     return (
-        <div className="space-y-6 max-w-4xl mx-auto">
+        <div className="space-y-6 max-w-3xl">
             <div>
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">System Settings</h1>
-                <p className="text-slate-500 text-sm mt-1">Configure global application preferences.</p>
+                <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
+                <p className="text-muted-foreground mt-1">Manage your account and preferences</p>
             </div>
 
-            <Card className="border-0 shadow-lg dark:bg-slate-900 border dark:border-slate-800">
+            {/* Profile */}
+            <Card>
                 <CardHeader>
-                    <div className="flex items-center gap-2">
-                        <Mail className="h-5 w-5 text-blue-600" />
-                        <CardTitle className="text-xl">Email Configuration (SMTP)</CardTitle>
-                    </div>
-                    <CardDescription>Configure outgoing mail server for system alerts and notifications.</CardDescription>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                        <User className="w-4 h-4" /> Profile
+                    </CardTitle>
                 </CardHeader>
-                <CardContent>
-                    {loading ? (
-                        <div className="space-y-4 animate-pulse">
-                            <div className="h-10 bg-slate-100 dark:bg-slate-800 rounded w-full" />
-                            <div className="h-10 bg-slate-100 dark:bg-slate-800 rounded w-full" />
-                            <div className="h-10 bg-slate-100 dark:bg-slate-800 rounded w-full" />
+                <CardContent className="space-y-4">
+                    <div className="flex items-center gap-4">
+                        <Avatar className="w-16 h-16">
+                            <AvatarFallback className="bg-primary/10 text-primary text-lg font-bold">
+                                {session?.user ? getInitials(session.user.name) : "?"}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <p className="text-sm text-muted-foreground">{session?.user?.email}</p>
+                            <Badge className="mt-1 text-xs">{session?.user?.role?.replace("_", " ")}</Badge>
                         </div>
-                    ) : (
-                        <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                                <FormField
-                                    control={form.control}
-                                    name="smtpProvider"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Provider</FormLabel>
-                                            <Select
-                                                onValueChange={(val) => {
-                                                    field.onChange(val);
-                                                    handleProviderChange(val);
-                                                }}
-                                                defaultValue={field.value}
-                                            >
-                                                <FormControl>
-                                                    <SelectTrigger className="dark:bg-slate-800 dark:border-slate-700">
-                                                        <SelectValue placeholder="Select provider" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    <SelectItem value="google">Google Workspace (Gmail)</SelectItem>
-                                                    <SelectItem value="microsoft">Microsoft 365 (Outlook)</SelectItem>
-                                                    <SelectItem value="custom">Custom SMTP</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="profile-name" className="text-xs font-medium">Display Name</Label>
+                        <div className="flex gap-2">
+                            <Input
+                                id="profile-name"
+                                value={profileName}
+                                onChange={(e) => setProfileName(e.target.value)}
+                                className="flex-1"
+                            />
+                            <Button
+                                size="sm"
+                                onClick={handleSaveProfile}
+                                disabled={savingProfile || !profileName.trim() || profileName === session?.user?.name}
+                            >
+                                {savingProfile ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                            </Button>
+                        </div>
+                        {profileMsg && (
+                            <p className={`text-xs ${profileMsg.includes("success") ? "text-emerald-500" : "text-destructive"}`}>
+                                {profileMsg}
+                            </p>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <FormField
-                                        control={form.control}
-                                        name="smtpHost"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>SMTP Server Host</FormLabel>
-                                                <FormControl>
-                                                    <Input {...field} className="dark:bg-slate-800 dark:border-slate-700" />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={form.control}
-                                        name="smtpPort"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>SMTP Port</FormLabel>
-                                                <FormControl>
-                                                    <Input {...field} className="dark:bg-slate-800 dark:border-slate-700" />
-                                                </FormControl>
-                                                <FormDescription>Usually 587 or 465</FormDescription>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={form.control}
-                                        name="smtpUser"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>SMTP Username / Email</FormLabel>
-                                                <FormControl>
-                                                    <Input {...field} type="email" className="dark:bg-slate-800 dark:border-slate-700" />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={form.control}
-                                        name="smtpPassword"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>SMTP Password / App Password</FormLabel>
-                                                <FormControl>
-                                                    <Input {...field} type="password" placeholder="••••••••" className="dark:bg-slate-800 dark:border-slate-700" />
-                                                </FormControl>
-                                                <FormDescription>For Google/Microsoft, use an App Password.</FormDescription>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-
-                                <div className="flex justify-end">
-                                    <Button type="submit" disabled={saving} className="bg-blue-600 hover:bg-blue-700">
-                                        <Save className="h-4 w-4 mr-2" />
-                                        {saving ? "Saving..." : "Save Configuration"}
-                                    </Button>
-                                </div>
-                            </form>
-                        </Form>
+            {/* Change Password */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                        <Key className="w-4 h-4" /> Change Password
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="current-pw" className="text-xs font-medium">Current Password</Label>
+                        <Input
+                            id="current-pw"
+                            type="password"
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            placeholder="Enter current password"
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="new-pw" className="text-xs font-medium">New Password</Label>
+                            <Input
+                                id="new-pw"
+                                type="password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                placeholder="Min. 6 characters"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="confirm-pw" className="text-xs font-medium">Confirm Password</Label>
+                            <Input
+                                id="confirm-pw"
+                                type="password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                placeholder="Repeat password"
+                            />
+                        </div>
+                    </div>
+                    {passwordMsg && (
+                        <p className={`text-xs ${passwordMsg.includes("success") ? "text-emerald-500" : "text-destructive"}`}>
+                            {passwordMsg}
+                        </p>
                     )}
+                    <Button
+                        size="sm"
+                        onClick={handleChangePassword}
+                        disabled={savingPassword || !currentPassword || !newPassword || !confirmPassword}
+                    >
+                        {savingPassword ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : null}
+                        {savingPassword ? "Changing..." : "Change Password"}
+                    </Button>
+                </CardContent>
+            </Card>
+
+            {/* Organization */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                        <Building2 className="w-4 h-4" /> Organization
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                        <div>
+                            <p className="text-sm font-medium">{session?.user?.organizationName}</p>
+                            <p className="text-xs text-muted-foreground">Current organization</p>
+                        </div>
+                        <Badge variant="outline" className="text-xs">Active</Badge>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* OneDrive Connection */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                        <Cloud className="w-4 h-4" /> OneDrive Integration
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-blue-500/10">
+                                <Cloud className="w-5 h-5 text-blue-500" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium">Microsoft OneDrive</p>
+                                <p className="text-xs text-muted-foreground">Connect to browse and attach files</p>
+                            </div>
+                        </div>
+                        <Button variant="outline" size="sm">
+                            Connect
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Security */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                        <Shield className="w-4 h-4" /> Security
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium">Session</p>
+                            <p className="text-xs text-muted-foreground">JWT-based, expires in 24 hours</p>
+                        </div>
+                        <Badge variant="success" className="text-xs">Active</Badge>
+                    </div>
+                    <Button
+                        variant="destructive"
+                        className="w-full"
+                        onClick={() => signOut({ callbackUrl: "/login" })}
+                    >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Sign Out
+                    </Button>
                 </CardContent>
             </Card>
         </div>
-    );
+    )
 }

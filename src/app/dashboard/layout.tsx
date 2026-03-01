@@ -1,36 +1,49 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import Sidebar from "@/components/layout/sidebar";
-import Topbar from "@/components/layout/topbar";
-import BottomNav from "@/components/layout/bottom-nav";
-import prisma from "@/lib/db";
+"use client"
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-    const session = await getServerSession(authOptions);
+import { Sidebar } from "@/components/layout/sidebar"
+import { Header } from "@/components/layout/header"
+import { useSession } from "next-auth/react"
+import { redirect } from "next/navigation"
+import { useLayoutStore } from "@/lib/store"
+import { cn } from "@/lib/utils"
 
-    if (!session) {
-        redirect("/login");
-    }
+export default function DashboardLayout({
+    children,
+}: {
+    children: React.ReactNode
+}) {
+    const sidebarCollapsed = useLayoutStore((state) => state.sidebarCollapsed)
 
-    let companies: { id: string, name: string }[] = [];
-    if (session.user.role === "SUPER_ADMIN") {
-        // Only fetch for God Mode
-        companies = await prisma.company.findMany({
-            select: { id: true, name: true }
-        });
+    const { status } = useSession({
+        required: true,
+        onUnauthenticated() {
+            redirect("/login")
+        },
+    })
+
+    if (status === "loading") {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-10 h-10 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
+                    <p className="text-sm text-muted-foreground">Loading TaskFlow Pro...</p>
+                </div>
+            </div>
+        )
     }
 
     return (
-        <div className="flex h-screen bg-slate-50 dark:bg-background text-slate-900 dark:text-foreground overflow-hidden w-full relative">
-            <Sidebar user={session.user} />
-            <div className="flex-1 flex flex-col min-w-0 transition-all duration-300">
-                <Topbar user={session.user} companies={companies} />
-                <main className="flex-1 overflow-y-auto w-full p-4 md:p-6 pb-24 lg:pb-6">
+        <div className="min-h-screen bg-background">
+            <Sidebar />
+            <div className={cn(
+                "transition-all duration-300",
+                sidebarCollapsed ? "md:ml-[70px]" : "md:ml-[260px]"
+            )}>
+                <Header />
+                <main className="p-6">
                     {children}
                 </main>
             </div>
-            <BottomNav />
         </div>
-    );
+    )
 }

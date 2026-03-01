@@ -7,143 +7,232 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ═══════════════════════════════════════
+// ENUMS
+// ═══════════════════════════════════════
+
 enum Role {
-  SUPER_ADMIN
-  IT_ADMIN
-  COMPANY_ADMIN
-  HR
+  ADMIN
+  PROJECT_MANAGER
+  TEAM_MEMBER
   VIEWER
 }
 
-model Company {
-  id              String            @id @default(uuid())
-  name            String
-  domain          String?
-  locations       Location[]
-  users           User[]
-  systemAssets    SystemAsset[]
-  softwareLicenses SoftwareLicense[]
-  emailAccounts   EmailAccount[]
-  itRequests      ITRequest[]
-  mobileSIMs      MobileSIM[]
-  expenseAccruals ExpenseAccrual[]
-  systemSettings  SystemSetting[]
+enum ProjectStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+  ON_HOLD
 }
 
-model Location {
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum NotificationType {
+  TASK_ASSIGNED
+  DEADLINE_REMINDER
+  FILE_UPLOADED
+  COMMENT_ADDED
+  PROJECT_UPDATE
+}
+
+// ═══════════════════════════════════════
+// MULTI-TENANT & AUTH
+// ═══════════════════════════════════════
+
+model Organization {
   id        String   @id @default(uuid())
   name      String
-  companyId String
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  domain    String   @unique
+  logo      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users     User[]
+  projects  Project[]
+  auditLogs AuditLog[]
 }
 
 model User {
-  id        String        @id @default(uuid())
-  name      String
-  email     String        @unique
-  password  String?       // For credentials login if needed, or NextAuth provider links
-  role      Role          @default(VIEWER)
-  companyId String
-  company   Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  assets    SystemAsset[]
+  id             String  @id @default(uuid())
+  azureAdId      String? @unique
+  name           String
+  email          String  @unique
+  password       String?
+  avatar         String?
+  role           Role    @default(TEAM_MEMBER)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  msRefreshToken String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assignedTasks   Task[]          @relation("TaskAssignee")
+  createdTasks    Task[]          @relation("TaskCreator")
+  createdProjects Project[]       @relation("ProjectCreator")
+  managedProjects Project[]       @relation("ProjectManager")
+  comments        TaskComment[]
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+
+  @@index([organizationId])
+  @@index([email])
 }
 
-model SystemAsset {
-  id           String    @id @default(uuid())
-  userId       String?
-  user         User?     @relation(fields: [userId], references: [id])
-  companyId    String
-  company      Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  department   String
-  location     String
-  product      String
-  serialNo     String
-  make         String
-  osVersion    String
-  config       String
-  status       String
-  purchaseDate DateTime?
-  warrantyDate DateTime?
-  cost         Float?
-  invoiceUrl   String?
-  createdAt    DateTime  @default(now())
+// ═══════════════════════════════════════
+// PROJECT MANAGEMENT
+// ═══════════════════════════════════════
 
-  @@index([companyId])
+model Project {
+  id               String        @id @default(uuid())
+  name             String
+  description      String?
+  clientName       String?
+  startDate        DateTime?
+  endDate          DateTime?
+  budget           Float?
+  status           ProjectStatus @default(PLANNED)
+  progress         Int           @default(0)
+  color            String?
+  oneDriveFolderId String?
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  creatorId String
+  creator   User   @relation("ProjectCreator", fields: [creatorId], references: [id])
+
+  managerId String?
+  manager   User?  @relation("ProjectManager", fields: [managerId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tasks Task[]
+  files FileAttachment[]
+
+  @@index([organizationId])
+  @@index([status])
 }
 
-model SoftwareLicense {
-  id             String    @id @default(uuid())
-  companyId      String
-  company        Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  softwareName   String
-  category       String
-  licenseType    String
-  totalPurchased Int
-  licensesInUse  Int
-  cost           Float
-  renewalDate    DateTime?
-  vendor         String
-  createdAt      DateTime  @default(now())
+// ═══════════════════════════════════════
+// TASK PLANNER
+// ═══════════════════════════════════════
 
-  @@index([companyId])
+model Task {
+  id          String       @id @default(uuid())
+  title       String
+  description String?
+  dueDate     DateTime?
+  priority    TaskPriority @default(MEDIUM)
+  status      TaskStatus   @default(TODO)
+  sortOrder   Int          @default(0)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  assigneeId String?
+  assignee   User?   @relation("TaskAssignee", fields: [assigneeId], references: [id])
+
+  creatorId String
+  creator   User   @relation("TaskCreator", fields: [creatorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  comments TaskComment[]
+  files    FileAttachment[]
+
+  @@index([projectId])
+  @@index([assigneeId])
+  @@index([status])
 }
 
-model MobileSIM {
-  id        String  @id @default(uuid())
-  name      String
-  location  String
-  simNumber String
-  plan      String
-  status    String
-  companyId String
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
-  @@index([companyId])
-}
-
-model EmailAccount {
+model TaskComment {
   id        String   @id @default(uuid())
-  companyId String
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  email     String
-  status    String
+  content   String
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
   createdAt DateTime @default(now())
 
-  @@index([companyId])
+  @@index([taskId])
 }
 
-model ITRequest {
-  id         String   @id @default(uuid())
-  employee   String
-  title      String?
-  department String
-  companyId  String
-  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  status     String
-  createdAt  DateTime @default(now())
+// ═══════════════════════════════════════
+// ONEDRIVE INTEGRATION
+// ═══════════════════════════════════════
 
-  @@index([companyId])
+model FileAttachment {
+  id             String  @id @default(uuid())
+  name           String
+  mimeType       String?
+  size           Int?
+  oneDriveItemId String?
+  oneDriveUrl    String?
+  thumbnailUrl   String?
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  taskId String?
+  task   Task?  @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  uploadedById String?
+  createdAt    DateTime @default(now())
+
+  @@index([projectId])
+  @@index([taskId])
 }
 
-model ExpenseAccrual {
-  id          String   @id @default(uuid())
-  title       String
-  category    String
-  amount      Float
-  date        DateTime
-  companyId   String
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
+// ═══════════════════════════════════════
+// NOTIFICATIONS & AUDIT
+// ═══════════════════════════════════════
 
-  @@index([companyId])
+model Notification {
+  id      String           @id @default(uuid())
+  type    NotificationType
+  title   String
+  message String
+  read    Boolean          @default(false)
+  link    String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
 }
 
-model SystemSetting {
-  id          String   @id @default(uuid())
-  key         String
-  value       String   // STORE AS JSON IF NEEDED
-  companyId   String?  // nullable if it's a global setting handled by SUPER_ADMIN
-  company     Company?  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+model AuditLog {
+  id         String  @id @default(uuid())
+  action     String
+  resource   String
+  resourceId String?
+  details    String?
+  ipAddress  String?
 
-  @@unique([key, companyId])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([userId])
 }

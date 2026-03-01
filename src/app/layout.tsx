@@ -1,28 +1,23 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { Providers } from "@/components/providers";
-
-const inter = Inter({ subsets: ["latin"] });
+import type { Metadata } from "next"
+import { Providers } from "@/components/providers"
+import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "IT Inventory Management",
-  description: "Enterprise IT Asset and Inventory Management System",
-  manifest: "/manifest.json",
-};
+    title: "TaskFlow Pro — Project & Task Management",
+    description: "Modern project management with Microsoft OneDrive integration. Plan, track, and collaborate with your team.",
+    keywords: "project management, task planner, OneDrive, collaboration, kanban",
+}
 
 export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <Providers>
-          {children}
-        </Providers>
-      </body>
-    </html>
-  );
+    children,
+}: {
+    children: React.ReactNode
+}) {
+    return (
+        <html lang="en" suppressHydrationWarning>
+            <body className="min-h-screen">
+                <Providers>{children}</Providers>
+            </body>
+        </html>
+    )
 }

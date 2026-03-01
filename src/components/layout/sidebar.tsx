@@ -1,117 +1,204 @@
-"use client";
+"use client"
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { useSession } from "next-auth/react"
+import { useTheme } from "next-themes"
+import { useEffect } from "react"
+import { cn, getInitials } from "@/lib/utils"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
-    CreditCard,
-    Home,
-    MonitorSmartphone,
-    Users,
-    LifeBuoy,
-    Database,
-    ShieldCheck,
+    LayoutDashboard,
+    FolderKanban,
+    CheckSquare,
+    Cloud,
+    Bell,
     Settings,
+    Shield,
+    Moon,
     Sun,
-    Moon
-} from "lucide-react";
-import { useTheme } from "next-themes";
-import { cn } from "@/lib/utils";
+    ChevronLeft,
+    ChevronRight,
+    Zap,
+    Users,
+    X,
+} from "lucide-react"
+import { useLayoutStore } from "@/lib/store"
 
 const navItems = [
-    { label: "Dashboard", href: "/dashboard", icon: Home },
-    { label: "Systems & Assets", href: "/dashboard/assets", icon: MonitorSmartphone },
-    { label: "Software Licenses", href: "/dashboard/licenses", icon: Database },
-    { label: "IT Expenses", href: "/dashboard/expenses", icon: CreditCard },
-    { label: "IT Tickets", href: "/dashboard/tickets", icon: LifeBuoy },
-];
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/dashboard/projects", label: "Projects", icon: FolderKanban },
+    { href: "/dashboard/tasks", label: "My Tasks", icon: CheckSquare },
+    { href: "/dashboard/team", label: "Team", icon: Users },
+    { href: "/dashboard/files", label: "OneDrive", icon: Cloud },
+    { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
+    { href: "/dashboard/settings", label: "Settings", icon: Settings },
+]
 
 const adminItems = [
-    { label: "User Management", href: "/dashboard/users", icon: Users },
-    { label: "System Settings", href: "/dashboard/settings", icon: Settings },
-];
+    { href: "/dashboard/audit-logs", label: "Audit Logs", icon: Shield },
+]
 
-export default function Sidebar({ user }: { user: any }) {
-    const pathname = usePathname();
-    const { theme, setTheme } = useTheme();
+export function Sidebar() {
+    const pathname = usePathname()
+    const { data: session } = useSession()
+    const { theme, setTheme } = useTheme()
+    const collapsed = useLayoutStore((state) => state.sidebarCollapsed)
+    const setCollapsed = useLayoutStore((state) => state.setSidebarCollapsed)
+    const mobileSidebarOpen = useLayoutStore((state) => state.mobileSidebarOpen)
+    const setMobileSidebarOpen = useLayoutStore((state) => state.setMobileSidebarOpen)
 
-    const renderLinks = (items: typeof navItems) => (
-        items.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+    const isAdmin = session?.user?.role === "ADMIN"
 
-            return (
-                <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all group",
-                        isActive
-                            ? "bg-blue-50 text-blue-700 dark:bg-slate-800 dark:text-slate-100"
-                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200"
-                    )}
-                >
-                    <Icon className={cn("h-5 w-5", isActive ? "text-blue-700 dark:text-slate-100" : "text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300")} />
-                    {item.label}
-                </Link>
-            );
-        })
-    );
+    // Auto-close mobile sidebar on route change
+    useEffect(() => {
+        setMobileSidebarOpen(false)
+    }, [pathname, setMobileSidebarOpen])
 
     return (
-        <aside className="hidden lg:flex flex-col w-64 border-r border-slate-200 dark:border-slate-800/60 bg-white dark:bg-[#0f172a] h-full sticky left-0 top-0">
-            <div className="p-6 flex items-center gap-3">
-                <div className="bg-blue-600 p-2 rounded-lg shadow-sm">
-                    <ShieldCheck className="h-5 w-5 text-white" />
+        <>
+            {/* Mobile backdrop */}
+            {mobileSidebarOpen && (
+                <div
+                    className="fixed inset-0 z-40 bg-black/50 md:hidden"
+                    onClick={() => setMobileSidebarOpen(false)}
+                />
+            )}
+
+            <aside
+                className={cn(
+                    "fixed left-0 top-0 z-50 h-screen bg-sidebar text-sidebar-foreground border-r border-white/5 flex flex-col transition-all duration-300",
+                    // Desktop: always visible, controlled by collapsed state
+                    "hidden md:flex",
+                    collapsed ? "md:w-[70px]" : "md:w-[260px]",
+                    // Mobile: show/hide based on mobileSidebarOpen
+                    mobileSidebarOpen && "!flex w-[260px]"
+                )}
+            >
+            {/* Logo */}
+            <div className="flex items-center gap-3 px-5 h-16 border-b border-white/5">
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg gradient-primary shadow-lg">
+                    <Zap className="w-5 h-5 text-white" />
                 </div>
-                <div>
-                    <h1 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">IT Assist</h1>
-                    <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">{user.role.replace("_", " ")}</p>
-                </div>
+                {(!collapsed || mobileSidebarOpen) && (
+                    <div className="flex flex-col flex-1">
+                        <span className="text-sm font-bold text-white tracking-tight">TaskFlow</span>
+                        <span className="text-[10px] text-blue-400 font-medium tracking-widest uppercase">PRO</span>
+                    </div>
+                )}
+                {/* Mobile close button */}
+                {mobileSidebarOpen && (
+                    <button
+                        onClick={() => setMobileSidebarOpen(false)}
+                        className="md:hidden p-1.5 rounded-lg text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent/50 transition-colors"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                )}
             </div>
 
-            <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto w-full">
-                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 mt-4 px-3">
-                    Core Modules
-                </div>
-                {renderLinks(navItems)}
+            {/* Navigation */}
+            <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+                {(!collapsed || mobileSidebarOpen) && (
+                    <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
+                        Menu
+                    </p>
+                )}
+                {navItems.map((item) => {
+                    const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))
+                    return (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            className={cn(
+                                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group",
+                                isActive
+                                    ? "bg-sidebar-accent text-white shadow-sm"
+                                    : "text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent/50"
+                            )}
+                        >
+                            <item.icon className={cn(
+                                "w-5 h-5 shrink-0 transition-colors",
+                                isActive ? "text-blue-400" : "text-sidebar-foreground/40 group-hover:text-blue-400/70"
+                            )} />
+                            {(!collapsed || mobileSidebarOpen) && <span>{item.label}</span>}
+                            {isActive && (!collapsed || mobileSidebarOpen) && (
+                                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                            )}
+                        </Link>
+                    )
+                })}
 
-                {(user.role === "SUPER_ADMIN" || user.role === "COMPANY_ADMIN") && (
+                {isAdmin && (
                     <>
-                        <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 mt-8 px-3">
-                            Administration
-                        </div>
-                        {renderLinks(adminItems)}
+                        {(!collapsed || mobileSidebarOpen) && (
+                            <p className="px-3 mt-6 mb-2 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
+                                Admin
+                            </p>
+                        )}
+                        {adminItems.map((item) => {
+                            const isActive = pathname === item.href
+                            return (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    className={cn(
+                                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group",
+                                        isActive
+                                            ? "bg-sidebar-accent text-white shadow-sm"
+                                            : "text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent/50"
+                                    )}
+                                >
+                                    <item.icon className="w-5 h-5 shrink-0 text-sidebar-foreground/40 group-hover:text-blue-400/70" />
+                                    {(!collapsed || mobileSidebarOpen) && <span>{item.label}</span>}
+                                </Link>
+                            )
+                        })}
                     </>
                 )}
             </nav>
 
-            <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+            {/* Bottom section */}
+            <div className="border-t border-white/5 p-3 space-y-2">
+                {/* Theme toggle */}
                 <button
-                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                    className="flex w-full items-center gap-3 px-3 py-2.5 mb-3 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                    onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent/50 transition-all duration-200 w-full"
                 >
-                    {theme === 'dark' ? (
-                        <>
-                            <Sun className="h-5 w-5 text-slate-400 group-hover:text-amber-500" />
-                            Light Mode
-                        </>
-                    ) : (
-                        <>
-                            <Moon className="h-5 w-5 text-slate-400 group-hover:text-slate-600" />
-                            Dark Mode
-                        </>
-                    )}
+                    {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                    {(!collapsed || mobileSidebarOpen) && <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>}
                 </button>
-                <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">
-                        {user.name?.charAt(0) || "U"}
+
+                {/* Collapse toggle */}
+                <button
+                    onClick={() => setCollapsed(!collapsed)}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent/50 transition-all duration-200 w-full"
+                >
+                    {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+                    {(!collapsed || mobileSidebarOpen) && <span>Collapse</span>}
+                </button>
+
+                {/* User info */}
+                {session?.user && (
+                    <div className={cn(
+                        "flex items-center gap-3 px-3 py-2.5 rounded-lg bg-sidebar-accent/30",
+                        collapsed && !mobileSidebarOpen && "justify-center"
+                    )}>
+                        <Avatar className="w-8 h-8">
+                            <AvatarFallback className="bg-blue-600 text-white text-xs">
+                                {getInitials(session.user.name)}
+                            </AvatarFallback>
+                        </Avatar>
+                        {(!collapsed || mobileSidebarOpen) && (
+                            <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium text-white truncate">{session.user.name}</p>
+                                <p className="text-[10px] text-sidebar-foreground/40 truncate">{session.user.organizationName}</p>
+                            </div>
+                        )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-slate-900 dark:text-slate-200 truncate">{user.name}</p>
-                        <p className="text-xs text-slate-500 truncate">{user.email}</p>
-                    </div>
-                </div>
+                )}
             </div>
         </aside>
-    );
+        </>
+    )
 }
