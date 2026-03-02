@@ -51,7 +51,7 @@ function LoginContent() {
                         <span style={{ background: 'linear-gradient(90deg, #e2bf79, #ac8c66)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Management Platform</span>
                     </h2>
                     <p className="text-lg max-w-md leading-relaxed" style={{ color: 'rgba(226, 191, 121, 0.5)' }}>
-                        Streamline your IT operations with project tracking, task management, and Microsoft 365 integration — all in one place.
+                        One platform. Every project. Zero chaos.
                     </p>
                     <div className="mt-12 space-y-4">
                         {["Kanban & Gantt project views", "Microsoft OneDrive integration", "Microsoft To Do sync", "Role-based access control", "Real-time notifications & audit logs"].map((f, i) => (
