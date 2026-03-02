@@ -1,8 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useSession } from "next-auth/react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,16 +15,8 @@ const PROJECT_COLORS = [
 
 export default function NewProjectPage() {
     const router = useRouter()
-    const { data: session } = useSession()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
-
-    // Redirect unauthorized roles
-    useEffect(() => {
-        if (session && session.user?.role !== "ADMIN" && session.user?.role !== "PROJECT_MANAGER") {
-            router.push("/dashboard/projects")
-        }
-    }, [session, router])
 
     const [form, setForm] = useState({
         name: "",

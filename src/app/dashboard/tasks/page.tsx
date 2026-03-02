@@ -43,6 +43,12 @@ interface MsTaskList {
     wellknownListName?: string
 }
 
+interface SimpleProject {
+    id: string
+    name: string
+    color: string | null
+}
+
 export default function TasksPage() {
     useSession()
     const [tasks, setTasks] = useState<Task[]>([])
@@ -52,6 +58,15 @@ export default function TasksPage() {
     const [page, setPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
     const [total, setTotal] = useState(0)
+
+    // Project task create
+    const [showProjectTaskCreate, setShowProjectTaskCreate] = useState(false)
+    const [projectsList, setProjectsList] = useState<SimpleProject[]>([])
+    const [ptProjectId, setPtProjectId] = useState("")
+    const [ptTitle, setPtTitle] = useState("")
+    const [ptDue, setPtDue] = useState("")
+    const [ptPriority, setPtPriority] = useState("MEDIUM")
+    const [ptCreating, setPtCreating] = useState(false)
 
     // Microsoft Tasks state
     const [activeTab, setActiveTab] = useState<"project" | "microsoft">("project")
@@ -71,8 +86,45 @@ export default function TasksPage() {
 
     useEffect(() => {
         fetchTasks()
+        fetchProjectsList()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page])
+
+    const fetchProjectsList = async () => {
+        try {
+            const res = await fetch("/api/projects?limit=50")
+            if (res.ok) {
+                const json = await res.json()
+                const data = json.data ?? json
+                setProjectsList(data.map((p: { id: string; name: string; color: string | null }) => ({ id: p.id, name: p.name, color: p.color })))
+            }
+        } catch { /* silent */ }
+    }
+
+    const handleCreateProjectTask = async () => {
+        if (!ptTitle.trim() || !ptProjectId) return
+        setPtCreating(true)
+        try {
+            const res = await fetch("/api/tasks", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    title: ptTitle,
+                    projectId: ptProjectId,
+                    dueDate: ptDue || null,
+                    priority: ptPriority,
+                }),
+            })
+            if (res.ok) {
+                setPtTitle("")
+                setPtDue("")
+                setPtPriority("MEDIUM")
+                setShowProjectTaskCreate(false)
+                fetchTasks()
+            }
+        } catch { /* silent */ }
+        finally { setPtCreating(false) }
+    }
 
     const fetchTasks = async () => {
         try {
@@ -200,6 +252,12 @@ export default function TasksPage() {
                     <h2 className="text-xl md:text-2xl font-bold tracking-tight">My Tasks</h2>
                     <p className="text-sm text-muted-foreground mt-0.5">Project tasks &amp; Microsoft To Do</p>
                 </div>
+                {activeTab === "project" && (
+                    <Button size="sm" className="gradient-primary text-white" onClick={() => setShowProjectTaskCreate(true)}>
+                        <Plus className="w-3.5 h-3.5 mr-1.5" />
+                        New Task
+                    </Button>
+                )}
             </div>
 
             {/* Tab switcher */}
@@ -237,6 +295,41 @@ export default function TasksPage() {
 
             {activeTab === "project" ? (
                 <>
+                    {/* Project Task Create Form */}
+                    {showProjectTaskCreate && (
+                        <Card className="p-3 md:p-4 space-y-3 border-primary/20">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-semibold">New Project Task</h3>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setShowProjectTaskCreate(false)}>
+                                    <X className="w-3.5 h-3.5" />
+                                </Button>
+                            </div>
+                            <Input placeholder="Task title..." value={ptTitle} onChange={(e) => setPtTitle(e.target.value)} className="h-9 text-sm" autoFocus onKeyDown={(e) => e.key === "Enter" && handleCreateProjectTask()} />
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <select value={ptProjectId} onChange={(e) => setPtProjectId(e.target.value)} className="h-9 rounded-md border bg-background px-2 text-xs">
+                                    <option value="">Select project...</option>
+                                    {projectsList.map(p => (
+                                        <option key={p.id} value={p.id}>{p.name}</option>
+                                    ))}
+                                </select>
+                                <Input type="date" value={ptDue} onChange={(e) => setPtDue(e.target.value)} className="h-9 text-xs" />
+                                <select value={ptPriority} onChange={(e) => setPtPriority(e.target.value)} className="h-9 rounded-md border bg-background px-2 text-xs">
+                                    <option value="LOW">Low</option>
+                                    <option value="MEDIUM">Medium</option>
+                                    <option value="HIGH">High</option>
+                                    <option value="URGENT">Urgent</option>
+                                </select>
+                            </div>
+                            <div className="flex justify-end gap-2">
+                                <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setShowProjectTaskCreate(false)}>Cancel</Button>
+                                <Button size="sm" className="h-8 text-xs gradient-primary text-white" onClick={handleCreateProjectTask} disabled={ptCreating || !ptTitle.trim() || !ptProjectId}>
+                                    {ptCreating ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Plus className="w-3.5 h-3.5 mr-1" />}
+                                    Create
+                                </Button>
+                            </div>
+                        </Card>
+                    )}
+
                     {/* Filters */}
                     <div className="flex gap-1.5 flex-wrap">
                         {statusFilters.map((s) => (
@@ -307,9 +400,12 @@ export default function TasksPage() {
                         <div className="text-center py-12 md:py-16">
                             <CheckSquare className="w-10 h-10 md:w-12 md:h-12 text-muted-foreground/30 mx-auto mb-3" />
                             <h3 className="text-base md:text-lg font-semibold mb-1">No tasks found</h3>
-                            <p className="text-sm text-muted-foreground">
-                                {filter !== "ALL" ? "Try adjusting your filter" : "Tasks will appear here when created"}
+                            <p className="text-sm text-muted-foreground mb-4">
+                                {filter !== "ALL" ? "Try adjusting your filter" : "Create your first task to get started"}
                             </p>
+                            <Button className="gradient-primary text-white" onClick={() => setShowProjectTaskCreate(true)}>
+                                <Plus className="w-4 h-4 mr-2" /> Create Task
+                            </Button>
                         </div>
                     )}
 
