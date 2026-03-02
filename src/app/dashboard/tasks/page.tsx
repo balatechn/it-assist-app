@@ -62,10 +62,12 @@ export default function TasksPage() {
     // Project task create
     const [showProjectTaskCreate, setShowProjectTaskCreate] = useState(false)
     const [projectsList, setProjectsList] = useState<SimpleProject[]>([])
+    const [teamMembers, setTeamMembers] = useState<{ id: string; name: string }[]>([])
     const [ptProjectId, setPtProjectId] = useState("")
     const [ptTitle, setPtTitle] = useState("")
     const [ptDue, setPtDue] = useState("")
     const [ptPriority, setPtPriority] = useState("MEDIUM")
+    const [ptAssigneeId, setPtAssigneeId] = useState("")
     const [ptCreating, setPtCreating] = useState(false)
 
     // Microsoft Tasks state
@@ -87,8 +89,19 @@ export default function TasksPage() {
     useEffect(() => {
         fetchTasks()
         fetchProjectsList()
+        fetchTeamMembers()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page])
+
+    const fetchTeamMembers = async () => {
+        try {
+            const res = await fetch("/api/users")
+            if (res.ok) {
+                const data = await res.json()
+                setTeamMembers(data.map((u: { id: string; name: string }) => ({ id: u.id, name: u.name })))
+            }
+        } catch { /* silent */ }
+    }
 
     const fetchProjectsList = async () => {
         try {
@@ -113,12 +126,14 @@ export default function TasksPage() {
                     projectId: ptProjectId,
                     dueDate: ptDue || null,
                     priority: ptPriority,
+                    assigneeId: ptAssigneeId || undefined,
                 }),
             })
             if (res.ok) {
                 setPtTitle("")
                 setPtDue("")
                 setPtPriority("MEDIUM")
+                setPtAssigneeId("")
                 setShowProjectTaskCreate(false)
                 fetchTasks()
             }
@@ -305,11 +320,17 @@ export default function TasksPage() {
                                 </Button>
                             </div>
                             <Input placeholder="Task title..." value={ptTitle} onChange={(e) => setPtTitle(e.target.value)} className="h-9 text-sm" autoFocus onKeyDown={(e) => e.key === "Enter" && handleCreateProjectTask()} />
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
                                 <select value={ptProjectId} onChange={(e) => setPtProjectId(e.target.value)} className="h-9 rounded-md border bg-background px-2 text-xs">
                                     <option value="">Select project...</option>
                                     {projectsList.map(p => (
                                         <option key={p.id} value={p.id}>{p.name}</option>
+                                    ))}
+                                </select>
+                                <select value={ptAssigneeId} onChange={(e) => setPtAssigneeId(e.target.value)} className="h-9 rounded-md border bg-background px-2 text-xs">
+                                    <option value="">Assign to...</option>
+                                    {teamMembers.map(m => (
+                                        <option key={m.id} value={m.id}>{m.name}</option>
                                     ))}
                                 </select>
                                 <Input type="date" value={ptDue} onChange={(e) => setPtDue(e.target.value)} className="h-9 text-xs" />

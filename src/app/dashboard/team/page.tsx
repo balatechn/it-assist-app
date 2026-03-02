@@ -22,7 +22,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { Search, Mail, FolderKanban, CheckSquare, Users, Plus, Pencil, Trash2, Loader2, UserPlus } from "lucide-react"
+import { Search, Mail, FolderKanban, CheckSquare, Users, Plus, Pencil, Trash2, Loader2, UserPlus, RefreshCw, Building, Phone, Briefcase } from "lucide-react"
 import { getInitials } from "@/lib/utils"
 
 interface User {
@@ -36,6 +36,16 @@ interface User {
         assignedTasks: number
         managedProjects: number
     }
+}
+
+interface M365User {
+    microsoftId: string
+    name: string
+    email: string
+    jobTitle: string | null
+    department: string | null
+    officeLocation: string | null
+    phone: string | null
 }
 
 export default function TeamPage() {
@@ -59,6 +69,12 @@ export default function TeamPage() {
     const [editRole, setEditRole] = useState("")
     const [saving, setSaving] = useState(false)
 
+    // Microsoft 365 Directory
+    const [showM365, setShowM365] = useState(false)
+    const [m365Users, setM365Users] = useState<M365User[]>([])
+    const [m365Loading, setM365Loading] = useState(false)
+    const [m365Search, setM365Search] = useState("")
+
     useEffect(() => {
         fetchUsers()
     }, [])
@@ -74,6 +90,35 @@ export default function TeamPage() {
             setLoading(false)
         }
     }
+
+    const fetchM365Users = async () => {
+        setM365Loading(true)
+        try {
+            const res = await fetch("/api/users/microsoft")
+            if (res.ok) {
+                const data = await res.json()
+                setM365Users(data.users || [])
+            } else {
+                const err = await res.json().catch(() => ({}))
+                alert(err.error || "Failed to fetch Microsoft 365 directory")
+            }
+        } catch {
+            alert("Network error")
+        } finally {
+            setM365Loading(false)
+        }
+    }
+
+    const handleSyncM365 = () => {
+        setShowM365(true)
+        if (m365Users.length === 0) fetchM365Users()
+    }
+
+    const m365Filtered = m365Users.filter(u =>
+        u.name.toLowerCase().includes(m365Search.toLowerCase()) ||
+        u.email.toLowerCase().includes(m365Search.toLowerCase()) ||
+        (u.department || "").toLowerCase().includes(m365Search.toLowerCase())
+    )
 
     const handleInvite = async () => {
         if (!inviteName.trim() || !inviteEmail.trim() || !invitePassword.trim()) return
@@ -180,20 +225,119 @@ export default function TeamPage() {
                             placeholder="Search members..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="pl-9 w-64 bg-background"
+                            className="pl-9 w-44 md:w-64 bg-background"
                         />
                     </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSyncM365}
+                    >
+                        <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                        <span className="hidden sm:inline">Microsoft 365</span>
+                    </Button>
                     {isAdmin && (
                         <Button
-                            className="gradient-primary text-white shadow-lg shadow-blue-500/20"
+                            className="gradient-primary text-white"
+                            size="sm"
                             onClick={() => setShowInvite(true)}
                         >
-                            <UserPlus className="w-4 h-4 mr-2" />
-                            Add User
+                            <UserPlus className="w-4 h-4 mr-1.5" />
+                            <span className="hidden sm:inline">Add User</span>
                         </Button>
                     )}
                 </div>
             </div>
+
+            {/* Microsoft 365 Directory */}
+            {showM365 && (
+                <Card className="p-4 border-blue-500/20">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                            <svg className="w-5 h-5" viewBox="0 0 21 21" fill="none">
+                                <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
+                                <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
+                                <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
+                                <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
+                            </svg>
+                            <h3 className="text-sm font-semibold">Microsoft 365 Directory</h3>
+                            <Badge variant="secondary" className="text-[10px]">{m365Users.length} users</Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" size="icon" className="h-7 w-7" onClick={fetchM365Users} disabled={m365Loading}>
+                                <RefreshCw className={`w-3.5 h-3.5 ${m365Loading ? "animate-spin" : ""}`} />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setShowM365(false)}>
+                                Close
+                            </Button>
+                        </div>
+                    </div>
+                    
+                    {m365Loading ? (
+                        <div className="flex items-center justify-center py-8">
+                            <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                        </div>
+                    ) : m365Users.length > 0 ? (
+                        <>
+                            <div className="relative mb-3">
+                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search directory..."
+                                    value={m365Search}
+                                    onChange={(e) => setM365Search(e.target.value)}
+                                    className="pl-8 h-8 text-xs bg-muted/50 border-0"
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-[400px] overflow-y-auto">
+                                {m365Filtered.map((user, i) => (
+                                    <div key={i} className="flex items-center gap-3 p-3 rounded-lg border border-border/50 hover:border-primary/20 hover:bg-muted/30 transition-all">
+                                        <Avatar className="w-9 h-9 shrink-0">
+                                            <AvatarFallback className="text-[10px] bg-blue-500/10 text-blue-500">
+                                                {getInitials(user.name)}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-semibold truncate">{user.name}</p>
+                                            <p className="text-[10px] text-muted-foreground truncate flex items-center gap-1">
+                                                <Mail className="w-2.5 h-2.5 shrink-0" />
+                                                {user.email}
+                                            </p>
+                                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                                {user.jobTitle && (
+                                                    <span className="text-[9px] text-muted-foreground/70 flex items-center gap-0.5">
+                                                        <Briefcase className="w-2 h-2" />
+                                                        {user.jobTitle}
+                                                    </span>
+                                                )}
+                                                {user.department && (
+                                                    <span className="text-[9px] text-muted-foreground/70 flex items-center gap-0.5">
+                                                        <Building className="w-2 h-2" />
+                                                        {user.department}
+                                                    </span>
+                                                )}
+                                                {user.phone && (
+                                                    <span className="text-[9px] text-muted-foreground/70 flex items-center gap-0.5">
+                                                        <Phone className="w-2 h-2" />
+                                                        {user.phone}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            {m365Filtered.length === 0 && (
+                                <p className="text-center text-xs text-muted-foreground py-4">No matching users found</p>
+                            )}
+                        </>
+                    ) : (
+                        <div className="text-center py-8">
+                            <Users className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+                            <p className="text-xs text-muted-foreground">No directory users found. User.Read.All permission may be needed.</p>
+                        </div>
+                    )}
+                </Card>
+            )}
 
             {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

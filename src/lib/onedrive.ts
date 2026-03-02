@@ -16,7 +16,7 @@ export async function getAccessToken(userId: string): Promise<string | null> {
         params.append("grant_type", "refresh_token")
         params.append("refresh_token", user.msRefreshToken)
 
-        params.append("scope", "offline_access Files.ReadWrite.All Mail.ReadWrite Mail.Send Tasks.ReadWrite User.Read")
+        params.append("scope", "offline_access Files.ReadWrite.All Mail.ReadWrite Mail.Send Tasks.ReadWrite User.Read User.Read.All")
 
         const res = await fetch(`https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`, {
             method: "POST",
