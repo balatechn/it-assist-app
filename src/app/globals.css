@@ -6,65 +6,65 @@
 
 @layer base {
     :root {
-        --background: 40 20% 97%;
-        --foreground: 210 10% 23%;
-        --card: 0 0% 100%;
-        --card-foreground: 210 10% 23%;
-        --popover: 0 0% 100%;
-        --popover-foreground: 210 10% 23%;
-        --primary: 30 30% 54%;
+        --background: 36 25% 97%;
+        --foreground: 30 8% 18%;
+        --card: 36 30% 99%;
+        --card-foreground: 30 8% 18%;
+        --popover: 36 30% 99%;
+        --popover-foreground: 30 8% 18%;
+        --primary: 32 38% 50%;
         --primary-foreground: 0 0% 100%;
-        --secondary: 40 15% 95%;
-        --secondary-foreground: 210 10% 23%;
-        --muted: 40 15% 95%;
-        --muted-foreground: 230 10% 46%;
-        --accent: 40 15% 95%;
-        --accent-foreground: 210 10% 23%;
-        --destructive: 0 84% 60%;
+        --secondary: 36 20% 94%;
+        --secondary-foreground: 30 8% 18%;
+        --muted: 36 18% 94%;
+        --muted-foreground: 30 10% 44%;
+        --accent: 36 22% 93%;
+        --accent-foreground: 30 8% 18%;
+        --destructive: 0 72% 56%;
         --destructive-foreground: 0 0% 100%;
-        --border: 40 20% 90%;
-        --input: 40 20% 90%;
-        --ring: 30 30% 54%;
+        --border: 36 18% 88%;
+        --input: 36 18% 88%;
+        --ring: 32 38% 50%;
         --radius: 0.625rem;
-        --sidebar: 30 15% 12%;
-        --sidebar-foreground: 40 20% 92%;
-        --sidebar-accent: 30 20% 18%;
-        --success: 142 71% 45%;
+        --sidebar: 28 18% 11%;
+        --sidebar-foreground: 36 22% 92%;
+        --sidebar-accent: 28 18% 16%;
+        --success: 152 60% 42%;
         --success-foreground: 0 0% 100%;
-        --warning: 38 92% 50%;
+        --warning: 40 90% 50%;
         --warning-foreground: 0 0% 100%;
-        --info: 199 89% 48%;
+        --info: 205 80% 48%;
         --info-foreground: 0 0% 100%;
     }
 
     .dark {
-        --background: 30 10% 7%;
-        --foreground: 40 20% 92%;
-        --card: 30 10% 10%;
-        --card-foreground: 40 20% 92%;
-        --popover: 30 10% 10%;
-        --popover-foreground: 40 20% 92%;
-        --primary: 33 50% 55%;
+        --background: 28 12% 8%;
+        --foreground: 36 18% 90%;
+        --card: 28 12% 11%;
+        --card-foreground: 36 18% 90%;
+        --popover: 28 12% 11%;
+        --popover-foreground: 36 18% 90%;
+        --primary: 34 45% 52%;
         --primary-foreground: 0 0% 100%;
-        --secondary: 30 15% 17%;
-        --secondary-foreground: 40 20% 92%;
-        --muted: 30 15% 17%;
-        --muted-foreground: 35 15% 55%;
-        --accent: 30 15% 17%;
-        --accent-foreground: 40 20% 92%;
-        --destructive: 0 63% 56%;
+        --secondary: 28 14% 16%;
+        --secondary-foreground: 36 18% 90%;
+        --muted: 28 14% 16%;
+        --muted-foreground: 34 14% 52%;
+        --accent: 28 14% 16%;
+        --accent-foreground: 36 18% 90%;
+        --destructive: 0 60% 52%;
         --destructive-foreground: 0 0% 100%;
-        --border: 30 15% 20%;
-        --input: 30 15% 20%;
-        --ring: 33 50% 55%;
-        --sidebar: 30 15% 5%;
-        --sidebar-foreground: 40 15% 90%;
-        --sidebar-accent: 30 15% 12%;
-        --success: 142 71% 45%;
+        --border: 28 14% 18%;
+        --input: 28 14% 18%;
+        --ring: 34 45% 52%;
+        --sidebar: 28 16% 6%;
+        --sidebar-foreground: 36 16% 88%;
+        --sidebar-accent: 28 16% 12%;
+        --success: 152 60% 42%;
         --success-foreground: 0 0% 100%;
-        --warning: 38 92% 50%;
+        --warning: 40 90% 50%;
         --warning-foreground: 0 0% 100%;
-        --info: 199 89% 48%;
+        --info: 205 80% 48%;
         --info-foreground: 0 0% 100%;
     }
 }
@@ -89,11 +89,11 @@
     }
 
     .gradient-primary {
-        background: linear-gradient(90deg, #916f44 0%, #e2bf79 100%);
+        background: linear-gradient(135deg, #a07d50 0%, #d4b078 50%, #c9a76a 100%);
     }
 
     .gradient-text {
-        background: linear-gradient(90deg, #916f44 0%, #e2bf79 100%);
+        background: linear-gradient(135deg, #a07d50 0%, #d4b078 50%, #c9a76a 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
