@@ -54,7 +54,7 @@ function LoginContent() {
                         Streamline your IT operations with project tracking, task management, and Microsoft 365 integration — all in one place.
                     </p>
                     <div className="mt-12 space-y-4">
-                        {["Kanban & Gantt project views", "Microsoft OneDrive & Outlook", "Role-based access control", "Real-time notifications & audit logs"].map((f, i) => (
+                        {["Kanban & Gantt project views", "Microsoft OneDrive integration", "Microsoft To Do sync", "Role-based access control", "Real-time notifications & audit logs"].map((f, i) => (
                             <div key={i} className="flex items-center gap-3">
                                 <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#e2bf79' }} />
                                 <span className="text-sm" style={{ color: 'rgba(226, 191, 121, 0.45)' }}>{f}</span>
