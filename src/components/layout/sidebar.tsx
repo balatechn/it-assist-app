@@ -21,7 +21,6 @@ import {
     ChevronRight,
     Users,
     X,
-    Mail,
 } from "lucide-react"
 import { useLayoutStore } from "@/lib/store"
 import { isAdmin as checkIsAdmin } from "@/lib/utils"
@@ -32,7 +31,6 @@ const navItems = [
     { href: "/dashboard/tasks", label: "My Tasks", icon: CheckSquare },
     { href: "/dashboard/team", label: "Team", icon: Users },
     { href: "/dashboard/files", label: "OneDrive", icon: Cloud },
-    { href: "/dashboard/outlook", label: "Outlook", icon: Mail },
     { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
     { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ]

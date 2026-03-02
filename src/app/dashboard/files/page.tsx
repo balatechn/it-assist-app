@@ -1217,10 +1217,6 @@ export default function FilesPage() {
                                         <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
                                         Open
                                     </Button>
-                                    <Button size="sm" variant="outline" onClick={() => { handleShare(selectedItem); }}>
-                                        <Share2 className="w-3.5 h-3.5 mr-1.5" />
-                                        Share
-                                    </Button>
                                     <Button size="sm" variant="outline" onClick={() => {
                                         setDialogInput(selectedItem.name)
                                         setDialog("rename")
@@ -1231,10 +1227,6 @@ export default function FilesPage() {
                                     <Button size="sm" variant="outline" onClick={() => openMoveDialog(selectedItem)}>
                                         <FolderInput className="w-3.5 h-3.5 mr-1.5" />
                                         Move
-                                    </Button>
-                                    <Button size="sm" variant="outline" className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20" onClick={() => setDialog("delete")}>
-                                        <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-                                        Delete
                                     </Button>
                                 </div>
                             </div>

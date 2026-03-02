@@ -25,7 +25,6 @@ const pageTitles: Record<string, string> = {
     "/dashboard/notifications": "Notifications",
     "/dashboard/settings": "Settings",
     "/dashboard/audit-logs": "Audit Logs",
-    "/dashboard/outlook": "Outlook",
 }
 
 export function Header() {

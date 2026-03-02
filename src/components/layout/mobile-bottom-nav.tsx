@@ -6,7 +6,6 @@ import {
     LayoutDashboard,
     FolderKanban,
     CheckSquare,
-    Mail,
     Bell,
     HardDrive,
 } from "lucide-react"
@@ -16,7 +15,6 @@ const bottomNavItems = [
     { href: "/dashboard", label: "Home", icon: LayoutDashboard },
     { href: "/dashboard/projects", label: "Projects", icon: FolderKanban },
     { href: "/dashboard/tasks", label: "Tasks", icon: CheckSquare },
-    { href: "/dashboard/outlook", label: "Outlook", icon: Mail },
     { href: "/dashboard/notifications", label: "Alerts", icon: Bell },
     { href: "/dashboard/files", label: "OneDrive", icon: HardDrive },
 ]
