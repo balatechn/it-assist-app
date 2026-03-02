@@ -32,11 +32,11 @@ function LoginContent() {
     return (
         <div className="min-h-screen flex">
             {/* Left panel */}
-            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden" style={{ background: 'linear-gradient(145deg, #0a0f1e 0%, #111827 35%, #0d1424 70%, #080c18 100%)' }}>
+            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden" style={{ background: 'linear-gradient(145deg, #2d3a4e 0%, #374a60 35%, #3a4f66 70%, #2d3a4e 100%)' }}>
                 <div className="absolute inset-0">
-                    <div className="absolute top-16 left-16 w-80 h-80 rounded-full blur-[100px]" style={{ background: 'rgba(212, 160, 68, 0.06)' }} />
-                    <div className="absolute bottom-24 right-16 w-96 h-96 rounded-full blur-[120px]" style={{ background: 'rgba(100, 130, 180, 0.05)' }} />
-                    <div className="absolute top-1/2 left-1/3 w-64 h-64 rounded-full blur-[80px]" style={{ background: 'rgba(212, 160, 68, 0.03)' }} />
+                    <div className="absolute top-16 left-16 w-80 h-80 rounded-full blur-[100px]" style={{ background: 'rgba(212, 160, 68, 0.08)' }} />
+                    <div className="absolute bottom-24 right-16 w-96 h-96 rounded-full blur-[120px]" style={{ background: 'rgba(130, 160, 210, 0.08)' }} />
+                    <div className="absolute top-1/2 left-1/3 w-64 h-64 rounded-full blur-[80px]" style={{ background: 'rgba(212, 160, 68, 0.05)' }} />
                 </div>
                 <div className="absolute inset-0 opacity-[0.02]" style={{
                     backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
@@ -51,18 +51,18 @@ function LoginContent() {
                         Empower Your<br />
                         <span style={{ background: 'linear-gradient(90deg, #e8b84a, #f5d780)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Workflow</span>
                     </h2>
-                    <p className="text-lg max-w-md leading-relaxed" style={{ color: 'rgba(180, 200, 230, 0.5)' }}>
+                    <p className="text-lg max-w-md leading-relaxed" style={{ color: 'rgba(200, 215, 235, 0.75)' }}>
                         One platform. Every project. Zero chaos.
                     </p>
                     <div className="mt-12 space-y-4">
                         {["Kanban & Gantt project views", "Microsoft OneDrive integration", "Microsoft To Do sync", "Role-based access control", "Real-time notifications & audit logs"].map((f, i) => (
                             <div key={i} className="flex items-center gap-3">
                                 <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#e8b84a' }} />
-                                <span className="text-sm" style={{ color: 'rgba(180, 200, 230, 0.45)' }}>{f}</span>
+                                <span className="text-sm" style={{ color: 'rgba(200, 215, 235, 0.7)' }}>{f}</span>
                             </div>
                         ))}
                     </div>
-                    <div className="mt-16 text-xs" style={{ color: 'rgba(180, 200, 230, 0.25)' }}>
+                    <div className="mt-16 text-xs" style={{ color: 'rgba(200, 215, 235, 0.45)' }}>
                         nationalgroupindia.com
                     </div>
                 </div>

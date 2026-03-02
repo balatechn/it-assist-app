@@ -132,7 +132,7 @@ export function buildTaskAssignedEmail({
       <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
         <!-- Header -->
         <tr>
-          <td style="background:linear-gradient(135deg,#0f172a,#1e293b);padding:28px 32px;">
+          <td style="background:linear-gradient(135deg,#374a60,#4a6078);padding:28px 32px;">
             <h1 style="margin:0;color:#e8b84a;font-size:18px;font-weight:700;">National Group India</h1>
             <p style="margin:4px 0 0;color:#94a3b8;font-size:12px;">Task Assignment Notification</p>
           </td>
@@ -140,7 +140,7 @@ export function buildTaskAssignedEmail({
         <!-- Body -->
         <tr>
           <td style="padding:28px 32px;">
-            <p style="margin:0 0 16px;color:#1e293b;font-size:15px;">Hi <strong>${assigneeName}</strong>,</p>
+            <p style="margin:0 0 16px;color:#2d3a4e;font-size:15px;">Hi <strong>${assigneeName}</strong>,</p>
             <p style="margin:0 0 20px;color:#475569;font-size:14px;line-height:1.6;">
               <strong>${assignerName}</strong> has assigned you a new task:
             </p>
@@ -148,11 +148,11 @@ export function buildTaskAssignedEmail({
             <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:20px;">
               <tr>
                 <td style="padding:20px;">
-                  <h2 style="margin:0 0 12px;color:#0f172a;font-size:16px;font-weight:700;">${taskTitle}</h2>
+                  <h2 style="margin:0 0 12px;color:#2d3a4e;font-size:16px;font-weight:700;">${taskTitle}</h2>
                   <table cellpadding="0" cellspacing="0">
                     <tr>
                       <td style="padding:6px 0;color:#94a3b8;font-size:13px;width:90px;">Project</td>
-                      <td style="padding:6px 0;font-size:13px;font-weight:600;color:#1e293b;">${projectName}</td>
+                      <td style="padding:6px 0;font-size:13px;font-weight:600;color:#2d3a4e;">${projectName}</td>
                     </tr>
                     <tr>
                       <td style="padding:6px 0;color:#94a3b8;font-size:13px;">Priority</td>
@@ -169,7 +169,7 @@ export function buildTaskAssignedEmail({
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr><td align="center">
                 <a href="${appUrl}/dashboard/projects/${projectId}" target="_blank"
-                   style="display:inline-block;padding:10px 28px;background:linear-gradient(135deg,#c8932e,#e8b84a);color:#0f172a;font-size:13px;font-weight:700;text-decoration:none;border-radius:6px;">
+                   style="display:inline-block;padding:10px 28px;background:linear-gradient(135deg,#c8932e,#e8b84a);color:#fff;font-size:13px;font-weight:700;text-decoration:none;border-radius:6px;">
                   View Task
                 </a>
               </td></tr>

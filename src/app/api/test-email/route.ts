@@ -18,7 +18,7 @@ export async function GET() {
             subject: "TaskFlow Email Test",
             htmlBody: `
                 <div style="font-family:Segoe UI,sans-serif;padding:20px;">
-                    <h2 style="color:#0f172a;">Email Test Successful!</h2>
+                    <h2 style="color:#2d3a4e;">Email Test Successful!</h2>
                     <p style="color:#475569;">This confirms that Graph email is working correctly.</p>
                     <p style="color:#94a3b8;font-size:12px;">Sent via: Microsoft Graph (client credentials)</p>
                     <p style="color:#94a3b8;font-size:12px;">Time: ${new Date().toISOString()}</p>

@@ -1,0 +1,209 @@
+Retrieving projectΓÇª
+Deploying balas-projects-f0c17531/it-assist-app
+Uploading [--------------------] (0.0B/75B)
+Uploading [====================] (75.0B/75B)
+Inspect: https://vercel.com/balas-projects-f0c17531/it-assist-app/8Z5fwMbxwabN3ZeDkKnN9m3Br7zV [3s]
+Production: https://it-assist-3i1yfcbef-balas-projects-f0c17531.vercel.app [3s]
+Building...
+Building...
+Building: Running build in Washington, D.C., USA (East) ΓÇô iad1
+Building: Build machine configuration: 2 cores, 8 GB
+Building: Retrieving list of deployment files...
+Building: Downloading 98 deployment files...
+Building: Restored build cache from previous deployment (AZjW8n7zdh9L1aJZzWZSux4h7wCr)
+Building: Running "vercel build"
+Building: Vercel CLI 50.23.2
+Building: Installing dependencies...
+Building: > taskflow-pro@1.0.0 postinstall
+Building: > prisma generate
+Building: Environment variables loaded from .env
+Building: Prisma schema loaded from prisma/schema.prisma
+Building: Γ£ö Generated Prisma Client (v6.4.1) to ./node_modules/@prisma/client in 280ms
+Building: Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+Building: Help us improve the Prisma ORM for everyone. Share your feedback in a short 2-min survey: https://pris.ly/orm/survey/release-5-22
+Building: removed 2 packages in 3s
+Building: 184 packages are looking for funding
+Building: run `npm fund` for details
+Building: Detected Next.js version: 14.2.14
+Building: Running "npm run build"
+Building: > taskflow-pro@1.0.0 build
+Building: > prisma generate && next build
+Building: Environment variables loaded from .env
+Building: Prisma schema loaded from prisma/schema.prisma
+Building: Γ£ö Generated Prisma Client (v6.4.1) to ./node_modules/@prisma/client in 215ms
+Building: Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+Building: Tip: Curious about the SQL queries Prisma ORM generates? Optimize helps you enhance your visibility: https://pris.ly/tip-2-optimize
+Building: ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Building: Γöé  Update available 6.4.1 -> 7.4.2                        Γöé
+Building: Γöé                                                         Γöé
+Building: Γöé  This is a major update - please follow the guide at    Γöé
+Building: Γöé  https://pris.ly/d/major-version-upgrade                Γöé
+Building: Γöé                                                         Γöé
+Building: Γöé  Run the following to update                            Γöé
+Building: Γöé    npm i --save-dev prisma@latest                       Γöé
+Building: Γöé    npm i @prisma/client@latest                          Γöé
+Building: ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+Building: Γû▓ Next.js 14.2.14
+Building: - Environments: .env
+Building: Creating an optimized production build ...
+Building: Γ£ô Compiled successfully
+Building: Linting and checking validity of types ...
+Building: Collecting page data ...
+Building: Generating static pages (0/33) ...
+Building: AuditLogs GET error: n [Error]: Dynamic server usage: Route /api/audit-logs couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+Building: at l (/vercel/path0/.next/server/chunks/7787.js:1:37156)
+Building: at d (/vercel/path0/.next/server/chunks/7742.js:25:27291)
+Building: at s (/vercel/path0/.next/server/chunks/7742.js:25:19594)
+Building: at p (/vercel/path0/.next/server/app/api/audit-logs/route.js:1:1258)
+Building: at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:36963
+Building: at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+Building: at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+Building: at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+Building: at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+Building: at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+Building: description: "Route /api/audit-logs couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+Building: digest: 'DYNAMIC_SERVER_USAGE'
+Building: }
+Building: Dashboard API error: n [Error]: Dynamic server usage: Route /api/dashboard couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+Building: at l (/vercel/path0/.next/server/chunks/7787.js:1:37156)
+Building: at d (/vercel/path0/.next/server/chunks/7742.js:25:27291)
+Building: at s (/vercel/path0/.next/server/chunks/7742.js:25:19594)
+Building: at p (/vercel/path0/.next/server/app/api/dashboard/route.js:1:1258)
+Building: at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:36963
+Building: at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+Building: at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+Building: at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+Building: at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+Building: at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+Building: description: "Route /api/dashboard couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+Building: digest: 'DYNAMIC_SERVER_USAGE'
+Building: }
+Building: Generating static pages (8/33)
+Building: Shared API error: n [Error]: Dynamic server usage: Route /api/onedrive/shared couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+Building: at l (/vercel/path0/.next/server/chunks/7787.js:1:37156)
+Building: at d (/vercel/path0/.next/server/chunks/7742.js:25:27291)
+Building: at s (/vercel/path0/.next/server/chunks/7742.js:25:19594)
+Building: at p (/vercel/path0/.next/server/app/api/onedrive/shared/route.js:1:1258)
+Building: at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:36963
+Building: at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+Building: at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+Building: at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+Building: at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+Building: at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+Building: description: "Route /api/onedrive/shared couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+Building: digest: 'DYNAMIC_SERVER_USAGE'
+Building: }
+Building: Storage API error: n [Error]: Dynamic server usage: Route /api/onedrive/storage couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+Building: at l (/vercel/path0/.next/server/chunks/7787.js:1:37156)
+Building: at d (/vercel/path0/.next/server/chunks/7742.js:25:27291)
+Building: at s (/vercel/path0/.next/server/chunks/7742.js:25:19594)
+Building: at p (/vercel/path0/.next/server/app/api/onedrive/storage/route.js:1:1258)
+Building: at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:36963
+Building: at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+Building: at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+Building: at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+Building: at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+Building: at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+Building: description: "Route /api/onedrive/storage couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+Building: digest: 'DYNAMIC_SERVER_USAGE'
+Building: }
+Building: Search error: n [Error]: Dynamic server usage: Route /api/search couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+Building: at l (/vercel/path0/.next/server/chunks/7787.js:1:37156)
+Building: at d (/vercel/path0/.next/server/chunks/7742.js:25:27291)
+Building: at s (/vercel/path0/.next/server/chunks/7742.js:25:19594)
+Building: at p (/vercel/path0/.next/server/app/api/search/route.js:1:1257)
+Building: at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:36963
+Building: at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+Building: at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+Building: at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+Building: at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+Building: at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+Building: description: "Route /api/search couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+Building: digest: 'DYNAMIC_SERVER_USAGE'
+Building: }
+Building: Generating static pages (16/33)
+Building: Test email error: n [Error]: Dynamic server usage: Route /api/test-email couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+Building: at l (/vercel/path0/.next/server/chunks/7787.js:1:37156)
+Building: at d (/vercel/path0/.next/server/chunks/7742.js:25:27291)
+Building: at s (/vercel/path0/.next/server/chunks/7742.js:25:19594)
+Building: at u (/vercel/path0/.next/server/app/api/test-email/route.js:1:1268)
+Building: at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:36963
+Building: at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+Building: at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+Building: at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+Building: at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+Building: at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+Building: description: "Route /api/test-email couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+Building: digest: 'DYNAMIC_SERVER_USAGE'
+Building: }
+Building: Microsoft users GET error: n [Error]: Dynamic server usage: Route /api/users/microsoft couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+Building: at l (/vercel/path0/.next/server/chunks/7787.js:1:37156)
+Building: at d (/vercel/path0/.next/server/chunks/7742.js:25:27291)
+Building: at s (/vercel/path0/.next/server/chunks/7742.js:25:19594)
+Building: at p (/vercel/path0/.next/server/app/api/users/microsoft/route.js:1:1258)
+Building: at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:36963
+Building: at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+Building: at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+Building: at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+Building: at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+Building: at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+Building: description: "Route /api/users/microsoft couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+Building: digest: 'DYNAMIC_SERVER_USAGE'
+Building: }
+Building: Generating static pages (24/33)
+Building: Γ£ô Generating static pages (33/33)
+Building: Finalizing page optimization ...
+Building: Collecting build traces ...
+Building: Route (app)                              Size     First Load JS
+Building: Γöî Γùï /                                    138 B          87.3 kB
+Building: Γö£ Γùï /_not-found                          873 B          88.1 kB
+Building: Γö£ ╞Æ /api/audit-logs                      0 B                0 B
+Building: Γö£ ╞Æ /api/auth/[...nextauth]              0 B                0 B
+Building: Γö£ ╞Æ /api/dashboard                       0 B                0 B
+Building: Γö£ ╞Æ /api/files                           0 B                0 B
+Building: Γö£ ╞Æ /api/notifications                   0 B                0 B
+Building: Γö£ ╞Æ /api/onedrive/files                  0 B                0 B
+Building: Γö£ ╞Æ /api/onedrive/files/folder           0 B                0 B
+Building: Γö£ ╞Æ /api/onedrive/files/move             0 B                0 B
+Building: Γö£ ╞Æ /api/onedrive/files/share            0 B                0 B
+Building: Γö£ ╞Æ /api/onedrive/shared                 0 B                0 B
+Building: Γö£ ╞Æ /api/onedrive/storage                0 B                0 B
+Building: Γö£ ╞Æ /api/profile                         0 B                0 B
+Building: Γö£ ╞Æ /api/projects                        0 B                0 B
+Building: Γö£ ╞Æ /api/projects/[id]                   0 B                0 B
+Building: Γö£ ╞Æ /api/search                          0 B                0 B
+Building: Γö£ ╞Æ /api/tasks                           0 B                0 B
+Building: Γö£ ╞Æ /api/tasks/[id]                      0 B                0 B
+Building: Γö£ ╞Æ /api/tasks/[id]/comments             0 B                0 B
+Building: Γö£ ╞Æ /api/tasks/microsoft                 0 B                0 B
+Building: Γö£ ╞Æ /api/tasks/reorder                   0 B                0 B
+Building: Γö£ ╞Æ /api/test-email                      0 B                0 B
+Building: Γö£ ╞Æ /api/users                           0 B                0 B
+Building: Γö£ ╞Æ /api/users/[id]                      0 B                0 B
+Building: Γö£ ╞Æ /api/users/microsoft                 0 B                0 B
+Building: Γö£ Γùï /dashboard                           7.61 kB         121 kB
+Building: Γö£ Γùï /dashboard/audit-logs                5.02 kB         102 kB
+Building: Γö£ Γùï /dashboard/files                     13.4 kB         120 kB
+Building: Γö£ Γùï /dashboard/notifications             3.54 kB         108 kB
+Building: Γö£ Γùï /dashboard/projects                  11 kB           115 kB
+Building: Γö£ ╞Æ /dashboard/projects/[id]             36.6 kB         186 kB
+Building: Γö£ Γùï /dashboard/projects/new              3.63 kB         108 kB
+Building: Γö£ Γùï /dashboard/settings                  5.9 kB          146 kB
+Building: Γö£ Γùï /dashboard/tasks                     6.09 kB         149 kB
+Building: Γö£ Γùï /dashboard/team                      3.97 kB         144 kB
+Building: Γöö Γùï /login                               3.75 kB         110 kB
+Building: + First Load JS shared by all            87.2 kB
+Building: Γö£ chunks/117-29c32310663a7c82.js       31.6 kB
+Building: Γö£ chunks/fd9d1056-f48c1567ecc4a7ab.js  53.6 kB
+Building: Γöö other shared chunks (total)          1.96 kB
+Building: ╞Æ Middleware                             49.4 kB
+Building: Γùï  (Static)   prerendered as static content
+Building: ╞Æ  (Dynamic)  server-rendered on demand
+Building: Traced Next.js server files in: 32.965ms
+Building: Created all serverless functions in: 226.279ms
+Building: Collected static files (public/, static/, .next/static): 5.137ms
+Building: Build Completed in /vercel/output [37s]
+Building: Deploying outputs...
+Building: Error: We encountered an internal error. Please try again.
+Error: We encountered an internal error. Please try again.
+https://it-assist-3i1yfcbef-balas-projects-f0c17531.vercel.app
