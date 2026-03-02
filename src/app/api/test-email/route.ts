@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth"
 import { sendMail } from "@/lib/mail"
 import { isSuperAdmin } from "@/lib/utils"
 
-// GET /api/test-email — Test SMTP (Super Admin only)
+// GET /api/test-email — Test email via Graph (Super Admin only)
 export async function GET() {
     try {
         const session = await getServerSession(authOptions)
@@ -19,8 +19,8 @@ export async function GET() {
             htmlBody: `
                 <div style="font-family:Segoe UI,sans-serif;padding:20px;">
                     <h2 style="color:#0f172a;">Email Test Successful!</h2>
-                    <p style="color:#475569;">This confirms that SMTP is working correctly.</p>
-                    <p style="color:#94a3b8;font-size:12px;">Sent from: noreply@nationalgroupindia.com</p>
+                    <p style="color:#475569;">This confirms that Graph email is working correctly.</p>
+                    <p style="color:#94a3b8;font-size:12px;">Sent via: Microsoft Graph (client credentials)</p>
                     <p style="color:#94a3b8;font-size:12px;">Time: ${new Date().toISOString()}</p>
                 </div>
             `,
@@ -29,7 +29,7 @@ export async function GET() {
         if (result) {
             return NextResponse.json({ success: true, message: `Test email sent to ${session.user.email}` })
         } else {
-            return NextResponse.json({ success: false, message: "Email failed — check SMTP_PASS env var and server logs" }, { status: 500 })
+            return NextResponse.json({ success: false, message: "Email failed — check Azure AD env vars and server logs" }, { status: 500 })
         }
     } catch (error) {
         console.error("Test email error:", error)

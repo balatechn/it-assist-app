@@ -1,20 +1,42 @@
-import nodemailer from "nodemailer"
+const TENANT_ID = process.env.AZURE_AD_TENANT_ID!
+const CLIENT_ID = process.env.AZURE_AD_CLIENT_ID!
+const CLIENT_SECRET = process.env.AZURE_AD_CLIENT_SECRET!
+const SENDER = "noreply@nationalgroupindia.com"
 
-function createTransporter() {
-    return nodemailer.createTransport({
-        host: process.env.SMTP_HOST || "smtp.office365.com",
-        port: parseInt(process.env.SMTP_PORT || "587"),
-        secure: false,
-        auth: {
-            user: process.env.SMTP_USER || "noreply@nationalgroupindia.com",
-            pass: process.env.SMTP_PASS || "",
-        },
-        tls: {
-            ciphers: "SSLv3",
-            rejectUnauthorized: false,
-        },
+/* ── App-only token cache ─────────────────────────────── */
+let cachedToken: string | null = null
+let tokenExpiry = 0
+
+async function getAppToken(): Promise<string> {
+    if (cachedToken && Date.now() < tokenExpiry) return cachedToken
+
+    const url = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`
+    const body = new URLSearchParams({
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        scope: "https://graph.microsoft.com/.default",
+        grant_type: "client_credentials",
     })
+
+    const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
+    })
+
+    if (!res.ok) {
+        const text = await res.text()
+        throw new Error(`Token request failed (${res.status}): ${text}`)
+    }
+
+    const data = await res.json()
+    cachedToken = data.access_token
+    // expire 5 min early to be safe
+    tokenExpiry = Date.now() + (data.expires_in - 300) * 1000
+    return cachedToken!
 }
+
+/* ── Public API ────────────────────────────────────────── */
 
 interface SendMailOptions {
     toEmail: string
@@ -24,23 +46,42 @@ interface SendMailOptions {
 }
 
 /**
- * Send an email via SMTP (noreply@nationalgroupindia.com).
+ * Send email as noreply@nationalgroupindia.com via Microsoft Graph (client credentials).
  */
 export async function sendMail({ toEmail, toName, subject, htmlBody }: SendMailOptions): Promise<boolean> {
     try {
-        if (!process.env.SMTP_PASS) {
-            console.warn("SMTP_PASS not configured — skipping email")
+        if (!TENANT_ID || !CLIENT_ID || !CLIENT_SECRET) {
+            console.warn("Azure AD env vars missing — skipping email")
             return false
         }
 
-        const transporter = createTransporter()
+        const token = await getAppToken()
 
-        await transporter.sendMail({
-            from: `"National Group India" <${process.env.SMTP_USER || "noreply@nationalgroupindia.com"}>`,
-            to: `"${toName}" <${toEmail}>`,
-            subject,
-            html: htmlBody,
-        })
+        const res = await fetch(
+            `https://graph.microsoft.com/v1.0/users/${SENDER}/sendMail`,
+            {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    message: {
+                        subject,
+                        body: { contentType: "HTML", content: htmlBody },
+                        toRecipients: [
+                            { emailAddress: { address: toEmail, name: toName } },
+                        ],
+                    },
+                    saveToSentItems: false,
+                }),
+            }
+        )
+
+        if (!res.ok) {
+            const text = await res.text()
+            throw new Error(`Graph sendMail failed (${res.status}): ${text}`)
+        }
 
         console.log(`Email sent to ${toEmail}: ${subject}`)
         return true
