@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import prisma from "@/lib/db"
 import { logAction } from "@/lib/audit"
 import { updateTaskSchema } from "@/lib/validations"
+import { sendMailViaGraph, buildTaskAssignedEmail } from "@/lib/mail"
 
 // GET /api/tasks/[id]
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -88,6 +89,47 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
                 assignee: { select: { id: true, name: true } },
             },
         })
+
+        // Send email if assignee changed
+        if (assigneeId && assigneeId !== existing.assigneeId && assigneeId !== session.user.id) {
+            const [assignee, project] = await Promise.all([
+                prisma.user.findUnique({ where: { id: assigneeId }, select: { name: true, email: true } }),
+                prisma.project.findUnique({ where: { id: existing.projectId }, select: { name: true } }),
+            ])
+
+            if (assignee?.email) {
+                // In-app notification
+                await prisma.notification.create({
+                    data: {
+                        type: "TASK_ASSIGNED",
+                        title: "Task assigned to you",
+                        message: `You've been assigned "${task.title}" in ${project?.name || "a project"}`,
+                        userId: assigneeId,
+                        link: `/dashboard/projects/${existing.projectId}`,
+                    },
+                })
+
+                // Email notification (fire-and-forget)
+                const appUrl = process.env.NEXTAUTH_URL || "https://sharepoint.nationalgroupindia.com"
+                const htmlBody = buildTaskAssignedEmail({
+                    assigneeName: assignee.name,
+                    assignerName: session.user.name || "Someone",
+                    taskTitle: task.title,
+                    projectName: project?.name || "Unknown Project",
+                    dueDate: task.dueDate?.toISOString() || null,
+                    priority: task.priority,
+                    appUrl,
+                    projectId: existing.projectId,
+                })
+                sendMailViaGraph({
+                    fromUserId: session.user.id,
+                    toEmail: assignee.email,
+                    toName: assignee.name,
+                    subject: `Task Assigned: ${task.title}`,
+                    htmlBody,
+                }).catch(err => console.error("Email send error:", err))
+            }
+        }
 
         await logAction({
             action: "UPDATE",

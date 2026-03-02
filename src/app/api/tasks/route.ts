@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import prisma from "@/lib/db"
 import { logAction } from "@/lib/audit"
 import { createTaskSchema } from "@/lib/validations"
+import { sendMailViaGraph, buildTaskAssignedEmail } from "@/lib/mail"
 
 // GET /api/tasks — Get tasks (with optional pagination and filters)
 export async function GET(req: NextRequest) {
@@ -102,8 +103,13 @@ export async function POST(req: NextRequest) {
             },
         })
 
-        // Create notification if assigned
+        // Create notification + send email if assigned
         if (assigneeId && assigneeId !== session.user.id) {
+            const assignee = await prisma.user.findUnique({
+                where: { id: assigneeId },
+                select: { name: true, email: true },
+            })
+
             await prisma.notification.create({
                 data: {
                     type: "TASK_ASSIGNED",
@@ -113,6 +119,28 @@ export async function POST(req: NextRequest) {
                     link: `/dashboard/projects/${projectId}`,
                 },
             })
+
+            // Send email notification (fire-and-forget)
+            if (assignee?.email) {
+                const appUrl = process.env.NEXTAUTH_URL || "https://sharepoint.nationalgroupindia.com"
+                const htmlBody = buildTaskAssignedEmail({
+                    assigneeName: assignee.name,
+                    assignerName: session.user.name || "Someone",
+                    taskTitle: title,
+                    projectName: project.name,
+                    dueDate: dueDate || null,
+                    priority: priority || "MEDIUM",
+                    appUrl,
+                    projectId,
+                })
+                sendMailViaGraph({
+                    fromUserId: session.user.id,
+                    toEmail: assignee.email,
+                    toName: assignee.name,
+                    subject: `Task Assigned: ${title}`,
+                    htmlBody,
+                }).catch(err => console.error("Email send error:", err))
+            }
         }
 
         await logAction({
