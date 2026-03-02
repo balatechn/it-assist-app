@@ -1,7 +1,16 @@
-import { getAccessToken, fetchGraph } from "@/lib/onedrive"
+import nodemailer from "nodemailer"
+
+const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || "smtp.office365.com",
+    port: parseInt(process.env.SMTP_PORT || "587"),
+    secure: false,  // STARTTLS
+    auth: {
+        user: process.env.SMTP_USER || "noreply@nationalgroupindia.com",
+        pass: process.env.SMTP_PASS || "",
+    },
+})
 
 interface SendMailOptions {
-    fromUserId: string          // The user sending the email (their Graph token is used)
     toEmail: string
     toName: string
     subject: string
@@ -9,34 +18,26 @@ interface SendMailOptions {
 }
 
 /**
- * Send an email via Microsoft Graph API using the sender's delegated token.
- * Requires Mail.Send scope in the token.
+ * Send an email via SMTP (noreply@nationalgroupindia.com).
  */
-export async function sendMailViaGraph({ fromUserId, toEmail, toName, subject, htmlBody }: SendMailOptions): Promise<boolean> {
+export async function sendMail({ toEmail, toName, subject, htmlBody }: SendMailOptions): Promise<boolean> {
     try {
-        const accessToken = await getAccessToken(fromUserId)
-        if (!accessToken) {
-            console.warn("No access token available for sending email")
+        if (!process.env.SMTP_PASS) {
+            console.warn("SMTP_PASS not configured — skipping email")
             return false
         }
 
-        await fetchGraph("/me/sendMail", accessToken, {
-            method: "POST",
-            body: JSON.stringify({
-                message: {
-                    subject,
-                    body: { contentType: "HTML", content: htmlBody },
-                    toRecipients: [
-                        { emailAddress: { address: toEmail, name: toName } },
-                    ],
-                },
-                saveToSentItems: false,
-            }),
+        await transporter.sendMail({
+            from: `"National Group India" <${process.env.SMTP_USER || "noreply@nationalgroupindia.com"}>`,
+            to: `"${toName}" <${toEmail}>`,
+            subject,
+            html: htmlBody,
         })
 
+        console.log(`Email sent to ${toEmail}: ${subject}`)
         return true
     } catch (error) {
-        console.error("Failed to send email via Graph:", error)
+        console.error("Failed to send email:", error)
         return false
     }
 }

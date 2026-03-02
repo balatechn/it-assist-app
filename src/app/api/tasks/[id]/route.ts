@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth"
 import prisma from "@/lib/db"
 import { logAction } from "@/lib/audit"
 import { updateTaskSchema } from "@/lib/validations"
-import { sendMailViaGraph, buildTaskAssignedEmail } from "@/lib/mail"
+import { sendMail, buildTaskAssignedEmail } from "@/lib/mail"
 
 // GET /api/tasks/[id]
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -121,8 +121,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
                     appUrl,
                     projectId: existing.projectId,
                 })
-                sendMailViaGraph({
-                    fromUserId: session.user.id,
+                sendMail({
                     toEmail: assignee.email,
                     toName: assignee.name,
                     subject: `Task Assigned: ${task.title}`,
