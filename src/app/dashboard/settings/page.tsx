@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select"
 import {
     User, Building2, Shield, LogOut, Cloud, Save, Loader2,
-    Users, UserPlus, Pencil, Trash2, Plus, Search, Mail,
+    Users, UserPlus, Pencil, Trash2, Plus, Search, Mail, RefreshCw, Building, Phone, Briefcase,
 } from "lucide-react"
 import { getInitials, isSuperAdmin as checkIsSuperAdmin } from "@/lib/utils"
 
@@ -39,6 +39,16 @@ interface OrgUser {
         assignedTasks: number
         managedProjects: number
     }
+}
+
+interface M365User {
+    microsoftId: string
+    name: string
+    email: string
+    jobTitle: string | null
+    department: string | null
+    officeLocation: string | null
+    phone: string | null
 }
 
 export default function SettingsPage() {
@@ -69,6 +79,12 @@ export default function SettingsPage() {
     const [editRole, setEditRole] = useState("")
     const [saving, setSaving] = useState(false)
 
+    // Microsoft 365 Directory
+    const [showM365, setShowM365] = useState(false)
+    const [m365Users, setM365Users] = useState<M365User[]>([])
+    const [m365Loading, setM365Loading] = useState(false)
+    const [m365Search, setM365Search] = useState("")
+
     useEffect(() => {
         if (isSuperAdmin) fetchOrgUsers()
     }, [isSuperAdmin])
@@ -81,6 +97,43 @@ export default function SettingsPage() {
         } finally {
             setUsersLoading(false)
         }
+    }
+
+    const fetchM365Users = async () => {
+        setM365Loading(true)
+        try {
+            const res = await fetch("/api/users/microsoft")
+            if (res.ok) {
+                const data = await res.json()
+                setM365Users(data.users || [])
+            } else {
+                const err = await res.json().catch(() => ({}))
+                alert(err.error || "Failed to fetch Microsoft 365 directory")
+            }
+        } catch {
+            alert("Network error")
+        } finally {
+            setM365Loading(false)
+        }
+    }
+
+    const handleSyncM365 = () => {
+        setShowM365(true)
+        if (m365Users.length === 0) fetchM365Users()
+    }
+
+    const m365Filtered = m365Users.filter(u =>
+        u.name.toLowerCase().includes(m365Search.toLowerCase()) ||
+        u.email.toLowerCase().includes(m365Search.toLowerCase()) ||
+        (u.department || "").toLowerCase().includes(m365Search.toLowerCase())
+    )
+
+    const addFromM365 = (user: M365User) => {
+        setAddName(user.name)
+        setAddEmail(user.email)
+        setAddPassword("")
+        setAddRole("EMPLOYEE")
+        setShowAddUser(true)
     }
 
     const handleAddUser = async () => {
@@ -277,6 +330,15 @@ export default function SettingsPage() {
                                 <UserPlus className="w-3.5 h-3.5 mr-1.5" />
                                 Add User
                             </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8"
+                                onClick={handleSyncM365}
+                            >
+                                <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                                Microsoft 365
+                            </Button>
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-3">
@@ -350,6 +412,116 @@ export default function SettingsPage() {
                         <p className="text-[10px] text-muted-foreground">
                             {orgUsers.length} total user{orgUsers.length !== 1 ? "s" : ""} in your organization
                         </p>
+
+                        {/* Microsoft 365 Directory */}
+                        {showM365 && (
+                            <div className="rounded-lg border border-blue-500/20 p-3 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <svg className="w-4 h-4" viewBox="0 0 21 21" fill="none">
+                                            <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
+                                            <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
+                                            <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
+                                            <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
+                                        </svg>
+                                        <h4 className="text-xs font-semibold">Microsoft 365 Directory</h4>
+                                        <Badge variant="secondary" className="text-[10px]">{m365Users.length} users</Badge>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <Button variant="outline" size="icon" className="h-6 w-6" onClick={fetchM365Users} disabled={m365Loading}>
+                                            <RefreshCw className={`w-3 h-3 ${m365Loading ? "animate-spin" : ""}`} />
+                                        </Button>
+                                        <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={() => setShowM365(false)}>
+                                            Close
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {m365Loading ? (
+                                    <div className="flex items-center justify-center py-6">
+                                        <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                                    </div>
+                                ) : m365Users.length > 0 ? (
+                                    <>
+                                        <div className="relative">
+                                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
+                                            <Input
+                                                placeholder="Search directory..."
+                                                value={m365Search}
+                                                onChange={(e) => setM365Search(e.target.value)}
+                                                className="pl-7 h-7 text-xs bg-muted/50 border-0"
+                                            />
+                                        </div>
+                                        <div className="max-h-[300px] overflow-y-auto space-y-1">
+                                            {m365Filtered.map((user, i) => {
+                                                const alreadyAdded = orgUsers.some(u => u.email.toLowerCase() === user.email.toLowerCase())
+                                                return (
+                                                    <div key={i} className="flex items-center justify-between p-2 rounded-md border border-border/50 hover:bg-muted/30 transition-all">
+                                                        <div className="flex items-center gap-2.5 min-w-0">
+                                                            <Avatar className="w-8 h-8 shrink-0">
+                                                                <AvatarFallback className="text-[10px] bg-blue-500/10 text-blue-500">
+                                                                    {getInitials(user.name)}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                            <div className="min-w-0">
+                                                                <p className="text-xs font-semibold truncate">{user.name}</p>
+                                                                <p className="text-[10px] text-muted-foreground truncate flex items-center gap-1">
+                                                                    <Mail className="w-2.5 h-2.5 shrink-0" />
+                                                                    {user.email}
+                                                                </p>
+                                                                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                                                    {user.jobTitle && (
+                                                                        <span className="text-[9px] text-muted-foreground/70 flex items-center gap-0.5">
+                                                                            <Briefcase className="w-2 h-2" />
+                                                                            {user.jobTitle}
+                                                                        </span>
+                                                                    )}
+                                                                    {user.department && (
+                                                                        <span className="text-[9px] text-muted-foreground/70 flex items-center gap-0.5">
+                                                                            <Building className="w-2 h-2" />
+                                                                            {user.department}
+                                                                        </span>
+                                                                    )}
+                                                                    {user.phone && (
+                                                                        <span className="text-[9px] text-muted-foreground/70 flex items-center gap-0.5">
+                                                                            <Phone className="w-2 h-2" />
+                                                                            {user.phone}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="shrink-0 ml-2">
+                                                            {alreadyAdded ? (
+                                                                <Badge variant="secondary" className="text-[9px]">Added</Badge>
+                                                            ) : (
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="h-6 text-[10px] px-2"
+                                                                    onClick={() => addFromM365(user)}
+                                                                >
+                                                                    <Plus className="w-3 h-3 mr-0.5" />
+                                                                    Add
+                                                                </Button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                        {m365Filtered.length === 0 && (
+                                            <p className="text-center text-xs text-muted-foreground py-3">No matching users found</p>
+                                        )}
+                                    </>
+                                ) : (
+                                    <div className="text-center py-6">
+                                        <Users className="w-6 h-6 text-muted-foreground/30 mx-auto mb-1" />
+                                        <p className="text-[10px] text-muted-foreground">No directory users found. User.Read.All permission may be needed.</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             )}
