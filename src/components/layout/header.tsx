@@ -234,7 +234,7 @@ export function Header() {
                     <Button variant="ghost" size="icon-sm" className="relative">
                         <Bell className="w-5 h-5 text-muted-foreground" />
                         {unreadCount > 0 && (
-                            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-[10px] text-white flex items-center justify-center font-bold" style={{ background: '#b8956a' }}>
+                            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-[10px] text-white flex items-center justify-center font-bold" style={{ background: '#d4a044' }}>
                                 {unreadCount > 9 ? "9+" : unreadCount}
                             </span>
                         )}

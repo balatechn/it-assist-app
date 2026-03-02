@@ -524,7 +524,7 @@ export default function FilesPage() {
             <div className="flex items-center justify-center min-h-[60vh]">
                 <Card className="max-w-md w-full border-0 shadow-xl bg-gradient-to-b from-card to-card/80">
                     <CardContent className="pt-10 pb-10 text-center">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#a07d50] to-[#d4b078] flex items-center justify-center mx-auto mb-6 shadow-lg">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#c8932e] to-[#e8b84a] flex items-center justify-center mx-auto mb-6 shadow-lg">
                             <Cloud className="w-8 h-8 text-white" />
                         </div>
                         <h3 className="text-xl font-bold mb-2">Connect OneDrive</h3>

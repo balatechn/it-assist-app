@@ -92,7 +92,7 @@ export function Sidebar() {
                 {(!collapsed || mobileSidebarOpen) && (
                     <div className="flex flex-col flex-1">
                         <span className="text-sm font-bold text-white tracking-tight">National Group</span>
-                        <span className="text-[10px] font-medium tracking-widest uppercase" style={{ color: '#d4b078' }}>India</span>
+                        <span className="text-[10px] font-medium tracking-widest uppercase" style={{ color: '#e8b84a' }}>India</span>
                     </div>
                 )}
                 {/* Mobile close button */}
@@ -128,11 +128,11 @@ export function Sidebar() {
                         >
                             <item.icon className={cn(
                                 "w-5 h-5 shrink-0 transition-colors",
-                                isActive ? "text-[#d4b078]" : "text-sidebar-foreground/40 group-hover:text-[#d4b078]/70"
+                                isActive ? "text-[#e8b84a]" : "text-sidebar-foreground/40 group-hover:text-[#e8b84a]/70"
                             )} />
                             {(!collapsed || mobileSidebarOpen) && <span>{item.label}</span>}
                             {isActive && (!collapsed || mobileSidebarOpen) && (
-                                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#d4b078] animate-pulse" />
+                                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#e8b84a] animate-pulse" />
                             )}
                         </Link>
                     )
@@ -158,7 +158,7 @@ export function Sidebar() {
                                             : "text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent/50"
                                     )}
                                 >
-                                    <item.icon className="w-5 h-5 shrink-0 text-sidebar-foreground/40 group-hover:text-[#d4b078]/70" />
+                                    <item.icon className="w-5 h-5 shrink-0 text-sidebar-foreground/40 group-hover:text-[#e8b84a]/70" />
                                     {(!collapsed || mobileSidebarOpen) && <span>{item.label}</span>}
                                 </Link>
                             )
@@ -181,7 +181,7 @@ export function Sidebar() {
                         rel="noopener noreferrer"
                         className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent/50"
                     >
-                        <item.icon className="w-5 h-5 shrink-0 text-sidebar-foreground/40 group-hover:text-[#d4b078]/70" />
+                        <item.icon className="w-5 h-5 shrink-0 text-sidebar-foreground/40 group-hover:text-[#e8b84a]/70" />
                         {(!collapsed || mobileSidebarOpen) && (
                             <span className="flex-1">{item.label}</span>
                         )}
@@ -220,7 +220,7 @@ export function Sidebar() {
                         collapsed && !mobileSidebarOpen && "justify-center"
                     )}>
                         <Avatar className="w-8 h-8">
-                            <AvatarFallback className="bg-[#a07d50] text-white text-xs">
+                            <AvatarFallback className="bg-[#c8932e] text-white text-xs">
                                 {getInitials(session.user.name)}
                             </AvatarFallback>
                         </Avatar>

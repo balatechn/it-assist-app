@@ -35,7 +35,7 @@ export function MobileBottomNav() {
                             className={cn(
                                 "flex flex-col items-center justify-center gap-0.5 w-full h-full rounded-lg transition-colors",
                                 isActive
-                                    ? "text-[#b8956a]"
+                                    ? "text-[#d4a044]"
                                     : "text-muted-foreground"
                             )}
                         >
@@ -45,7 +45,7 @@ export function MobileBottomNav() {
                                     isActive && "scale-110"
                                 )} />
                                 {isActive && (
-                                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#d4b078]" />
+                                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#e8b84a]" />
                                 )}
                             </div>
                             <span className={cn(
