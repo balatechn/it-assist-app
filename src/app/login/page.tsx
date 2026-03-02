@@ -47,8 +47,8 @@ function LoginContent() {
                         <img src="/logo.webp" alt="National Group India" className="h-12" />
                     </div>
                     <h2 className="text-4xl font-bold text-white leading-tight mb-4">
-                        IT Asset &amp; Project<br />
-                        <span style={{ background: 'linear-gradient(90deg, #e2bf79, #ac8c66)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Management Platform</span>
+                        Smart IT Operations<br />
+                        <span style={{ background: 'linear-gradient(90deg, #e2bf79, #ac8c66)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Built for National Group</span>
                     </h2>
                     <p className="text-lg max-w-md leading-relaxed" style={{ color: 'rgba(226, 191, 121, 0.5)' }}>
                         One platform. Every project. Zero chaos.
