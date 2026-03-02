@@ -23,7 +23,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Search, Mail, FolderKanban, CheckSquare, Users, Plus, Pencil, Trash2, Loader2, UserPlus, RefreshCw, Building, Phone, Briefcase } from "lucide-react"
-import { getInitials } from "@/lib/utils"
+import { getInitials, isAdmin as checkIsAdmin, isSuperAdmin as checkIsSuperAdmin } from "@/lib/utils"
 
 interface User {
     id: string
@@ -50,7 +50,8 @@ interface M365User {
 
 export default function TeamPage() {
     const { data: session } = useSession()
-    const isAdmin = session?.user?.role === "ADMIN"
+    const isAdmin = checkIsAdmin(session?.user?.role || "")
+    const isSuperAdmin = checkIsSuperAdmin(session?.user?.role || "")
     const [users, setUsers] = useState<User[]>([])
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState("")
@@ -61,7 +62,7 @@ export default function TeamPage() {
     const [inviteName, setInviteName] = useState("")
     const [inviteEmail, setInviteEmail] = useState("")
     const [invitePassword, setInvitePassword] = useState("")
-    const [inviteRole, setInviteRole] = useState("TEAM_MEMBER")
+    const [inviteRole, setInviteRole] = useState("EMPLOYEE")
 
     // Edit dialog
     const [editUser, setEditUser] = useState<User | null>(null)
@@ -139,7 +140,7 @@ export default function TeamPage() {
                 setInviteName("")
                 setInviteEmail("")
                 setInvitePassword("")
-                setInviteRole("TEAM_MEMBER")
+                setInviteRole("EMPLOYEE")
                 fetchUsers()
             } else {
                 const err = await res.json()
@@ -200,14 +201,16 @@ export default function TeamPage() {
 
     const renderRoleBadge = (role: string) => {
         switch (role) {
+            case "SUPER_ADMIN":
+                return <Badge className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-600 border-amber-300/30">Super Admin</Badge>
             case "ADMIN":
-                return <Badge className="bg-destructive/10 text-destructive">{role.replace("_", " ")}</Badge>
-            case "PROJECT_MANAGER":
-                return <Badge className="bg-blue-500/10 text-blue-500">{role.replace("_", " ")}</Badge>
-            case "VIEWER":
-                return <Badge className="bg-muted text-muted-foreground">{role.replace("_", " ")}</Badge>
+                return <Badge className="bg-destructive/10 text-destructive">Admin</Badge>
+            case "MANAGEMENT":
+                return <Badge className="bg-purple-500/10 text-purple-500">Management</Badge>
+            case "MANAGER":
+                return <Badge className="bg-blue-500/10 text-blue-500">Manager</Badge>
             default:
-                return <Badge className="bg-emerald-500/10 text-emerald-500">{role.replace("_", " ")}</Badge>
+                return <Badge className="bg-emerald-500/10 text-emerald-500">Employee</Badge>
         }
     }
 
@@ -469,10 +472,11 @@ export default function TeamPage() {
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="TEAM_MEMBER">Team Member</SelectItem>
-                                    <SelectItem value="PROJECT_MANAGER">Project Manager</SelectItem>
-                                    <SelectItem value="ADMIN">Admin</SelectItem>
-                                    <SelectItem value="VIEWER">Viewer</SelectItem>
+                                    <SelectItem value="EMPLOYEE">Employee</SelectItem>
+                                    <SelectItem value="MANAGER">Manager</SelectItem>
+                                    <SelectItem value="MANAGEMENT">Management</SelectItem>
+                                    {isSuperAdmin && <SelectItem value="ADMIN">Admin</SelectItem>}
+                                    {isSuperAdmin && <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -509,17 +513,21 @@ export default function TeamPage() {
                         </div>
                         <div className="space-y-2">
                             <Label className="text-xs font-medium">Role</Label>
-                            <Select value={editRole} onValueChange={setEditRole}>
+                            <Select value={editRole} onValueChange={setEditRole} disabled={!isSuperAdmin}>
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="TEAM_MEMBER">Team Member</SelectItem>
-                                    <SelectItem value="PROJECT_MANAGER">Project Manager</SelectItem>
+                                    <SelectItem value="EMPLOYEE">Employee</SelectItem>
+                                    <SelectItem value="MANAGER">Manager</SelectItem>
+                                    <SelectItem value="MANAGEMENT">Management</SelectItem>
                                     <SelectItem value="ADMIN">Admin</SelectItem>
-                                    <SelectItem value="VIEWER">Viewer</SelectItem>
+                                    <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
                                 </SelectContent>
                             </Select>
+                            {!isSuperAdmin && (
+                                <p className="text-[10px] text-muted-foreground">Only Super Admin can change roles</p>
+                            )}
                         </div>
                         <div className="flex justify-end gap-2 pt-2">
                             <Button variant="outline" size="sm" onClick={() => setEditUser(null)}>Cancel</Button>

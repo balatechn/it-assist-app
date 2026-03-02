@@ -17,7 +17,22 @@ export async function GET() {
 
         try {
             const data = await fetchGraph("/me/drive/sharedWithMe", token)
-            return NextResponse.json({ files: data.value || [] })
+            // Transform shared items: flatten remoteItem data so the UI can navigate folders
+            const files = (data.value || []).map((item: Record<string, unknown>) => {
+                const remote = item.remoteItem as Record<string, unknown> | undefined
+                if (remote) {
+                    const parentRef = remote.parentReference as Record<string, unknown> | undefined
+                    return {
+                        ...remote,
+                        // Keep original shared metadata for display
+                        shared: item.shared,
+                        // Attach driveId for cross-drive navigation
+                        _driveId: parentRef?.driveId || null,
+                    }
+                }
+                return item
+            })
+            return NextResponse.json({ files })
         } catch (e) {
             console.error("Shared with me error:", e)
             return NextResponse.json({ files: [] })

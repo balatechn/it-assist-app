@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import prisma from "@/lib/db"
 import { logAction } from "@/lib/audit"
+import { isManager } from "@/lib/utils"
 import { z } from "zod"
 
 const createFileSchema = z.object({
@@ -169,7 +170,7 @@ export async function DELETE(req: NextRequest) {
 
         // Only admin, project manager, or the uploader can delete
         const role = session.user.role
-        if (role !== "ADMIN" && role !== "PROJECT_MANAGER" && file.uploadedById !== session.user.id) {
+        if (!isManager(role) && file.uploadedById !== session.user.id) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 })
         }
 

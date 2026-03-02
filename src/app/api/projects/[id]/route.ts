@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import prisma from "@/lib/db"
 import { logAction } from "@/lib/audit"
 import { updateProjectSchema } from "@/lib/validations"
+import { isManager, isAdmin } from "@/lib/utils"
 
 // GET /api/projects/[id]
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -56,7 +57,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         }
 
         const role = session.user.role
-        if (role !== "ADMIN" && role !== "PROJECT_MANAGER") {
+        if (!isManager(role)) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 })
         }
 
@@ -116,7 +117,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        if (session.user.role !== "ADMIN") {
+        if (!isAdmin(session.user.role)) {
             return NextResponse.json({ error: "Forbidden — Admin only" }, { status: 403 })
         }
 

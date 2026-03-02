@@ -64,3 +64,33 @@ export function timeAgo(date: Date | string): string {
     if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`
     return formatDate(date)
 }
+
+// ═══ Role Helpers ═══
+// Hierarchy: EMPLOYEE < MANAGER < MANAGEMENT < ADMIN < SUPER_ADMIN
+const ROLE_LEVELS: Record<string, number> = {
+    EMPLOYEE: 0,
+    MANAGER: 1,
+    MANAGEMENT: 2,
+    ADMIN: 3,
+    SUPER_ADMIN: 4,
+}
+
+/** Check if role is at least the given minimum level */
+export function hasMinRole(role: string, minRole: string): boolean {
+    return (ROLE_LEVELS[role] ?? 0) >= (ROLE_LEVELS[minRole] ?? 0)
+}
+
+/** Check if role can manage users (Admin or Super Admin) */
+export function isAdmin(role: string): boolean {
+    return hasMinRole(role, "ADMIN")
+}
+
+/** Check if role can manage projects (Manager+) */
+export function isManager(role: string): boolean {
+    return hasMinRole(role, "MANAGER")
+}
+
+/** Check if role is Super Admin */
+export function isSuperAdmin(role: string): boolean {
+    return role === "SUPER_ADMIN"
+}

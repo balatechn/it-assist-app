@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useMemo, useRef } from "react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -189,16 +189,102 @@ export default function ProjectsPage() {
         { id: "gantt", icon: GanttChart, label: "Gantt" },
     ]
 
+    // ─── Keyboard Shortcuts ─────────────────────────────────────────────────────
+    const searchRef = useRef<HTMLInputElement>(null)
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            const tag = (e.target as HTMLElement).tagName
+            if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
+                if (e.key === "Escape") {
+                    ;(e.target as HTMLElement).blur()
+                    setShowQuickCreate(false)
+                    setShowTemplates(false)
+                }
+                return
+            }
+            if (e.key === "n" || e.key === "N") {
+                e.preventDefault()
+                setShowQuickCreate(true)
+            }
+            if (e.key === "/") {
+                e.preventDefault()
+                searchRef.current?.focus()
+            }
+            if (e.key === "Escape") {
+                setShowQuickCreate(false)
+                setShowTemplates(false)
+            }
+            if (e.key === "1") setView("grid")
+            if (e.key === "2") setView("list")
+            if (e.key === "3") setView("kanban")
+            if (e.key === "4") setView("gantt")
+        }
+        window.addEventListener("keydown", handleKeyDown)
+        return () => window.removeEventListener("keydown", handleKeyDown)
+    }, [])
+
+    // ─── Skeleton Loading ───────────────────────────────────────────────────────
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <div className="space-y-5 animate-in fade-in duration-300">
+                {/* Header skeleton */}
+                <div className="flex justify-between items-center">
+                    <div>
+                        <div className="h-7 w-32 bg-muted rounded-md animate-pulse" />
+                        <div className="h-4 w-24 bg-muted/60 rounded-md animate-pulse mt-2" />
+                    </div>
+                    <div className="flex gap-2">
+                        <div className="h-9 w-28 bg-muted rounded-md animate-pulse" />
+                        <div className="h-9 w-32 bg-muted rounded-md animate-pulse" />
+                    </div>
+                </div>
+                {/* Summary cards skeleton */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[...Array(4)].map((_, i) => (
+                        <Card key={i} className="p-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-lg bg-muted animate-pulse" />
+                                <div>
+                                    <div className="h-3 w-16 bg-muted/60 rounded animate-pulse" />
+                                    <div className="h-6 w-10 bg-muted rounded animate-pulse mt-1" />
+                                </div>
+                            </div>
+                        </Card>
+                    ))}
+                </div>
+                {/* Project cards skeleton */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[...Array(6)].map((_, i) => (
+                        <Card key={i} className="overflow-hidden">
+                            <div className="h-1.5 bg-muted animate-pulse" />
+                            <div className="p-5 space-y-4">
+                                <div className="flex justify-between">
+                                    <div className="h-5 w-40 bg-muted rounded animate-pulse" />
+                                    <div className="h-5 w-16 bg-muted rounded-full animate-pulse" />
+                                </div>
+                                <div className="h-3 w-full bg-muted/50 rounded animate-pulse" />
+                                <div className="h-3 w-2/3 bg-muted/50 rounded animate-pulse" />
+                                <div className="flex justify-between items-center">
+                                    <div className="h-2 w-full bg-muted rounded-full animate-pulse" />
+                                </div>
+                                <div className="flex justify-between items-center pt-2 border-t">
+                                    <div className="flex gap-3">
+                                        <div className="h-4 w-14 bg-muted/60 rounded animate-pulse" />
+                                        <div className="h-4 w-14 bg-muted/60 rounded animate-pulse" />
+                                    </div>
+                                    <div className="h-6 w-6 bg-muted rounded-full animate-pulse" />
+                                </div>
+                            </div>
+                        </Card>
+                    ))}
+                </div>
             </div>
         )
     }
 
     return (
-        <div className="space-y-5">
+        <div className="space-y-5 animate-in fade-in duration-300">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
@@ -383,7 +469,8 @@ export default function ProjectsPage() {
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input
-                            placeholder="Search projects..."
+                            ref={searchRef}
+                            placeholder="Search projects... (press /)"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="pl-9 w-44 md:w-56 bg-muted/50 border-0 h-9 text-sm"

@@ -15,15 +15,22 @@ export async function GET(req: Request) {
 
         const { searchParams } = new URL(req.url)
         const parentId = searchParams.get("parentId")
+        const driveId = searchParams.get("driveId")
 
         const token = await getAccessToken(session.user.id)
         if (!token) {
             return NextResponse.json({ error: "No OneDrive connection", requiresAuth: true }, { status: 403 })
         }
 
-        const endpoint = parentId
-            ? `/me/drive/items/${parentId}/children?$top=200`
-            : `/me/drive/root/children?$top=200`
+        // Support cross-drive navigation (for Shared With Me items)
+        let endpoint: string
+        if (driveId && parentId) {
+            endpoint = `/drives/${driveId}/items/${parentId}/children?$top=200`
+        } else if (parentId) {
+            endpoint = `/me/drive/items/${parentId}/children?$top=200`
+        } else {
+            endpoint = `/me/drive/root/children?$top=200`
+        }
 
         try {
             const data = await fetchGraph(endpoint, token)

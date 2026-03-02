@@ -26,7 +26,7 @@ import {
     Calendar, User, Flag, MessageSquare, Paperclip,
     Save, Loader2, Clock, AlertTriangle, Trash2,
 } from "lucide-react"
-import { formatDate, getInitials, timeAgo } from "@/lib/utils"
+import { formatDate, getInitials, timeAgo, isAdmin as checkIsAdmin } from "@/lib/utils"
 
 interface TaskComment {
     id: string
@@ -69,7 +69,7 @@ interface TaskDetailModalProps {
 
 export function TaskDetailModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskDetailModalProps) {
     const { data: session } = useSession()
-    const isViewer = session?.user?.role === "VIEWER"
+    const isViewer = false // No viewer role in new system — all employees can edit
 
     const [task, setTask] = useState<TaskDetail | null>(null)
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
@@ -388,7 +388,7 @@ export function TaskDetailModal({ taskId, open, onOpenChange, onTaskUpdated }: T
                                                         <span className="text-[10px] text-muted-foreground">
                                                             {timeAgo(comment.createdAt)}
                                                         </span>
-                                                        {(comment.author.id === session?.user?.id || session?.user?.role === "ADMIN") && (
+                                                        {(comment.author.id === session?.user?.id || checkIsAdmin(session?.user?.role || "")) && (
                                                             <button
                                                                 onClick={() => handleDeleteComment(comment.id)}
                                                                 className="opacity-0 group-hover/comment:opacity-100 transition-opacity p-0.5 rounded hover:bg-destructive/10 text-destructive/70"

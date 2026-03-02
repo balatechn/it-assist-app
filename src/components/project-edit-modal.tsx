@@ -26,7 +26,7 @@ import {
     Save, Loader2, DollarSign,
     Calendar, User, FolderKanban,
 } from "lucide-react"
-import { cn, getInitials, getStatusColor } from "@/lib/utils"
+import { cn, getInitials, getStatusColor, isManager } from "@/lib/utils"
 
 interface TeamMember {
     id: string
@@ -72,7 +72,7 @@ const COLOR_OPTIONS = [
 export function ProjectEditModal({ project, open, onOpenChange, onProjectUpdated }: ProjectEditModalProps) {
     const { data: session } = useSession()
     const role = session?.user?.role
-    const canEdit = role === "ADMIN" || role === "PROJECT_MANAGER"
+    const canEdit = isManager(role || "")
 
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
     const [saving, setSaving] = useState(false)

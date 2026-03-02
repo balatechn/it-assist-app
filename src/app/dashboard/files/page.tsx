@@ -28,12 +28,14 @@ interface OneDriveItem {
     createdBy?: { user?: { displayName?: string } }
     shared?: { owner?: { user?: { displayName?: string } }; sharedDateTime?: string }
     remoteItem?: OneDriveItem
+    _driveId?: string | null
     "@microsoft.graph.downloadUrl"?: string
 }
 
 interface BreadcrumbItem {
     id: string | null
     name: string
+    driveId?: string | null
 }
 
 interface UploadItem {
@@ -154,10 +156,13 @@ export default function FilesPage() {
     // ─── Data Fetching ──────────────────────────────────────────────────────────
     const currentParentId = breadcrumbs[breadcrumbs.length - 1]?.id
 
-    const fetchFiles = useCallback(async (parentId: string | null) => {
+    const fetchFiles = useCallback(async (parentId: string | null, driveId?: string | null) => {
         setLoading(true)
         try {
-            const url = parentId ? `/api/onedrive/files?parentId=${parentId}` : "/api/onedrive/files"
+            const params = new URLSearchParams()
+            if (parentId) params.set("parentId", parentId)
+            if (driveId) params.set("driveId", driveId)
+            const url = params.toString() ? `/api/onedrive/files?${params}` : "/api/onedrive/files"
             const res = await fetch(url)
             if (!res.ok) {
                 if (res.status === 403) setNeedsAuth(true)
@@ -209,21 +214,25 @@ export default function FilesPage() {
 
     // ─── Navigation ─────────────────────────────────────────────────────────────
     const navigateToFolder = (item: OneDriveItem) => {
-        setBreadcrumbs(prev => [...prev, { id: item.id, name: item.name }])
-        fetchFiles(item.id)
+        const driveId = item._driveId || null
+        setBreadcrumbs(prev => [...prev, { id: item.id, name: item.name, driveId }])
+        setActiveTab("my-files")
+        fetchFiles(item.id, driveId)
     }
 
     const navigateToBreadcrumb = (index: number) => {
         const newBreadcrumbs = breadcrumbs.slice(0, index + 1)
         setBreadcrumbs(newBreadcrumbs)
-        fetchFiles(newBreadcrumbs[newBreadcrumbs.length - 1].id)
+        const last = newBreadcrumbs[newBreadcrumbs.length - 1]
+        fetchFiles(last.id, last.driveId)
     }
 
     const goBack = () => {
         if (breadcrumbs.length > 1) {
             const newBreadcrumbs = breadcrumbs.slice(0, -1)
             setBreadcrumbs(newBreadcrumbs)
-            fetchFiles(newBreadcrumbs[newBreadcrumbs.length - 1].id)
+            const last = newBreadcrumbs[newBreadcrumbs.length - 1]
+            fetchFiles(last.id, last.driveId)
         }
     }
 

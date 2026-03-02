@@ -54,10 +54,6 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        if (session.user.role === "VIEWER") {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-        }
-
         // Verify task belongs to user's organization
         const existing = await prisma.task.findFirst({
             where: {
@@ -116,10 +112,6 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
         const session = await getServerSession(authOptions)
         if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
-
-        if (session.user.role === "VIEWER") {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 })
         }
 
         // Verify task belongs to user's organization

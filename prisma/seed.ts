@@ -34,7 +34,7 @@ async function main() {
             name: 'Admin User',
             email: 'admin@acmecorp.com',
             password: adminPass,
-            role: Role.ADMIN,
+            role: Role.SUPER_ADMIN,
             organizationId: acmeCorp.id,
         },
     })
@@ -44,7 +44,7 @@ async function main() {
             name: 'Sarah Johnson',
             email: 'sarah@acmecorp.com',
             password: userPass,
-            role: Role.PROJECT_MANAGER,
+            role: Role.MANAGER,
             organizationId: acmeCorp.id,
         },
     })
@@ -54,7 +54,7 @@ async function main() {
             name: 'Mike Chen',
             email: 'mike@acmecorp.com',
             password: userPass,
-            role: Role.TEAM_MEMBER,
+            role: Role.EMPLOYEE,
             organizationId: acmeCorp.id,
         },
     })
@@ -64,7 +64,7 @@ async function main() {
             name: 'Jane Viewer',
             email: 'jane@acmecorp.com',
             password: userPass,
-            role: Role.VIEWER,
+            role: Role.EMPLOYEE,
             organizationId: acmeCorp.id,
         },
     })

@@ -252,16 +252,76 @@ export default function TasksPage() {
         { id: "DONE", label: "Done", count: tasks.filter(t => t.status === "DONE").length },
     ]
 
+    // ─── Keyboard Shortcuts ─────────────────────────────────────────────────────
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            const tag = (e.target as HTMLElement).tagName
+            if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
+                if (e.key === "Escape") {
+                    ;(e.target as HTMLElement).blur()
+                    setShowProjectTaskCreate(false)
+                    setShowNewTask(false)
+                }
+                return
+            }
+            if (e.key === "n" || e.key === "N") {
+                e.preventDefault()
+                if (activeTab === "project") setShowProjectTaskCreate(true)
+                else setShowNewTask(true)
+            }
+            if (e.key === "Escape") {
+                setShowProjectTaskCreate(false)
+                setShowNewTask(false)
+            }
+        }
+        window.addEventListener("keydown", handleKeyDown)
+        return () => window.removeEventListener("keydown", handleKeyDown)
+    }, [activeTab])
+
+    // ─── Skeleton Loading ───────────────────────────────────────────────────────
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <div className="space-y-5 animate-in fade-in duration-300">
+                <div className="flex justify-between items-center">
+                    <div>
+                        <div className="h-7 w-28 bg-muted rounded-md animate-pulse" />
+                        <div className="h-4 w-44 bg-muted/60 rounded-md animate-pulse mt-2" />
+                    </div>
+                    <div className="h-9 w-28 bg-muted rounded-md animate-pulse" />
+                </div>
+                <div className="flex gap-1 bg-muted/50 p-1 rounded-lg w-fit">
+                    <div className="h-8 w-32 bg-muted rounded-md animate-pulse" />
+                    <div className="h-8 w-36 bg-muted rounded-md animate-pulse" />
+                </div>
+                <div className="flex gap-2">
+                    {[...Array(4)].map((_, i) => (
+                        <div key={i} className="h-8 w-20 bg-muted rounded-full animate-pulse" />
+                    ))}
+                </div>
+                <div className="space-y-2">
+                    {[...Array(5)].map((_, i) => (
+                        <Card key={i} className="p-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-5 h-5 bg-muted rounded animate-pulse" />
+                                <div className="flex-1 space-y-2">
+                                    <div className="h-4 w-48 bg-muted rounded animate-pulse" />
+                                    <div className="flex gap-2">
+                                        <div className="h-3 w-20 bg-muted/60 rounded animate-pulse" />
+                                        <div className="h-3 w-16 bg-muted/60 rounded animate-pulse" />
+                                    </div>
+                                </div>
+                                <div className="h-6 w-6 bg-muted rounded-full animate-pulse" />
+                            </div>
+                        </Card>
+                    ))}
+                </div>
             </div>
         )
     }
 
     return (
-        <div className="space-y-4 md:space-y-6">
+        <div className="space-y-4 md:space-y-6 animate-in fade-in duration-300">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                     <h2 className="text-xl md:text-2xl font-bold tracking-tight">My Tasks</h2>

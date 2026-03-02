@@ -11,7 +11,7 @@ A full-stack project & task management platform built with Next.js 14, integrate
 ### Authentication & Multi-Tenancy
 - **Microsoft Entra ID (Azure AD)** single sign-on — no local passwords
 - Auto-provisioning of users and organizations on first login
-- Role-based access control: Admin, Project Manager, Team Member, Viewer
+- Role-based access control: Employee, Manager, Management, Admin, Super Admin
 - JWT-based sessions with 24-hour expiry
 
 ### Project Management
@@ -195,7 +195,7 @@ Open [http://localhost:3000](http://localhost:3000) and sign in with your Micros
 
 Key models: **Organization** → **User** → **Project** → **Task** → **TaskComment** / **File** / **Notification** / **AuditLog**
 
-Roles: `ADMIN` · `PROJECT_MANAGER` · `TEAM_MEMBER` · `VIEWER`
+Roles: `EMPLOYEE` · `MANAGER` · `MANAGEMENT` · `ADMIN` · `SUPER_ADMIN`
 
 ---
 

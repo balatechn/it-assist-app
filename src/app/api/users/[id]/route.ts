@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import prisma from "@/lib/db"
 import { logAction } from "@/lib/audit"
 import { updateUserSchema } from "@/lib/validations"
+import { isAdmin, isSuperAdmin } from "@/lib/utils"
 
 // PATCH /api/users/[id] — Update user (admin only)
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
@@ -12,8 +13,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
-        if (session.user.role !== "ADMIN") {
+        if (!isAdmin(session.user.role)) {
             return NextResponse.json({ error: "Only admins can update users" }, { status: 403 })
+        }
+
+        // Only Super Admin can change roles
+        const body_peek = await req.clone().json()
+        if (body_peek.role !== undefined && !isSuperAdmin(session.user.role)) {
+            return NextResponse.json({ error: "Only Super Admin can change user roles" }, { status: 403 })
         }
 
         // Verify user belongs to same org
@@ -74,7 +81,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
         if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
-        if (session.user.role !== "ADMIN") {
+        if (!isAdmin(session.user.role)) {
             return NextResponse.json({ error: "Only admins can delete users" }, { status: 403 })
         }
         if (params.id === session.user.id) {

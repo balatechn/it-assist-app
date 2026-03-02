@@ -16,7 +16,7 @@ import {
     CheckSquare, MessageSquare, Paperclip, GripVertical,
     Target, Trash2, Pencil,
 } from "lucide-react"
-import { cn, formatDate, formatCurrency, getInitials, getStatusColor, getPriorityColor } from "@/lib/utils"
+import { cn, formatDate, formatCurrency, getInitials, getStatusColor, getPriorityColor, isManager } from "@/lib/utils"
 import { TaskDetailModal } from "@/components/task-detail-modal"
 import { ProjectEditModal } from "@/components/project-edit-modal"
 
@@ -60,8 +60,8 @@ export default function ProjectDetailPage() {
     const router = useRouter()
     const { data: session } = useSession()
     const role = session?.user?.role
-    const isViewer = role === "VIEWER"
-    const canEditProject = role === "ADMIN" || role === "PROJECT_MANAGER"
+    const isViewer = false // No viewer role in new system
+    const canEditProject = isManager(role || "")
 
     // Core State
     const [project, setProject] = useState<Project | null>(null)

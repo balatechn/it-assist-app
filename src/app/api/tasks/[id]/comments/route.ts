@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import prisma from "@/lib/db"
 import { logAction } from "@/lib/audit"
 import { createCommentSchema } from "@/lib/validations"
+import { isAdmin } from "@/lib/utils"
 
 // GET /api/tasks/[id]/comments — List comments for a task
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -45,10 +46,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         const session = await getServerSession(authOptions)
         if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-        }
-
-        if (session.user.role === "VIEWER") {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 })
         }
 
         // Verify task belongs to user's organization
@@ -139,7 +136,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
         }
 
         // Only author or admin can delete
-        if (comment.authorId !== session.user.id && session.user.role !== "ADMIN") {
+        if (comment.authorId !== session.user.id && !isAdmin(session.user.role)) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 })
         }
 

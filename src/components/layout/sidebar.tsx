@@ -24,6 +24,7 @@ import {
     Mail,
 } from "lucide-react"
 import { useLayoutStore } from "@/lib/store"
+import { isAdmin as checkIsAdmin } from "@/lib/utils"
 
 const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -49,7 +50,7 @@ export function Sidebar() {
     const mobileSidebarOpen = useLayoutStore((state) => state.mobileSidebarOpen)
     const setMobileSidebarOpen = useLayoutStore((state) => state.setMobileSidebarOpen)
 
-    const isAdmin = session?.user?.role === "ADMIN"
+    const isAdmin = checkIsAdmin(session?.user?.role || "")
 
     // Auto-close mobile sidebar on route change
     useEffect(() => {

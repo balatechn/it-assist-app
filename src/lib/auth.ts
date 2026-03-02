@@ -47,7 +47,7 @@ export const authOptions: NextAuthOptions = {
                             name: user.name || "User",
                             azureAdId: account?.providerAccountId,
                             organizationId: org.id,
-                            role: "TEAM_MEMBER",
+                            role: "EMPLOYEE",
                         },
                     })
                 } else if (account?.providerAccountId && !dbUser.azureAdId) {

@@ -11,10 +11,6 @@ export async function PUT(req: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        if (session.user.role === "VIEWER") {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-        }
-
         const body = await req.json()
         const parsed = reorderTasksSchema.safeParse(body)
         if (!parsed.success) {

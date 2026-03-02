@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import prisma from "@/lib/db"
 import { logAction } from "@/lib/audit"
 import { createUserSchema } from "@/lib/validations"
+import { isAdmin } from "@/lib/utils"
 import bcrypt from "bcryptjs"
 
 // GET /api/users — List org users
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
         if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
-        if (session.user.role !== "ADMIN") {
+        if (!isAdmin(session.user.role)) {
             return NextResponse.json({ error: "Only admins can create users" }, { status: 403 })
         }
 
@@ -72,7 +73,7 @@ export async function POST(req: NextRequest) {
                 name,
                 email,
                 password: hashedPassword,
-                role: role || "TEAM_MEMBER",
+                role: role || "EMPLOYEE",
                 organizationId: session.user.organizationId,
             },
             select: { id: true, name: true, email: true, role: true },
