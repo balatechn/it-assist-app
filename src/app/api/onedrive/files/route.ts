@@ -3,6 +3,9 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { getAccessToken, fetchGraph } from "@/lib/onedrive"
 
+// Allow uploads up to 4MB (Vercel serverless limit)
+export const maxDuration = 30
+
 export async function GET(req: Request) {
     try {
         const session = await getServerSession(authOptions)
@@ -19,12 +22,19 @@ export async function GET(req: Request) {
         }
 
         const endpoint = parentId
-            ? `/me/drive/items/${parentId}/children?$orderby=folder,name&$top=200`
-            : `/me/drive/root/children?$orderby=folder,name&$top=200`
+            ? `/me/drive/items/${parentId}/children?$top=200`
+            : `/me/drive/root/children?$top=200`
 
         try {
             const data = await fetchGraph(endpoint, token)
-            return NextResponse.json({ files: data.value })
+            // Sort: folders first, then by name
+            const items = (data.value || []).sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
+                const aIsFolder = !!a.folder
+                const bIsFolder = !!b.folder
+                if (aIsFolder !== bIsFolder) return aIsFolder ? -1 : 1
+                return ((a.name as string) || "").localeCompare((b.name as string) || "")
+            })
+            return NextResponse.json({ files: items })
         } catch (e: unknown) {
             console.error("Graph Error:", e)
             return NextResponse.json({ error: "Failed to fetch files from Microsoft OneDrive" }, { status: 500 })
@@ -35,7 +45,7 @@ export async function GET(req: Request) {
     }
 }
 
-// Create upload session for file upload (returns pre-authenticated URL for direct upload)
+// Upload file directly to OneDrive (server-side proxy, avoids CORS)
 export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions)
@@ -48,27 +58,42 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "No OneDrive connection" }, { status: 403 })
         }
 
-        const { filename, parentId } = await req.json()
-        if (!filename) {
-            return NextResponse.json({ error: "Filename required" }, { status: 400 })
+        const formData = await req.formData()
+        const file = formData.get("file") as Blob | null
+        const filename = formData.get("filename") as string
+        const parentId = formData.get("parentId") as string
+
+        if (!file || !filename) {
+            return NextResponse.json({ error: "File and filename required" }, { status: 400 })
         }
 
+        const buffer = Buffer.from(await file.arrayBuffer())
         const encodedName = encodeURIComponent(filename)
-        const endpoint = parentId
-            ? `/me/drive/items/${parentId}:/${encodedName}:/createUploadSession`
-            : `/me/drive/root:/${encodedName}:/createUploadSession`
 
-        const data = await fetchGraph(endpoint, token, {
-            method: "POST",
-            body: JSON.stringify({
-                item: { "@microsoft.graph.conflictBehavior": "rename" },
-            }),
+        const endpoint = parentId
+            ? `/me/drive/items/${parentId}:/${encodedName}:/content`
+            : `/me/drive/root:/${encodedName}:/content`
+
+        const graphRes = await fetch(`https://graph.microsoft.com/v1.0${endpoint}`, {
+            method: "PUT",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/octet-stream",
+            },
+            body: buffer,
         })
 
-        return NextResponse.json({ uploadUrl: data.uploadUrl })
+        if (!graphRes.ok) {
+            const err = await graphRes.json().catch(() => ({}))
+            console.error("OneDrive upload error:", err)
+            return NextResponse.json({ error: "Upload to OneDrive failed" }, { status: 500 })
+        }
+
+        const data = await graphRes.json()
+        return NextResponse.json({ item: data })
     } catch (error) {
-        console.error("Upload session error:", error)
-        return NextResponse.json({ error: "Failed to create upload session" }, { status: 500 })
+        console.error("Upload error:", error)
+        return NextResponse.json({ error: "Failed to upload file" }, { status: 500 })
     }
 }
 

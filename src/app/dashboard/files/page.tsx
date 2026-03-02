@@ -246,20 +246,13 @@ export default function FilesPage() {
             const uploadId = newUploads[i].id
 
             try {
-                // Step 1: Get upload session URL from our API
-                const sessionRes = await fetch("/api/onedrive/files", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        filename: file.name,
-                        parentId: currentParentId,
-                    }),
-                })
+                // Upload via server-side proxy (avoids CORS issues)
+                const formData = new FormData()
+                formData.append("file", file)
+                formData.append("filename", file.name)
+                formData.append("parentId", currentParentId || "")
 
-                if (!sessionRes.ok) throw new Error("Failed to create upload session")
-                const { uploadUrl } = await sessionRes.json()
-
-                // Step 2: Upload file directly to OneDrive via pre-authenticated URL
+                // Use XMLHttpRequest for progress tracking
                 await new Promise<void>((resolve, reject) => {
                     const xhr = new XMLHttpRequest()
 
@@ -273,7 +266,7 @@ export default function FilesPage() {
                     })
 
                     xhr.addEventListener("load", () => {
-                        if (xhr.status >= 200 && xhr.status < 400) {
+                        if (xhr.status >= 200 && xhr.status < 300) {
                             setUploads(prev =>
                                 prev.map(u => u.id === uploadId ? { ...u, progress: 100, status: "done" } : u)
                             )
@@ -283,11 +276,10 @@ export default function FilesPage() {
                         }
                     })
 
-                    xhr.addEventListener("error", () => reject(new Error("Upload failed")))
+                    xhr.addEventListener("error", () => reject(new Error("Upload network error")))
 
-                    xhr.open("PUT", uploadUrl)
-                    xhr.setRequestHeader("Content-Range", `bytes 0-${file.size - 1}/${file.size}`)
-                    xhr.send(file)
+                    xhr.open("POST", "/api/onedrive/files")
+                    xhr.send(formData)
                 })
             } catch (err) {
                 console.error("Upload error:", err)
@@ -297,8 +289,8 @@ export default function FilesPage() {
             }
         }
 
-        // Refresh file list
-        fetchFiles(currentParentId)
+        // Refresh file list after uploads
+        setTimeout(() => fetchFiles(currentParentId), 500)
 
         // Auto-dismiss completed uploads after 3s
         setTimeout(() => {
