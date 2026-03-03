@@ -1,10 +1,10 @@
 import nodemailer from "nodemailer"
 
-const EMAIL_FROM = process.env.EMAIL_FROM || "no-reply@nationalgroupindia.com"
-const EMAIL_LOGIN = process.env.EMAIL_LOGIN
-const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD
-const EMAIL_SERVER = process.env.EMAIL_SERVER || "smtp.mailgun.org"
-const EMAIL_PORT = parseInt(process.env.EMAIL_PORT || "587")
+const EMAIL_FROM = (process.env.EMAIL_FROM || "no-reply@nationalgroupindia.com").trim()
+const EMAIL_LOGIN = process.env.EMAIL_LOGIN?.trim()
+const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD?.trim()
+const EMAIL_SERVER = (process.env.EMAIL_SERVER || "smtp.mailgun.org").trim()
+const EMAIL_PORT = parseInt((process.env.EMAIL_PORT || "587").trim())
 
 /* ── Reusable transporter (created once) ───────────────── */
 let transporter: nodemailer.Transporter | null = null
@@ -37,27 +37,22 @@ interface SendMailOptions {
  * Send email via Mailgun SMTP.
  */
 export async function sendMail({ toEmail, toName, subject, htmlBody }: SendMailOptions): Promise<boolean> {
-    try {
-        if (!EMAIL_LOGIN || !EMAIL_PASSWORD) {
-            console.warn("Email env vars missing — skipping email")
-            return false
-        }
-
-        const transport = getTransporter()
-
-        await transport.sendMail({
-            from: `"National Group India" <${EMAIL_FROM}>`,
-            to: `"${toName}" <${toEmail}>`,
-            subject,
-            html: htmlBody,
-        })
-
-        console.log(`Email sent to ${toEmail}: ${subject}`)
-        return true
-    } catch (error) {
-        console.error("Failed to send email:", error)
-        return false
+    if (!EMAIL_LOGIN || !EMAIL_PASSWORD) {
+        console.warn("Email env vars missing — skipping email")
+        throw new Error("EMAIL_LOGIN or EMAIL_PASSWORD not configured")
     }
+
+    const transport = getTransporter()
+
+    await transport.sendMail({
+        from: `"National Group India" <${EMAIL_FROM}>`,
+        to: `"${toName}" <${toEmail}>`,
+        subject,
+        html: htmlBody,
+    })
+
+    console.log(`Email sent to ${toEmail}: ${subject}`)
+    return true
 }
 
 /**

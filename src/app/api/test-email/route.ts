@@ -21,7 +21,7 @@ export async function GET() {
             htmlBody: `
                 <div style="font-family:Segoe UI,sans-serif;padding:20px;">
                     <h2 style="color:#2d3a4e;">Email Test Successful!</h2>
-                    <p style="color:#475569;">This confirms that Graph email is working correctly.</p>
+                    <p style="color:#475569;">This confirms that Mailgun SMTP is working correctly.</p>
                     <p style="color:#94a3b8;font-size:12px;">Sent via: Mailgun SMTP</p>
                     <p style="color:#94a3b8;font-size:12px;">Time: ${new Date().toISOString()}</p>
                 </div>
@@ -31,13 +31,13 @@ export async function GET() {
         if (result) {
             return NextResponse.json({ success: true, message: `Test email sent to ${session.user.email}` })
         } else {
-            return NextResponse.json({ success: false, message: "Email failed — check Mailgun SMTP env vars and server logs" }, { status: 500 })
+            return NextResponse.json({ success: false, message: "Email returned false" }, { status: 500 })
         }
     } catch (error) {
         console.error("Test email error:", error)
         return NextResponse.json({ 
             success: false, 
-            message: String(error),
+            message: error instanceof Error ? error.message : String(error),
         }, { status: 500 })
     }
 }
