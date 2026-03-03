@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -21,7 +21,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { Search, Mail, FolderKanban, CheckSquare, Users, Plus, Pencil, Trash2, Loader2, UserPlus } from "lucide-react"
+import { Search, Mail, FolderKanban, CheckSquare, Users, Plus, Pencil, Trash2, Loader2, UserPlus, Building2 } from "lucide-react"
 import { getInitials, isAdmin as checkIsAdmin, isSuperAdmin as checkIsSuperAdmin } from "@/lib/utils"
 import { RoleBadge } from "@/components/shared/role-badge"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
@@ -37,6 +37,82 @@ interface User {
         assignedTasks: number
         managedProjects: number
     }
+}
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function UserCard({ user, session, isAdmin, renderRoleBadge, openEdit, setDeleteTarget }: {
+    user: User
+    session: any
+    isAdmin: boolean
+    renderRoleBadge: (role: string) => React.ReactNode
+    openEdit: (user: User) => void
+    setDeleteTarget: (user: User) => void
+}) {
+    return (
+        <Card className="hover:shadow-md transition-shadow group">
+            <CardContent className="p-5 flex flex-col h-full">
+                <div className="flex justify-between items-start mb-4">
+                    <Avatar className="w-12 h-12 ring-2 ring-background shadow-sm">
+                        <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                            {getInitials(user.name)}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div className="flex items-center gap-1">
+                        {renderRoleBadge(user.role)}
+                        {isAdmin && user.id !== session?.user?.id && (
+                            <div className="flex gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                    onClick={() => openEdit(user)}
+                                    className="p-1 rounded hover:bg-muted"
+                                    title="Edit"
+                                >
+                                    <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                                </button>
+                                <button
+                                    onClick={() => setDeleteTarget(user)}
+                                    className="p-1 rounded hover:bg-destructive/10"
+                                    title="Delete"
+                                >
+                                    <Trash2 className="w-3.5 h-3.5 text-destructive/70" />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="mb-4">
+                    <h3 className="font-semibold text-lg line-clamp-1 group-hover:text-primary transition-colors">
+                        {user.name}
+                    </h3>
+                    <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1 truncate">
+                        <Mail className="w-3.5 h-3.5" />
+                        {user.email}
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 mt-auto pt-4 border-t border-border/50">
+                    <div className="flex items-center gap-2 text-xs">
+                        <div className="w-6 h-6 rounded-md bg-blue-500/10 flex items-center justify-center shrink-0">
+                            <FolderKanban className="w-3.5 h-3.5 text-blue-500" />
+                        </div>
+                        <div>
+                            <p className="font-semibold">{user._count.managedProjects}</p>
+                            <p className="text-[10px] text-muted-foreground">Projects</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                        <div className="w-6 h-6 rounded-md bg-emerald-500/10 flex items-center justify-center shrink-0">
+                            <CheckSquare className="w-3.5 h-3.5 text-emerald-500" />
+                        </div>
+                        <div>
+                            <p className="font-semibold">{user._count.assignedTasks}</p>
+                            <p className="text-[10px] text-muted-foreground">Active Tasks</p>
+                        </div>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    )
 }
 
 export default function TeamPage() {
@@ -83,7 +159,7 @@ export default function TeamPage() {
     }
 
     const handleInvite = async () => {
-        if (!inviteName.trim() || !inviteEmail.trim() || !invitePassword.trim()) return
+        if (!inviteName.trim() || !inviteEmail.trim()) return
         setInviting(true)
         try {
             const res = await fetch("/api/users", {
@@ -92,7 +168,7 @@ export default function TeamPage() {
                 body: JSON.stringify({
                     name: inviteName.trim(),
                     email: inviteEmail.trim(),
-                    password: invitePassword,
+                    password: invitePassword || undefined,
                     role: inviteRole,
                 }),
             })
@@ -163,6 +239,25 @@ export default function TeamPage() {
         user.role.toLowerCase().includes(search.toLowerCase())
     )
 
+    // Entity definitions: domain → entity name
+    const ENTITIES: { name: string; domain: string }[] = [
+        { name: "National Group India", domain: "nationalgroupindia.com" },
+        { name: "Rainland Autocorp", domain: "rainlandautocorp.com" },
+        { name: "Isky Transport", domain: "iskytransport.com" },
+    ]
+
+    // Group filtered users by entity
+    const groupedUsers = ENTITIES.map(entity => {
+        const members = filteredUsers.filter(u => u.email.toLowerCase().endsWith(`@${entity.domain}`))
+        return { ...entity, members }
+    })
+    // Catch-all for users that don't match any defined entity
+    const knownDomains = new Set(ENTITIES.map(e => e.domain))
+    const otherUsers = filteredUsers.filter(u => {
+        const domain = u.email.toLowerCase().split("@")[1]
+        return !knownDomains.has(domain)
+    })
+
     const renderRoleBadge = (role: string) => <RoleBadge role={role} />
 
     return (
@@ -202,72 +297,43 @@ export default function TeamPage() {
                     ))}
                 </div>
             ) : filteredUsers.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredUsers.map((user) => (
-                        <Card key={user.id} className="hover:shadow-md transition-shadow group">
-                            <CardContent className="p-5 flex flex-col h-full">
-                                <div className="flex justify-between items-start mb-4">
-                                    <Avatar className="w-12 h-12 ring-2 ring-background shadow-sm">
-                                        <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                                            {getInitials(user.name)}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex items-center gap-1">
-                                        {renderRoleBadge(user.role)}
-                                        {isAdmin && user.id !== session?.user?.id && (
-                                            <div className="flex gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button
-                                                    onClick={() => openEdit(user)}
-                                                    className="p-1 rounded hover:bg-muted"
-                                                    title="Edit"
-                                                >
-                                                    <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
-                                                </button>
-                                                <button
-                                                    onClick={() => setDeleteTarget(user)}
-                                                    className="p-1 rounded hover:bg-destructive/10"
-                                                    title="Delete"
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5 text-destructive/70" />
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
+                <div className="space-y-8">
+                    {groupedUsers.map((entity) => entity.members.length > 0 && (
+                        <div key={entity.domain}>
+                            <div className="flex items-center gap-2.5 mb-4">
+                                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                                    <Building2 className="w-4 h-4 text-primary" />
                                 </div>
-
-                                <div className="mb-4">
-                                    <h3 className="font-semibold text-lg line-clamp-1 group-hover:text-primary transition-colors">
-                                        {user.name}
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1 truncate">
-                                        <Mail className="w-3.5 h-3.5" />
-                                        {user.email}
-                                    </p>
+                                <div>
+                                    <h3 className="text-base font-semibold">{entity.name}</h3>
+                                    <p className="text-[11px] text-muted-foreground">{entity.domain} &middot; {entity.members.length} member{entity.members.length !== 1 ? "s" : ""}</p>
                                 </div>
-
-                                <div className="grid grid-cols-2 gap-2 mt-auto pt-4 border-t border-border/50">
-                                    <div className="flex items-center gap-2 text-xs">
-                                        <div className="w-6 h-6 rounded-md bg-blue-500/10 flex items-center justify-center shrink-0">
-                                            <FolderKanban className="w-3.5 h-3.5 text-blue-500" />
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold">{user._count.managedProjects}</p>
-                                            <p className="text-[10px] text-muted-foreground">Projects</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-xs">
-                                        <div className="w-6 h-6 rounded-md bg-emerald-500/10 flex items-center justify-center shrink-0">
-                                            <CheckSquare className="w-3.5 h-3.5 text-emerald-500" />
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold">{user._count.assignedTasks}</p>
-                                            <p className="text-[10px] text-muted-foreground">Active Tasks</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {entity.members.map((user) => (
+                                    <UserCard key={user.id} user={user} session={session} isAdmin={isAdmin} renderRoleBadge={renderRoleBadge} openEdit={openEdit} setDeleteTarget={setDeleteTarget} />
+                                ))}
+                            </div>
+                        </div>
                     ))}
+                    {otherUsers.length > 0 && (
+                        <div>
+                            <div className="flex items-center gap-2.5 mb-4">
+                                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                                    <Users className="w-4 h-4 text-muted-foreground" />
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-semibold">Other</h3>
+                                    <p className="text-[11px] text-muted-foreground">{otherUsers.length} member{otherUsers.length !== 1 ? "s" : ""}</p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {otherUsers.map((user) => (
+                                    <UserCard key={user.id} user={user} session={session} isAdmin={isAdmin} renderRoleBadge={renderRoleBadge} openEdit={openEdit} setDeleteTarget={setDeleteTarget} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             ) : (
                 <Card className="border-dashed">
@@ -309,13 +375,13 @@ export default function TeamPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="invite-password" className="text-xs font-medium">Password</Label>
+                            <Label htmlFor="invite-password" className="text-xs font-medium">Password <span className="text-muted-foreground font-normal">(optional for SSO)</span></Label>
                             <Input
                                 id="invite-password"
                                 type="password"
                                 value={invitePassword}
                                 onChange={(e) => setInvitePassword(e.target.value)}
-                                placeholder="Min. 6 characters"
+                                placeholder="Leave blank for SSO users"
                             />
                         </div>
                         <div className="space-y-2">
@@ -338,7 +404,7 @@ export default function TeamPage() {
                             <Button
                                 size="sm"
                                 onClick={handleInvite}
-                                disabled={inviting || !inviteName.trim() || !inviteEmail.trim() || !invitePassword.trim()}
+                                disabled={inviting || !inviteName.trim() || !inviteEmail.trim()}
                             >
                                 {inviting ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Plus className="w-3.5 h-3.5 mr-1.5" />}
                                 {inviting ? "Creating..." : "Create User"}
