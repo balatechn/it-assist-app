@@ -3,8 +3,11 @@ import AzureADProvider from "next-auth/providers/azure-ad"
 import prisma from "@/lib/db"
 import { Role } from "@prisma/client"
 
+// Only allow these email domains to auto-create organizations
+const ALLOWED_DOMAINS = (process.env.ALLOWED_DOMAINS || "nationalgroupindia.com").split(",").map(d => d.trim().toLowerCase())
+
 export const authOptions: NextAuthOptions = {
-    debug: true,
+    debug: process.env.NODE_ENV === "development",
     secret: process.env.NEXTAUTH_SECRET,
     session: { strategy: "jwt", maxAge: 24 * 60 * 60 },
     providers: [
@@ -29,7 +32,14 @@ export const authOptions: NextAuthOptions = {
                 })
 
                 if (!dbUser) {
-                    const domain = user.email.split("@")[1]
+                    const domain = user.email.split("@")[1].toLowerCase()
+
+                    // Block sign-in from unrecognized domains
+                    if (!ALLOWED_DOMAINS.includes(domain)) {
+                        console.warn(`Sign-in blocked: ${user.email} (domain ${domain} not in allowlist)`)
+                        return false
+                    }
+
                     let org = await prisma.organization.findUnique({
                         where: { domain },
                     })

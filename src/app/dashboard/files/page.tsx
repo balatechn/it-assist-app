@@ -5,118 +5,21 @@ import { signIn } from "next-auth/react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Progress } from "@/components/ui/progress"
 import {
-    Cloud, FolderOpen, Upload, Link2, HardDrive, File as FileIcon,
-    Search, Loader2, ArrowLeft, ChevronRight, Home, Trash2,
-    Pencil, Share2, FolderInput, X, Check, Copy, Eye,
-    MoreVertical, Grid3X3, List, FileText, FileSpreadsheet, Presentation,
-    Image as ImageIcon, Video, Music, Archive, Code, ExternalLink,
-    Users, FolderPlus, AlertCircle
+    Cloud, FolderOpen, Upload, Link2, HardDrive,
+    Search, Loader2, FolderPlus, Grid3X3, List, Users,
 } from "lucide-react"
 
-// ─── Types ──────────────────────────────────────────────────────────────────────
-interface OneDriveItem {
-    id: string
-    name: string
-    size: number
-    webUrl: string
-    folder?: { childCount: number }
-    file?: { mimeType: string }
-    lastModifiedDateTime?: string
-    lastModifiedBy?: { user?: { displayName?: string } }
-    createdBy?: { user?: { displayName?: string } }
-    shared?: { owner?: { user?: { displayName?: string } }; sharedDateTime?: string }
-    remoteItem?: OneDriveItem
-    _driveId?: string | null
-    "@microsoft.graph.downloadUrl"?: string
-}
-
-interface BreadcrumbItem {
-    id: string | null
-    name: string
-    driveId?: string | null
-}
-
-interface UploadItem {
-    id: string
-    name: string
-    progress: number
-    status: "uploading" | "done" | "error"
-    size: number
-}
-
-interface StorageQuota {
-    used: number
-    total: number
-    remaining: number
-    state: string
-}
-
-type ViewMode = "grid" | "list"
-type ActiveTab = "my-files" | "shared"
-type DialogType = "none" | "new-folder" | "rename" | "share" | "move" | "delete" | "preview"
-
-// ─── Helpers ────────────────────────────────────────────────────────────────────
-function formatBytes(bytes: number): string {
-    if (!bytes || bytes === 0) return "0 B"
-    const k = 1024
-    const sizes = ["B", "KB", "MB", "GB", "TB"]
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return `${(bytes / Math.pow(k, i)).toFixed(i > 1 ? 2 : 0)} ${sizes[i]}`
-}
-
-function formatDate(dateString?: string): string {
-    if (!dateString) return ""
-    const d = new Date(dateString)
-    const now = new Date()
-    const diff = now.getTime() - d.getTime()
-    const mins = Math.floor(diff / 60000)
-    if (mins < 1) return "Just now"
-    if (mins < 60) return `${mins}m ago`
-    const hrs = Math.floor(mins / 60)
-    if (hrs < 24) return `${hrs}h ago`
-    const days = Math.floor(hrs / 24)
-    if (days < 7) return `${days}d ago`
-    return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
-}
-
-function getFileExtension(name: string): string {
-    return name.split(".").pop()?.toLowerCase() || ""
-}
-
-function getFileTypeInfo(item: OneDriveItem): { icon: React.ElementType; color: string; label: string } {
-    if (item.folder) return { icon: FolderOpen, color: "text-amber-500", label: "Folder" }
-    const ext = getFileExtension(item.name)
-    const mime = item.file?.mimeType || ""
-
-    if (["jpg", "jpeg", "png", "gif", "svg", "webp", "bmp", "ico"].includes(ext) || mime.startsWith("image/"))
-        return { icon: ImageIcon, color: "text-green-500", label: "Image" }
-    if (["pdf"].includes(ext) || mime === "application/pdf")
-        return { icon: FileText, color: "text-red-500", label: "PDF" }
-    if (["doc", "docx"].includes(ext) || mime.includes("wordprocessing"))
-        return { icon: FileText, color: "text-blue-500", label: "Word" }
-    if (["xls", "xlsx"].includes(ext) || mime.includes("spreadsheet"))
-        return { icon: FileSpreadsheet, color: "text-emerald-600", label: "Excel" }
-    if (["ppt", "pptx"].includes(ext) || mime.includes("presentation"))
-        return { icon: Presentation, color: "text-orange-500", label: "PowerPoint" }
-    if (["mp4", "avi", "mkv", "mov", "wmv", "webm"].includes(ext) || mime.startsWith("video/"))
-        return { icon: Video, color: "text-purple-500", label: "Video" }
-    if (["mp3", "wav", "flac", "aac", "ogg", "wma"].includes(ext) || mime.startsWith("audio/"))
-        return { icon: Music, color: "text-pink-500", label: "Audio" }
-    if (["zip", "rar", "7z", "tar", "gz"].includes(ext))
-        return { icon: Archive, color: "text-yellow-600", label: "Archive" }
-    if (["js", "ts", "tsx", "jsx", "py", "html", "css", "json", "xml", "md", "yaml", "yml", "sh", "bat", "ps1", "java", "cpp", "c", "cs", "php", "rb", "go", "rs", "swift"].includes(ext))
-        return { icon: Code, color: "text-cyan-500", label: "Code" }
-    if (["txt", "log", "csv", "rtf"].includes(ext))
-        return { icon: FileText, color: "text-gray-500", label: "Text" }
-    return { icon: FileIcon, color: "text-muted-foreground", label: ext.toUpperCase() || "File" }
-}
-
-function isPreviewable(item: OneDriveItem): boolean {
-    const ext = getFileExtension(item.name)
-    return ["jpg", "jpeg", "png", "gif", "svg", "webp", "bmp"].includes(ext)
-}
+// ─── Local subcomponents & types ────────────────────────────────────────────────
+import type { OneDriveItem, BreadcrumbItem, UploadItem, StorageQuota, ViewMode, ActiveTab, DialogType } from "./types"
+import { MAX_FILE_SIZE } from "./types"
+import { StorageBar } from "./storage-bar"
+import { UploadProgress } from "./upload-progress"
+import { BreadcrumbNav } from "./breadcrumb-nav"
+import { FileGrid } from "./file-grid"
+import { FileList } from "./file-list"
+import { FileContextMenu } from "./context-menu"
+import { FileDialogs } from "./file-dialogs"
 
 // ─── Main Component ─────────────────────────────────────────────────────────────
 export default function FilesPage() {
@@ -241,7 +144,16 @@ export default function FilesPage() {
         const filesToUpload = Array.from(fileList)
         if (filesToUpload.length === 0) return
 
-        const newUploads: UploadItem[] = filesToUpload.map(f => ({
+        // Client-side size validation
+        const oversized = filesToUpload.filter(f => f.size > MAX_FILE_SIZE)
+        if (oversized.length > 0) {
+            const names = oversized.map(f => f.name).join(", ")
+            alert(`The following file(s) exceed the 250 MB limit and will be skipped:\n${names}`)
+        }
+        const validFiles = filesToUpload.filter(f => f.size <= MAX_FILE_SIZE)
+        if (validFiles.length === 0) return
+
+        const newUploads: UploadItem[] = validFiles.map(f => ({
             id: `${f.name}-${Date.now()}-${Math.random()}`,
             name: f.name,
             progress: 0,
@@ -250,18 +162,16 @@ export default function FilesPage() {
         }))
         setUploads(prev => [...prev, ...newUploads])
 
-        for (let i = 0; i < filesToUpload.length; i++) {
-            const file = filesToUpload[i]
+        for (let i = 0; i < validFiles.length; i++) {
+            const file = validFiles[i]
             const uploadId = newUploads[i].id
 
             try {
-                // Upload via server-side proxy (avoids CORS issues)
                 const formData = new FormData()
                 formData.append("file", file)
                 formData.append("filename", file.name)
                 formData.append("parentId", currentParentId || "")
 
-                // Use XMLHttpRequest for progress tracking
                 await new Promise<void>((resolve, reject) => {
                     const xhr = new XMLHttpRequest()
 
@@ -298,10 +208,7 @@ export default function FilesPage() {
             }
         }
 
-        // Refresh file list after uploads
         setTimeout(() => fetchFiles(currentParentId), 500)
-
-        // Auto-dismiss completed uploads after 3s
         setTimeout(() => {
             setUploads(prev => prev.filter(u => u.status === "uploading"))
         }, 3000)
@@ -311,32 +218,21 @@ export default function FilesPage() {
 
     // ─── Drag & Drop ────────────────────────────────────────────────────────────
     const handleDragEnter = (e: DragEvent) => {
-        e.preventDefault()
-        e.stopPropagation()
+        e.preventDefault(); e.stopPropagation()
         dragCounter.current++
         if (e.dataTransfer?.items?.length) setDragActive(true)
     }
-
     const handleDragLeave = (e: DragEvent) => {
-        e.preventDefault()
-        e.stopPropagation()
+        e.preventDefault(); e.stopPropagation()
         dragCounter.current--
         if (dragCounter.current === 0) setDragActive(false)
     }
-
-    const handleDragOver = (e: DragEvent) => {
-        e.preventDefault()
-        e.stopPropagation()
-    }
-
+    const handleDragOver = (e: DragEvent) => { e.preventDefault(); e.stopPropagation() }
     const handleDrop = (e: DragEvent) => {
-        e.preventDefault()
-        e.stopPropagation()
+        e.preventDefault(); e.stopPropagation()
         setDragActive(false)
         dragCounter.current = 0
-        if (e.dataTransfer?.files?.length) {
-            uploadFiles(e.dataTransfer.files)
-        }
+        if (e.dataTransfer?.files?.length) uploadFiles(e.dataTransfer.files)
     }
 
     // ─── File Actions ───────────────────────────────────────────────────────────
@@ -350,15 +246,10 @@ export default function FilesPage() {
                 body: JSON.stringify({ name: dialogInput.trim(), parentId: currentParentId }),
             })
             if (res.ok) {
-                setDialog("none")
-                setDialogInput("")
-                fetchFiles(currentParentId)
+                setDialog("none"); setDialogInput(""); fetchFiles(currentParentId)
             }
-        } catch {
-            console.error("Failed to create folder")
-        } finally {
-            setDialogLoading(false)
-        }
+        } catch { console.error("Failed to create folder") }
+        finally { setDialogLoading(false) }
     }
 
     const handleRename = async () => {
@@ -371,16 +262,10 @@ export default function FilesPage() {
                 body: JSON.stringify({ itemId: selectedItem.id, newName: dialogInput.trim() }),
             })
             if (res.ok) {
-                setDialog("none")
-                setDialogInput("")
-                setSelectedItem(null)
-                fetchFiles(currentParentId)
+                setDialog("none"); setDialogInput(""); setSelectedItem(null); fetchFiles(currentParentId)
             }
-        } catch {
-            console.error("Failed to rename")
-        } finally {
-            setDialogLoading(false)
-        }
+        } catch { console.error("Failed to rename") }
+        finally { setDialogLoading(false) }
     }
 
     const handleDelete = async () => {
@@ -393,23 +278,15 @@ export default function FilesPage() {
                 body: JSON.stringify({ itemId: selectedItem.id }),
             })
             if (res.ok) {
-                setDialog("none")
-                setSelectedItem(null)
-                fetchFiles(currentParentId)
+                setDialog("none"); setSelectedItem(null); fetchFiles(currentParentId)
             }
-        } catch {
-            console.error("Failed to delete")
-        } finally {
-            setDialogLoading(false)
-        }
+        } catch { console.error("Failed to delete") }
+        finally { setDialogLoading(false) }
     }
 
     const handleShare = async (item: OneDriveItem) => {
-        setSelectedItem(item)
-        setShareLink("")
-        setCopiedLink(false)
-        setDialog("share")
-        setDialogLoading(true)
+        setSelectedItem(item); setShareLink(""); setCopiedLink(false)
+        setDialog("share"); setDialogLoading(true)
         try {
             const res = await fetch("/api/onedrive/files/share", {
                 method: "POST",
@@ -419,14 +296,9 @@ export default function FilesPage() {
             if (res.ok) {
                 const data = await res.json()
                 setShareLink(data.link || item.webUrl)
-            } else {
-                setShareLink(item.webUrl)
-            }
-        } catch {
-            setShareLink(item.webUrl)
-        } finally {
-            setDialogLoading(false)
-        }
+            } else { setShareLink(item.webUrl) }
+        } catch { setShareLink(item.webUrl) }
+        finally { setDialogLoading(false) }
     }
 
     const copyShareLink = () => {
@@ -437,8 +309,7 @@ export default function FilesPage() {
 
     // ─── Move File ──────────────────────────────────────────────────────────────
     const openMoveDialog = async (item: OneDriveItem) => {
-        setSelectedItem(item)
-        setDialog("move")
+        setSelectedItem(item); setDialog("move")
         setMoveBreadcrumbs([{ id: null, name: "Root" }])
         await fetchMoveFolders(null)
     }
@@ -452,11 +323,8 @@ export default function FilesPage() {
                 const data = await res.json()
                 setMoveFolders((data.files || []).filter((f: OneDriveItem) => f.folder))
             }
-        } catch {
-            console.error("Failed to fetch folders")
-        } finally {
-            setMoveLoading(false)
-        }
+        } catch { console.error("Failed to fetch folders") }
+        finally { setMoveLoading(false) }
     }
 
     const navigateMoveFolder = (folder: OneDriveItem) => {
@@ -481,21 +349,15 @@ export default function FilesPage() {
                 body: JSON.stringify({ itemId: selectedItem.id, destinationId }),
             })
             if (res.ok) {
-                setDialog("none")
-                setSelectedItem(null)
-                fetchFiles(currentParentId)
+                setDialog("none"); setSelectedItem(null); fetchFiles(currentParentId)
             }
-        } catch {
-            console.error("Failed to move")
-        } finally {
-            setDialogLoading(false)
-        }
+        } catch { console.error("Failed to move") }
+        finally { setDialogLoading(false) }
     }
 
     // ─── Context Menu ───────────────────────────────────────────────────────────
     const handleContextMenu = (e: React.MouseEvent, item: OneDriveItem) => {
-        e.preventDefault()
-        e.stopPropagation()
+        e.preventDefault(); e.stopPropagation()
         setContextMenu({ item, x: e.clientX, y: e.clientY })
     }
 
@@ -507,8 +369,7 @@ export default function FilesPage() {
 
     // ─── Preview ────────────────────────────────────────────────────────────────
     const openPreview = (item: OneDriveItem) => {
-        setSelectedItem(item)
-        setDialog("preview")
+        setSelectedItem(item); setDialog("preview")
     }
 
     // ─── Filter & Display ───────────────────────────────────────────────────────
@@ -557,7 +418,7 @@ export default function FilesPage() {
     // ─── Loading Screen ─────────────────────────────────────────────────────────
     if (loading && files.length === 0) {
         return (
-            <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="flex items-center justify-center min-h-[60vh]" role="status" aria-label="Loading files">
                 <div className="text-center">
                     <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
                     <p className="text-muted-foreground">Loading OneDrive files...</p>
@@ -617,16 +478,20 @@ export default function FilesPage() {
                             className="pl-9 w-48 sm:w-64 bg-background"
                         />
                     </div>
-                    <div className="flex items-center border rounded-lg overflow-hidden">
+                    <div className="flex items-center border rounded-lg overflow-hidden" role="group" aria-label="View mode">
                         <button
                             onClick={() => setViewMode("list")}
                             className={`p-2 transition-colors ${viewMode === "list" ? "bg-primary text-white" : "hover:bg-muted"}`}
+                            aria-label="List view"
+                            aria-pressed={viewMode === "list"}
                         >
                             <List className="w-4 h-4" />
                         </button>
                         <button
                             onClick={() => setViewMode("grid")}
                             className={`p-2 transition-colors ${viewMode === "grid" ? "bg-primary text-white" : "hover:bg-muted"}`}
+                            aria-label="Grid view"
+                            aria-pressed={viewMode === "grid"}
                         >
                             <Grid3X3 className="w-4 h-4" />
                         </button>
@@ -647,36 +512,13 @@ export default function FilesPage() {
             </div>
 
             {/* ─── Storage Usage ──────────────────────────────────────────────── */}
-            {storage && storage.total > 0 && (
-                <Card className="border-0 shadow-sm">
-                    <div className="p-4 flex items-center gap-4">
-                        <HardDrive className="w-5 h-5 text-primary shrink-0" />
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between text-sm mb-1.5">
-                                <span className="font-medium">OneDrive Storage</span>
-                                <span className="text-muted-foreground">
-                                    {formatBytes(storage.used)} of {formatBytes(storage.total)} used
-                                </span>
-                            </div>
-                            <Progress
-                                value={(storage.used / storage.total) * 100}
-                                className="h-2"
-                                indicatorClassName={
-                                    storage.used / storage.total > 0.9
-                                        ? "bg-red-500"
-                                        : storage.used / storage.total > 0.7
-                                        ? "bg-amber-500"
-                                        : "bg-primary"
-                                }
-                            />
-                        </div>
-                    </div>
-                </Card>
-            )}
+            {storage && <StorageBar storage={storage} />}
 
             {/* ─── Tabs ──────────────────────────────────────────────────────── */}
-            <div className="flex items-center gap-1 border-b">
+            <div className="flex items-center gap-1 border-b" role="tablist">
                 <button
+                    role="tab"
+                    aria-selected={activeTab === "my-files"}
                     onClick={() => setActiveTab("my-files")}
                     className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                         activeTab === "my-files"
@@ -688,6 +530,8 @@ export default function FilesPage() {
                     My Files
                 </button>
                 <button
+                    role="tab"
+                    aria-selected={activeTab === "shared"}
                     onClick={() => setActiveTab("shared")}
                     className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                         activeTab === "shared"
@@ -701,192 +545,36 @@ export default function FilesPage() {
             </div>
 
             {/* ─── Upload Progress ────────────────────────────────────────────── */}
-            {uploads.length > 0 && (
-                <Card className="border-0 shadow-sm overflow-hidden">
-                    <div className="p-3 space-y-2">
-                        <div className="flex items-center justify-between text-sm font-medium px-1">
-                            <span>
-                                {uploads.filter(u => u.status === "uploading").length > 0
-                                    ? `Uploading ${uploads.filter(u => u.status === "uploading").length} file(s)...`
-                                    : "Upload complete!"
-                                }
-                            </span>
-                            <button onClick={() => setUploads([])} className="text-muted-foreground hover:text-foreground">
-                                <X className="w-4 h-4" />
-                            </button>
-                        </div>
-                        {uploads.map(u => (
-                            <div key={u.id} className="flex items-center gap-3 px-1">
-                                <div className="w-5 h-5 flex items-center justify-center shrink-0">
-                                    {u.status === "uploading" && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
-                                    {u.status === "done" && <Check className="w-4 h-4 text-emerald-500" />}
-                                    {u.status === "error" && <AlertCircle className="w-4 h-4 text-red-500" />}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-xs truncate">{u.name}</p>
-                                    <Progress value={u.progress} className="h-1 mt-1" />
-                                </div>
-                                <span className="text-xs text-muted-foreground shrink-0">
-                                    {u.status === "error" ? "Failed" : `${u.progress}%`}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                </Card>
-            )}
+            <UploadProgress uploads={uploads} onClear={() => setUploads([])} />
 
             {/* ─── Breadcrumbs (My Files only) ───────────────────────────────── */}
-            {activeTab === "my-files" && breadcrumbs.length > 1 && (
-                <div className="flex items-center gap-1 text-sm">
-                    <Button variant="ghost" size="sm" onClick={goBack} className="mr-1 h-7 w-7 p-0">
-                        <ArrowLeft className="w-4 h-4" />
-                    </Button>
-                    {breadcrumbs.map((crumb, i) => (
-                        <span key={i} className="flex items-center gap-1">
-                            {i > 0 && <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />}
-                            <button
-                                onClick={() => navigateToBreadcrumb(i)}
-                                className={`px-1.5 py-0.5 rounded hover:bg-muted transition-colors ${
-                                    i === breadcrumbs.length - 1
-                                        ? "font-medium text-foreground"
-                                        : "text-muted-foreground hover:text-foreground"
-                                }`}
-                            >
-                                {i === 0 ? <Home className="w-3.5 h-3.5 inline" /> : crumb.name}
-                            </button>
-                        </span>
-                    ))}
-                </div>
+            {activeTab === "my-files" && (
+                <BreadcrumbNav
+                    breadcrumbs={breadcrumbs}
+                    onNavigate={navigateToBreadcrumb}
+                    onBack={goBack}
+                />
             )}
 
-            {/* ─── File Grid View ────────────────────────────────────────────── */}
+            {/* ─── File Views ────────────────────────────────────────────────── */}
             {viewMode === "grid" && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                    {filteredFiles.map(item => {
-                        const typeInfo = getFileTypeInfo(item)
-                        const TypeIcon = typeInfo.icon
-                        return (
-                            <div
-                                key={item.id}
-                                className={`group relative rounded-xl border bg-card hover:shadow-md transition-all p-4 text-center ${
-                                    item.folder ? "cursor-pointer" : ""
-                                }`}
-                                onClick={() => item.folder ? navigateToFolder(item) : openPreview(item)}
-                                onContextMenu={(e) => handleContextMenu(e, item)}
-                            >
-                                {/* Action button */}
-                                <button
-                                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-muted"
-                                    onClick={(e) => { e.stopPropagation(); handleContextMenu(e, item) }}
-                                >
-                                    <MoreVertical className="w-4 h-4 text-muted-foreground" />
-                                </button>
-
-                                <div className={`w-12 h-12 rounded-xl ${item.folder ? "bg-amber-50 dark:bg-amber-950/30" : "bg-muted/50"} flex items-center justify-center mx-auto mb-3`}>
-                                    <TypeIcon className={`w-6 h-6 ${typeInfo.color}`} />
-                                </div>
-                                <p className="text-sm font-medium truncate mb-1">{item.name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                    {item.folder ? `${item.folder.childCount} items` : formatBytes(item.size)}
-                                </p>
-                            </div>
-                        )
-                    })}
-                </div>
+                <FileGrid
+                    files={filteredFiles}
+                    onNavigateFolder={navigateToFolder}
+                    onPreview={openPreview}
+                    onContextMenu={handleContextMenu}
+                />
             )}
 
-            {/* ─── File List View ────────────────────────────────────────────── */}
             {viewMode === "list" && (
-                <Card className="border-0 shadow-sm">
-                    {/* List Header */}
-                    <div className="hidden sm:grid grid-cols-12 gap-4 px-4 py-2.5 text-xs font-medium text-muted-foreground border-b bg-muted/30">
-                        <div className="col-span-6">Name</div>
-                        <div className="col-span-2">Modified</div>
-                        <div className="col-span-2">Size</div>
-                        <div className="col-span-2 text-right">Actions</div>
-                    </div>
-
-                    <div className="divide-y divide-border/50">
-                        {filteredFiles.map(item => {
-                            const typeInfo = getFileTypeInfo(item)
-                            const TypeIcon = typeInfo.icon
-                            return (
-                                <div
-                                    key={item.id}
-                                    className={`group flex items-center gap-3 sm:grid sm:grid-cols-12 sm:gap-4 px-4 py-3 hover:bg-muted/50 transition-colors ${
-                                        item.folder ? "cursor-pointer" : ""
-                                    }`}
-                                    onClick={() => item.folder ? navigateToFolder(item) : openPreview(item)}
-                                    onContextMenu={(e) => handleContextMenu(e, item)}
-                                >
-                                    {/* Name */}
-                                    <div className="flex items-center gap-3 min-w-0 flex-1 sm:col-span-6">
-                                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                                            item.folder ? "bg-amber-50 dark:bg-amber-950/30" : "bg-muted/50"
-                                        }`}>
-                                            <TypeIcon className={`w-4 h-4 ${typeInfo.color}`} />
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
-                                                {item.name}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground sm:hidden">
-                                                {item.folder ? `${item.folder.childCount} items` : formatBytes(item.size)}
-                                                {item.lastModifiedDateTime && ` · ${formatDate(item.lastModifiedDateTime)}`}
-                                            </p>
-                                            {activeTab === "shared" && item.shared?.owner?.user?.displayName && (
-                                                <p className="text-xs text-muted-foreground">
-                                                    Shared by {item.shared.owner.user.displayName}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Modified */}
-                                    <div className="hidden sm:flex sm:col-span-2 items-center text-sm text-muted-foreground">
-                                        {formatDate(item.lastModifiedDateTime)}
-                                    </div>
-
-                                    {/* Size */}
-                                    <div className="hidden sm:flex sm:col-span-2 items-center text-sm text-muted-foreground">
-                                        {item.folder ? `${item.folder.childCount} items` : formatBytes(item.size)}
-                                    </div>
-
-                                    {/* Actions */}
-                                    <div className="sm:col-span-2 flex items-center justify-end gap-1 shrink-0">
-                                        {item.folder ? (
-                                            <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
-                                        ) : (
-                                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button
-                                                    className="p-1.5 rounded-md hover:bg-muted transition-colors"
-                                                    onClick={(e) => { e.stopPropagation(); window.open(item.webUrl, "_blank") }}
-                                                    title="Open in browser"
-                                                >
-                                                    <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
-                                                </button>
-                                                <button
-                                                    className="p-1.5 rounded-md hover:bg-muted transition-colors"
-                                                    onClick={(e) => { e.stopPropagation(); handleShare(item) }}
-                                                    title="Share"
-                                                >
-                                                    <Share2 className="w-3.5 h-3.5 text-muted-foreground" />
-                                                </button>
-                                                <button
-                                                    className="p-1.5 rounded-md hover:bg-muted transition-colors"
-                                                    onClick={(e) => { e.stopPropagation(); handleContextMenu(e, item) }}
-                                                    title="More"
-                                                >
-                                                    <MoreVertical className="w-3.5 h-3.5 text-muted-foreground" />
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )
-                        })}
-                    </div>
-                </Card>
+                <FileList
+                    files={filteredFiles}
+                    activeTab={activeTab}
+                    onNavigateFolder={navigateToFolder}
+                    onPreview={openPreview}
+                    onShare={handleShare}
+                    onContextMenu={handleContextMenu}
+                />
             )}
 
             {/* ─── Empty State ────────────────────────────────────────────────── */}
@@ -920,320 +608,48 @@ export default function FilesPage() {
 
             {/* ─── Context Menu ───────────────────────────────────────────────── */}
             {contextMenu && (
-                <div
-                    className="fixed z-50 bg-popover border rounded-xl shadow-xl py-1.5 min-w-[180px] animate-in fade-in zoom-in-95"
-                    style={{ left: Math.min(contextMenu.x, window.innerWidth - 200), top: Math.min(contextMenu.y, window.innerHeight - 300) }}
-                >
-                    {contextMenu.item.webUrl && (
-                        <button
-                            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted transition-colors"
-                            onClick={() => { window.open(contextMenu.item.webUrl, "_blank"); setContextMenu(null) }}
-                        >
-                            <ExternalLink className="w-4 h-4" />
-                            Open in Browser
-                        </button>
-                    )}
-                    {!contextMenu.item.folder && (
-                        <button
-                            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted transition-colors"
-                            onClick={() => { openPreview(contextMenu.item); setContextMenu(null) }}
-                        >
-                            <Eye className="w-4 h-4" />
-                            Preview
-                        </button>
-                    )}
-                    <button
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted transition-colors"
-                        onClick={() => { handleShare(contextMenu.item); setContextMenu(null) }}
-                    >
-                        <Share2 className="w-4 h-4" />
-                        Share Link
-                    </button>
-                    <div className="border-t my-1" />
-                    <button
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted transition-colors"
-                        onClick={() => {
-                            setSelectedItem(contextMenu.item)
-                            setDialogInput(contextMenu.item.name)
-                            setDialog("rename")
-                            setContextMenu(null)
-                        }}
-                    >
-                        <Pencil className="w-4 h-4" />
-                        Rename
-                    </button>
-                    <button
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted transition-colors"
-                        onClick={() => { openMoveDialog(contextMenu.item); setContextMenu(null) }}
-                    >
-                        <FolderInput className="w-4 h-4" />
-                        Move To...
-                    </button>
-                    <div className="border-t my-1" />
-                    <button
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
-                        onClick={() => {
-                            setSelectedItem(contextMenu.item)
-                            setDialog("delete")
-                            setContextMenu(null)
-                        }}
-                    >
-                        <Trash2 className="w-4 h-4" />
-                        Delete
-                    </button>
-                </div>
+                <FileContextMenu
+                    item={contextMenu.item}
+                    x={contextMenu.x}
+                    y={contextMenu.y}
+                    onOpenBrowser={(item) => window.open(item.webUrl, "_blank")}
+                    onPreview={openPreview}
+                    onShare={handleShare}
+                    onRename={(item) => {
+                        setSelectedItem(item)
+                        setDialogInput(item.name)
+                        setDialog("rename")
+                    }}
+                    onMove={openMoveDialog}
+                    onDelete={(item) => {
+                        setSelectedItem(item)
+                        setDialog("delete")
+                    }}
+                    onClose={() => setContextMenu(null)}
+                />
             )}
 
-            {/* ─── Dialog Overlay ─────────────────────────────────────────────── */}
-            {dialog !== "none" && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm p-4" onClick={() => { setDialog("none"); setSelectedItem(null) }}>
-                    <div className="bg-card border rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
-
-                        {/* ── New Folder Dialog ── */}
-                        {dialog === "new-folder" && (
-                            <div className="p-6">
-                                <h3 className="text-lg font-bold mb-4">Create New Folder</h3>
-                                <Input
-                                    placeholder="Folder name"
-                                    value={dialogInput}
-                                    onChange={(e) => setDialogInput(e.target.value)}
-                                    onKeyDown={(e) => e.key === "Enter" && handleCreateFolder()}
-                                    autoFocus
-                                    className="mb-4"
-                                />
-                                <div className="flex justify-end gap-2">
-                                    <Button variant="outline" onClick={() => setDialog("none")}>Cancel</Button>
-                                    <Button
-                                        className="bg-primary text-white"
-                                        onClick={handleCreateFolder}
-                                        disabled={!dialogInput.trim() || dialogLoading}
-                                    >
-                                        {dialogLoading ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <FolderPlus className="w-4 h-4 mr-1.5" />}
-                                        Create
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* ── Rename Dialog ── */}
-                        {dialog === "rename" && (
-                            <div className="p-6">
-                                <h3 className="text-lg font-bold mb-4">Rename</h3>
-                                <Input
-                                    placeholder="New name"
-                                    value={dialogInput}
-                                    onChange={(e) => setDialogInput(e.target.value)}
-                                    onKeyDown={(e) => e.key === "Enter" && handleRename()}
-                                    autoFocus
-                                    className="mb-4"
-                                />
-                                <div className="flex justify-end gap-2">
-                                    <Button variant="outline" onClick={() => { setDialog("none"); setSelectedItem(null) }}>Cancel</Button>
-                                    <Button
-                                        className="bg-primary text-white"
-                                        onClick={handleRename}
-                                        disabled={!dialogInput.trim() || dialogLoading}
-                                    >
-                                        {dialogLoading ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Check className="w-4 h-4 mr-1.5" />}
-                                        Rename
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* ── Share Dialog ── */}
-                        {dialog === "share" && (
-                            <div className="p-6">
-                                <h3 className="text-lg font-bold mb-2">Share Link</h3>
-                                <p className="text-sm text-muted-foreground mb-4">
-                                    {selectedItem?.name}
-                                </p>
-                                {dialogLoading ? (
-                                    <div className="flex items-center justify-center py-6">
-                                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                                    </div>
-                                ) : shareLink ? (
-                                    <div className="space-y-3">
-                                        <div className="flex items-center gap-2">
-                                            <Input value={shareLink} readOnly className="text-xs" />
-                                            <Button size="sm" variant="outline" onClick={copyShareLink}>
-                                                {copiedLink ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                                            </Button>
-                                        </div>
-                                        {copiedLink && <p className="text-xs text-emerald-500">Copied to clipboard!</p>}
-                                    </div>
-                                ) : null}
-                                <div className="flex justify-end mt-4">
-                                    <Button variant="outline" onClick={() => { setDialog("none"); setSelectedItem(null) }}>Close</Button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* ── Delete Dialog ── */}
-                        {dialog === "delete" && (
-                            <div className="p-6">
-                                <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-950/30 flex items-center justify-center mx-auto mb-4">
-                                    <Trash2 className="w-6 h-6 text-red-500" />
-                                </div>
-                                <h3 className="text-lg font-bold text-center mb-2">Delete {selectedItem?.folder ? "Folder" : "File"}</h3>
-                                <p className="text-sm text-muted-foreground text-center mb-6">
-                                    Are you sure you want to delete <strong>{selectedItem?.name}</strong>?
-                                    {selectedItem?.folder && " This will delete all files inside."}
-                                    {" "}This action cannot be undone.
-                                </p>
-                                <div className="flex justify-end gap-2">
-                                    <Button variant="outline" onClick={() => { setDialog("none"); setSelectedItem(null) }}>Cancel</Button>
-                                    <Button
-                                        className="bg-red-500 hover:bg-red-600 text-white"
-                                        onClick={handleDelete}
-                                        disabled={dialogLoading}
-                                    >
-                                        {dialogLoading ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Trash2 className="w-4 h-4 mr-1.5" />}
-                                        Delete
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* ── Move Dialog ── */}
-                        {dialog === "move" && (
-                            <div className="p-6">
-                                <h3 className="text-lg font-bold mb-1">Move &ldquo;{selectedItem?.name}&rdquo;</h3>
-                                <p className="text-sm text-muted-foreground mb-4">Select destination folder</p>
-
-                                {/* Move breadcrumbs */}
-                                <div className="flex items-center gap-1 text-xs mb-3 flex-wrap">
-                                    {moveBreadcrumbs.map((crumb, i) => (
-                                        <span key={i} className="flex items-center gap-1">
-                                            {i > 0 && <ChevronRight className="w-3 h-3 text-muted-foreground" />}
-                                            <button
-                                                onClick={() => navigateMoveBreadcrumb(i)}
-                                                className={`px-1.5 py-0.5 rounded hover:bg-muted ${
-                                                    i === moveBreadcrumbs.length - 1 ? "font-medium" : "text-muted-foreground"
-                                                }`}
-                                            >
-                                                {i === 0 ? "Root" : crumb.name}
-                                            </button>
-                                        </span>
-                                    ))}
-                                </div>
-
-                                {/* Folder list */}
-                                <div className="border rounded-lg max-h-60 overflow-y-auto mb-4">
-                                    {moveLoading ? (
-                                        <div className="flex items-center justify-center py-8">
-                                            <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                                        </div>
-                                    ) : moveFolders.length === 0 ? (
-                                        <p className="text-sm text-muted-foreground text-center py-8">No subfolders</p>
-                                    ) : (
-                                        moveFolders.filter(f => f.id !== selectedItem?.id).map(folder => (
-                                            <button
-                                                key={folder.id}
-                                                className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted transition-colors text-left"
-                                                onClick={() => navigateMoveFolder(folder)}
-                                            >
-                                                <FolderOpen className="w-4 h-4 text-amber-500 shrink-0" />
-                                                <span className="text-sm truncate">{folder.name}</span>
-                                                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground ml-auto shrink-0" />
-                                            </button>
-                                        ))
-                                    )}
-                                </div>
-
-                                <div className="flex justify-between items-center">
-                                    <p className="text-xs text-muted-foreground">
-                                        Move to: <strong>{moveBreadcrumbs[moveBreadcrumbs.length - 1].name}</strong>
-                                    </p>
-                                    <div className="flex gap-2">
-                                        <Button variant="outline" onClick={() => { setDialog("none"); setSelectedItem(null) }}>Cancel</Button>
-                                        <Button
-                                            className="bg-primary text-white"
-                                            onClick={handleMove}
-                                            disabled={dialogLoading}
-                                        >
-                                            {dialogLoading ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <FolderInput className="w-4 h-4 mr-1.5" />}
-                                            Move Here
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* ── Preview Panel ── */}
-                        {dialog === "preview" && selectedItem && (
-                            <div className="p-6">
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="min-w-0 flex-1">
-                                        <h3 className="text-lg font-bold truncate">{selectedItem.name}</h3>
-                                        <p className="text-sm text-muted-foreground">
-                                            {getFileTypeInfo(selectedItem).label} · {formatBytes(selectedItem.size)}
-                                        </p>
-                                    </div>
-                                    <button onClick={() => { setDialog("none"); setSelectedItem(null) }} className="p-1 hover:bg-muted rounded-md">
-                                        <X className="w-5 h-5" />
-                                    </button>
-                                </div>
-
-                                {/* Image Preview */}
-                                {isPreviewable(selectedItem) && selectedItem["@microsoft.graph.downloadUrl"] && (
-                                    <div className="mb-4 rounded-lg overflow-hidden bg-muted/50 flex items-center justify-center max-h-64">
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img
-                                            src={selectedItem["@microsoft.graph.downloadUrl"]}
-                                            alt={selectedItem.name}
-                                            className="max-w-full max-h-64 object-contain"
-                                        />
-                                    </div>
-                                )}
-
-                                {/* File Details */}
-                                <div className="space-y-2 mb-4 text-sm">
-                                    <div className="flex justify-between py-1.5 border-b border-border/50">
-                                        <span className="text-muted-foreground">Type</span>
-                                        <span>{getFileTypeInfo(selectedItem).label}</span>
-                                    </div>
-                                    <div className="flex justify-between py-1.5 border-b border-border/50">
-                                        <span className="text-muted-foreground">Size</span>
-                                        <span>{formatBytes(selectedItem.size)}</span>
-                                    </div>
-                                    {selectedItem.lastModifiedDateTime && (
-                                        <div className="flex justify-between py-1.5 border-b border-border/50">
-                                            <span className="text-muted-foreground">Modified</span>
-                                            <span>{formatDate(selectedItem.lastModifiedDateTime)}</span>
-                                        </div>
-                                    )}
-                                    {selectedItem.lastModifiedBy?.user?.displayName && (
-                                        <div className="flex justify-between py-1.5 border-b border-border/50">
-                                            <span className="text-muted-foreground">Modified by</span>
-                                            <span>{selectedItem.lastModifiedBy.user.displayName}</span>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Actions */}
-                                <div className="flex flex-wrap gap-2">
-                                    <Button size="sm" className="bg-primary text-white" onClick={() => window.open(selectedItem.webUrl, "_blank")}>
-                                        <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
-                                        Open
-                                    </Button>
-                                    <Button size="sm" variant="outline" onClick={() => {
-                                        setDialogInput(selectedItem.name)
-                                        setDialog("rename")
-                                    }}>
-                                        <Pencil className="w-3.5 h-3.5 mr-1.5" />
-                                        Rename
-                                    </Button>
-                                    <Button size="sm" variant="outline" onClick={() => openMoveDialog(selectedItem)}>
-                                        <FolderInput className="w-3.5 h-3.5 mr-1.5" />
-                                        Move
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
+            {/* ─── Dialogs ────────────────────────────────────────────────────── */}
+            <FileDialogs
+                dialog={dialog}
+                selectedItem={selectedItem}
+                dialogInput={dialogInput}
+                dialogLoading={dialogLoading}
+                shareLink={shareLink}
+                copiedLink={copiedLink}
+                moveFolders={moveFolders}
+                moveBreadcrumbs={moveBreadcrumbs}
+                moveLoading={moveLoading}
+                onDialogInputChange={setDialogInput}
+                onClose={() => { setDialog("none"); setSelectedItem(null) }}
+                onCreateFolder={handleCreateFolder}
+                onRename={handleRename}
+                onDelete={handleDelete}
+                onMove={handleMove}
+                onCopyLink={copyShareLink}
+                onNavigateMoveFolder={navigateMoveFolder}
+                onNavigateMoveBreadcrumb={navigateMoveBreadcrumb}
+            />
         </div>
     )
 }

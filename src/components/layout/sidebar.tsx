@@ -29,6 +29,12 @@ import {
 import { useLayoutStore } from "@/lib/store"
 import { isAdmin as checkIsAdmin } from "@/lib/utils"
 
+const ms365Items = [
+    { href: "https://outlook.office.com/mail", label: "Outlook", icon: Mail },
+    { href: "https://teams.microsoft.com", label: "Teams", icon: Video },
+    { href: "https://outlook.office.com/calendar", label: "Calendar", icon: CalendarDays },
+]
+
 const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/dashboard/projects", label: "Projects", icon: FolderKanban },
@@ -37,12 +43,6 @@ const navItems = [
     { href: "/dashboard/files", label: "OneDrive", icon: Cloud },
     { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
     { href: "/dashboard/settings", label: "Settings", icon: Settings },
-]
-
-const externalLinks = [
-    { href: "https://outlook.office.com/mail", label: "Outlook", icon: Mail },
-    { href: "https://teams.microsoft.com", label: "Teams", icon: Video },
-    { href: "https://outlook.office.com/calendar", label: "Calendar", icon: CalendarDays },
 ]
 
 const adminItems = [
@@ -100,6 +100,7 @@ export function Sidebar() {
                     <button
                         onClick={() => setMobileSidebarOpen(false)}
                         className="md:hidden p-1.5 rounded-lg text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent/50 transition-colors"
+                        aria-label="Close navigation menu"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -108,17 +109,44 @@ export function Sidebar() {
 
             {/* Navigation */}
             <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+                {/* Microsoft 365 - Top section */}
                 {(!collapsed || mobileSidebarOpen) && (
                     <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
+                        Microsoft 365
+                    </p>
+                )}
+                {ms365Items.map((item) => (
+                    <a
+                        key={item.href}
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent/50"
+                    >
+                        <item.icon className="w-5 h-5 shrink-0 text-sidebar-foreground/40 group-hover:text-[#e8b84a]/70" />
+                        {(!collapsed || mobileSidebarOpen) && (
+                            <span className="flex-1">{item.label}</span>
+                        )}
+                        {(!collapsed || mobileSidebarOpen) && (
+                            <ExternalLink className="w-3.5 h-3.5 text-sidebar-foreground/20 group-hover:text-sidebar-foreground/40" />
+                        )}
+                    </a>
+                ))}
+
+                {/* Menu section */}
+                {(!collapsed || mobileSidebarOpen) && (
+                    <p className="px-3 mt-6 mb-2 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
                         Menu
                     </p>
                 )}
+                {collapsed && !mobileSidebarOpen && <div className="mt-4" />}
                 {navItems.map((item) => {
                     const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))
                     return (
                         <Link
                             key={item.href}
                             href={item.href}
+                            aria-current={isActive ? "page" : undefined}
                             className={cn(
                                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group",
                                 isActive
@@ -151,6 +179,7 @@ export function Sidebar() {
                                 <Link
                                     key={item.href}
                                     href={item.href}
+                                    aria-current={isActive ? "page" : undefined}
                                     className={cn(
                                         "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group",
                                         isActive
@@ -166,31 +195,6 @@ export function Sidebar() {
                     </>
                 )}
 
-                {/* Microsoft 365 quick links */}
-                {(!collapsed || mobileSidebarOpen) && (
-                    <p className="px-3 mt-6 mb-2 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
-                        Microsoft 365
-                    </p>
-                )}
-                {collapsed && !mobileSidebarOpen && <div className="mt-4" />}
-                {externalLinks.map((item) => (
-                    <a
-                        key={item.href}
-                        href={item.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent/50"
-                    >
-                        <item.icon className="w-5 h-5 shrink-0 text-sidebar-foreground/40 group-hover:text-[#e8b84a]/70" />
-                        {(!collapsed || mobileSidebarOpen) && (
-                            <span className="flex-1">{item.label}</span>
-                        )}
-                        {(!collapsed || mobileSidebarOpen) && (
-                            <ExternalLink className="w-3.5 h-3.5 text-sidebar-foreground/20 group-hover:text-sidebar-foreground/40" />
-                        )}
-                    </a>
-                ))}
-
             </nav>
 
             {/* Bottom section */}
@@ -199,6 +203,7 @@ export function Sidebar() {
                 <button
                     onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                     className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent/50 transition-all duration-200 w-full"
+                    aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
                 >
                     {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                     {(!collapsed || mobileSidebarOpen) && <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>}
@@ -208,6 +213,7 @@ export function Sidebar() {
                 <button
                     onClick={() => setCollapsed(!collapsed)}
                     className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent/50 transition-all duration-200 w-full"
+                    aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
                 >
                     {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
                     {(!collapsed || mobileSidebarOpen) && <span>Collapse</span>}

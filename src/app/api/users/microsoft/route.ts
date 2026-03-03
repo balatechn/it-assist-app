@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { getAccessToken, fetchGraph } from "@/lib/onedrive"
 
+export const dynamic = "force-dynamic"
+
 interface GraphUser {
     id: string
     displayName: string

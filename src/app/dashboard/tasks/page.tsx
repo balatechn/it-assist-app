@@ -54,6 +54,8 @@ export default function TasksPage() {
     const [tasks, setTasks] = useState<Task[]>([])
     const [loading, setLoading] = useState(true)
     const [filter, setFilter] = useState<string>("ALL")
+    const [searchQuery, setSearchQuery] = useState("")
+    const [debouncedSearch, setDebouncedSearch] = useState("")
     const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
     const [page, setPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
@@ -86,12 +88,21 @@ export default function TasksPage() {
     const [newTaskImportance, setNewTaskImportance] = useState("normal")
     const [creating, setCreating] = useState(false)
 
+    // Debounce search input
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300)
+        return () => clearTimeout(timer)
+    }, [searchQuery])
+
     useEffect(() => {
         fetchTasks()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [page, filter, debouncedSearch])
+
+    useEffect(() => {
         fetchProjectsList()
         fetchTeamMembers()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [page])
+    }, [])
 
     const fetchTeamMembers = async () => {
         try {
@@ -141,9 +152,12 @@ export default function TasksPage() {
         finally { setPtCreating(false) }
     }
 
-    const fetchTasks = async () => {
+    const fetchTasks = useCallback(async () => {
         try {
-            const res = await fetch(`/api/tasks?page=${page}&limit=20`)
+            const params = new URLSearchParams({ page: String(page), limit: "20" })
+            if (filter !== "ALL") params.set("status", filter)
+            if (debouncedSearch) params.set("search", debouncedSearch)
+            const res = await fetch(`/api/tasks?${params}`)
             if (res.ok) {
                 const json = await res.json()
                 setTasks(json.data ?? json)
@@ -155,7 +169,7 @@ export default function TasksPage() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [page, filter, debouncedSearch])
 
     const fetchMsTasks = useCallback(async (listId?: string) => {
         setMsLoading(true)
@@ -240,16 +254,15 @@ export default function TasksPage() {
         } catch { /* silent */ }
     }
 
-    const filtered = filter === "ALL" ? tasks : tasks.filter(t => t.status === filter)
     const msFiltered = msFilter === "ALL" ? msTasks :
         msFilter === "completed" ? msTasks.filter(t => t.status === "completed") :
         msTasks.filter(t => t.status !== "completed")
 
     const statusFilters = [
-        { id: "ALL", label: "All", count: tasks.length },
-        { id: "TODO", label: "To Do", count: tasks.filter(t => t.status === "TODO").length },
-        { id: "IN_PROGRESS", label: "Active", count: tasks.filter(t => t.status === "IN_PROGRESS").length },
-        { id: "DONE", label: "Done", count: tasks.filter(t => t.status === "DONE").length },
+        { id: "ALL", label: "All" },
+        { id: "TODO", label: "To Do" },
+        { id: "IN_PROGRESS", label: "Active" },
+        { id: "DONE", label: "Done" },
     ]
 
     // ─── Keyboard Shortcuts ─────────────────────────────────────────────────────
@@ -411,28 +424,36 @@ export default function TasksPage() {
                         </Card>
                     )}
 
-                    {/* Filters */}
-                    <div className="flex gap-1.5 flex-wrap">
-                        {statusFilters.map((s) => (
-                            <button
-                                key={s.id}
-                                onClick={() => setFilter(s.id)}
-                                className={cn(
-                                    "px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200",
-                                    filter === s.id
-                                        ? "bg-primary text-primary-foreground shadow-sm"
-                                        : "bg-muted/50 text-muted-foreground hover:bg-muted"
-                                )}
-                            >
-                                {s.label} ({s.count})
-                            </button>
-                        ))}
+                    {/* Search + Filters */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <Input
+                            placeholder="Search tasks..."
+                            value={searchQuery}
+                            onChange={(e) => { setSearchQuery(e.target.value); setPage(1) }}
+                            className="h-9 text-sm sm:max-w-xs"
+                        />
+                        <div className="flex gap-1.5 flex-wrap">
+                            {statusFilters.map((s) => (
+                                <button
+                                    key={s.id}
+                                    onClick={() => { setFilter(s.id); setPage(1) }}
+                                    className={cn(
+                                        "px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200",
+                                        filter === s.id
+                                            ? "bg-primary text-primary-foreground shadow-sm"
+                                            : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                                    )}
+                                >
+                                    {s.label}{filter === s.id ? ` (${total})` : ""}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                     {/* Tasks List */}
                     <Card>
                         <div className="divide-y divide-border/50">
-                            {filtered.map((task) => (
+                            {tasks.map((task) => (
                                 <div key={task.id} onClick={() => setSelectedTaskId(task.id)}>
                                     <div className="flex items-center gap-3 md:gap-4 p-3 md:p-4 hover:bg-muted/50 transition-all duration-200 group cursor-pointer">
                                         <div
@@ -477,7 +498,7 @@ export default function TasksPage() {
                         </div>
                     </Card>
 
-                    {filtered.length === 0 && (
+                    {tasks.length === 0 && (
                         <div className="text-center py-12 md:py-16">
                             <CheckSquare className="w-10 h-10 md:w-12 md:h-12 text-muted-foreground/30 mx-auto mb-3" />
                             <h3 className="text-base md:text-lg font-semibold mb-1">No tasks found</h3>

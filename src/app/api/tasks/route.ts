@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
         const projectId = searchParams.get("projectId")
         const assigneeId = searchParams.get("assigneeId")
         const status = searchParams.get("status")
+        const search = searchParams.get("search")?.trim()
         const page = Math.max(1, parseInt(searchParams.get("page") || "1"))
         const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "20")))
 
@@ -28,6 +29,12 @@ export async function GET(req: NextRequest) {
         if (projectId) where.projectId = projectId
         if (assigneeId) where.assigneeId = assigneeId
         if (status) where.status = status
+        if (search) {
+            where.OR = [
+                { title: { contains: search, mode: "insensitive" } },
+                { description: { contains: search, mode: "insensitive" } },
+            ]
+        }
 
         const [tasks, total] = await Promise.all([
             prisma.task.findMany({

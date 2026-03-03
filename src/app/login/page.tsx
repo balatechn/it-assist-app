@@ -52,7 +52,7 @@ function LoginContent() {
                         <span style={{ background: 'linear-gradient(90deg, #e8b84a, #f5d780)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Workflow</span>
                     </h2>
                     <p className="text-lg max-w-md leading-relaxed" style={{ color: 'rgba(200, 215, 235, 0.75)' }}>
-                        One platform. Every project. Zero chaos.
+                        Plan. Track. Collaborate. Deliver.
                     </p>
                     <div className="mt-12 space-y-4">
                         {["Kanban & Gantt project views", "Microsoft OneDrive integration", "Microsoft To Do sync", "Role-based access control", "Real-time notifications & audit logs"].map((f, i) => (

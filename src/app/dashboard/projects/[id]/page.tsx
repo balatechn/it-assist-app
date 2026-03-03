@@ -19,6 +19,7 @@ import {
 import { cn, formatDate, formatCurrency, getInitials, getStatusColor, getPriorityColor, isManager } from "@/lib/utils"
 import { TaskDetailModal } from "@/components/task-detail-modal"
 import { ProjectEditModal } from "@/components/project-edit-modal"
+import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 
 interface Task {
     id: string
@@ -74,6 +75,7 @@ export default function ProjectDetailPage() {
     const [creatingTask, setCreatingTask] = useState(false)
     const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
     const [showEditProject, setShowEditProject] = useState(false)
+    const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null)
 
     // Local Kanban State
     const [tasks, setTasks] = useState<Record<string, Task[]>>({
@@ -138,7 +140,6 @@ export default function ProjectDetailPage() {
     }
 
     const handleDeleteTask = async (taskId: string) => {
-        if (!confirm("Delete this task?")) return
         try {
             await fetch(`/api/tasks/${taskId}`, { method: "DELETE" })
             fetchProject()
@@ -404,7 +405,7 @@ export default function ProjectDetailPage() {
                                                                             <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-0.5">
                                                                                 {!isViewer && (
                                                                                     <button
-                                                                                        onClick={(e) => { e.stopPropagation(); handleDeleteTask(task.id) }}
+                                                                                        onClick={(e) => { e.stopPropagation(); setDeleteTaskId(task.id) }}
                                                                                         className="p-1 rounded hover:bg-destructive/10 text-destructive/70"
                                                                                         title="Delete"
                                                                                     >
@@ -482,6 +483,20 @@ export default function ProjectDetailPage() {
                 open={showEditProject}
                 onOpenChange={setShowEditProject}
                 onProjectUpdated={fetchProject}
+            />
+
+            {/* Delete Task Confirm Dialog */}
+            <ConfirmDialog
+                open={!!deleteTaskId}
+                onOpenChange={(open) => { if (!open) setDeleteTaskId(null) }}
+                title="Delete Task"
+                description="Are you sure you want to delete this task? This action cannot be undone."
+                confirmLabel="Delete"
+                variant="destructive"
+                onConfirm={async () => {
+                    if (deleteTaskId) await handleDeleteTask(deleteTaskId)
+                    setDeleteTaskId(null)
+                }}
             />
         </div>
     )

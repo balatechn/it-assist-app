@@ -5,6 +5,7 @@ import prisma from "@/lib/db"
 import { logAction } from "@/lib/audit"
 import { updateTaskSchema } from "@/lib/validations"
 import { sendMail, buildTaskAssignedEmail } from "@/lib/mail"
+import { isManager } from "@/lib/utils"
 
 // GET /api/tasks/[id]
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -164,6 +165,12 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
         })
         if (!existing) {
             return NextResponse.json({ error: "Task not found" }, { status: 404 })
+        }
+
+        // Only task creator, assignee, or Manager+ can delete
+        const isOwner = existing.creatorId === session.user.id || existing.assigneeId === session.user.id
+        if (!isOwner && !isManager(session.user.role)) {
+            return NextResponse.json({ error: "Forbidden — only creator, assignee, or managers can delete tasks" }, { status: 403 })
         }
 
         await prisma.task.delete({ where: { id: params.id } })

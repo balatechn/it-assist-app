@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import prisma from "@/lib/db"
 
+export const dynamic = "force-dynamic"
+
 export async function GET() {
     try {
         const session = await getServerSession(authOptions)
@@ -11,37 +13,56 @@ export async function GET() {
         }
 
         const orgId = session.user.organizationId
+        const orgFilter = { project: { organizationId: orgId } }
 
-        // Total projects
-        const totalProjects = await prisma.project.count({
-            where: { organizationId: orgId },
-        })
-
-        // All tasks for org
-        const allTasks = await prisma.task.findMany({
-            where: { project: { organizationId: orgId } },
-            select: { status: true, priority: true, dueDate: true },
-        })
-
+        // Use count() queries instead of loading all tasks into memory
         const now = new Date()
-        const activeTasks = allTasks.filter(t => t.status !== "DONE").length
-        const overdueTasks = allTasks.filter(
-            t => t.status !== "DONE" && t.dueDate && new Date(t.dueDate) < now
-        ).length
-        const doneTasks = allTasks.filter(t => t.status === "DONE").length
-        const completionRate = allTasks.length > 0 ? Math.round((doneTasks / allTasks.length) * 100) : 0
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        const [
+            totalProjects,
+            totalTasks,
+            activeTasks,
+            overdueTasks,
+            doneTasks,
+            todoCount,
+            inProgressCount,
+            lowPriority,
+            mediumPriority,
+            highPriority,
+            urgentPriority,
+            criticalPriority,
+            newProjectsThisMonth,
+            completedTasksThisMonth,
+        ] = await Promise.all([
+            prisma.project.count({ where: { organizationId: orgId } }),
+            prisma.task.count({ where: orgFilter }),
+            prisma.task.count({ where: { ...orgFilter, status: { not: "DONE" } } }),
+            prisma.task.count({ where: { ...orgFilter, status: { not: "DONE" }, dueDate: { lt: now } } }),
+            prisma.task.count({ where: { ...orgFilter, status: "DONE" } }),
+            prisma.task.count({ where: { ...orgFilter, status: "TODO" } }),
+            prisma.task.count({ where: { ...orgFilter, status: "IN_PROGRESS" } }),
+            prisma.task.count({ where: { ...orgFilter, status: { not: "DONE" }, priority: "LOW" } }),
+            prisma.task.count({ where: { ...orgFilter, status: { not: "DONE" }, priority: "MEDIUM" } }),
+            prisma.task.count({ where: { ...orgFilter, status: { not: "DONE" }, priority: "HIGH" } }),
+            prisma.task.count({ where: { ...orgFilter, status: { not: "DONE" }, priority: "URGENT" as never } }),
+            prisma.task.count({ where: { ...orgFilter, status: { not: "DONE" }, priority: "CRITICAL" as never } }),
+            prisma.project.count({ where: { organizationId: orgId, createdAt: { gte: startOfMonth } } }),
+            prisma.task.count({ where: { ...orgFilter, status: "DONE", updatedAt: { gte: startOfMonth } } }),
+        ])
 
-        // Tasks by priority
+        const completionRate = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0
+
         const tasksByPriority = {
-            LOW: allTasks.filter(t => t.priority === "LOW" && t.status !== "DONE").length,
-            MEDIUM: allTasks.filter(t => t.priority === "MEDIUM" && t.status !== "DONE").length,
-            HIGH: allTasks.filter(t => t.priority === "HIGH" && t.status !== "DONE").length,
+            LOW: lowPriority,
+            MEDIUM: mediumPriority,
+            HIGH: highPriority,
+            URGENT: urgentPriority,
+            CRITICAL: criticalPriority,
         }
 
-        // Tasks by status
         const tasksByStatus = {
-            TODO: allTasks.filter(t => t.status === "TODO").length,
-            IN_PROGRESS: allTasks.filter(t => t.status === "IN_PROGRESS").length,
+            TODO: todoCount,
+            IN_PROGRESS: inProgressCount,
             DONE: doneTasks,
         }
 
@@ -86,6 +107,8 @@ export async function GET() {
             tasksByStatus,
             projects,
             recentTasks,
+            newProjectsThisMonth,
+            completedTasksThisMonth,
         })
     } catch (error) {
         console.error("Dashboard API error:", error)

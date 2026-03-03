@@ -7,11 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ArrowLeft, Zap } from "lucide-react"
 import Link from "next/link"
-
-const PROJECT_COLORS = [
-    "#3B82F6", "#8B5CF6", "#10B981", "#F59E0B", "#EF4444",
-    "#EC4899", "#06B6D4", "#84CC16", "#F97316", "#6366F1",
-]
+import { PROJECT_COLORS } from "@/lib/constants"
 
 export default function NewProjectPage() {
     const router = useRouter()

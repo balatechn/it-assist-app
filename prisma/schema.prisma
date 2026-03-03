@@ -36,6 +36,8 @@ enum TaskPriority {
   LOW
   MEDIUM
   HIGH
+  URGENT
+  CRITICAL
 }
 
 enum NotificationType {

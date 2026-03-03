@@ -6,17 +6,17 @@ import {
     LayoutDashboard,
     FolderKanban,
     CheckSquare,
-    Bell,
-    HardDrive,
+    Mail,
+    Video,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const bottomNavItems = [
-    { href: "/dashboard", label: "Home", icon: LayoutDashboard },
-    { href: "/dashboard/projects", label: "Projects", icon: FolderKanban },
-    { href: "/dashboard/tasks", label: "Tasks", icon: CheckSquare },
-    { href: "/dashboard/notifications", label: "Alerts", icon: Bell },
-    { href: "/dashboard/files", label: "OneDrive", icon: HardDrive },
+    { href: "/dashboard", label: "Home", icon: LayoutDashboard, external: false },
+    { href: "/dashboard/projects", label: "Projects", icon: FolderKanban, external: false },
+    { href: "/dashboard/tasks", label: "Tasks", icon: CheckSquare, external: false },
+    { href: "https://outlook.office.com/mail", label: "Outlook", icon: Mail, external: true },
+    { href: "https://teams.microsoft.com", label: "Teams", icon: Video, external: true },
 ]
 
 export function MobileBottomNav() {
@@ -26,8 +26,26 @@ export function MobileBottomNav() {
         <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-xl border-t border-border/50 safe-area-bottom">
             <div className="flex items-center justify-around h-16 px-1">
                 {bottomNavItems.map((item) => {
-                    const isActive = pathname === item.href || 
-                        (item.href !== "/dashboard" && pathname.startsWith(item.href))
+                    const isActive = !item.external && (pathname === item.href || 
+                        (item.href !== "/dashboard" && pathname.startsWith(item.href)))
+
+                    if (item.external) {
+                        return (
+                            <a
+                                key={item.href}
+                                href={item.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex flex-col items-center justify-center gap-0.5 w-full h-full rounded-lg transition-colors text-muted-foreground"
+                            >
+                                <item.icon className="w-5 h-5" />
+                                <span className="text-[10px] leading-tight font-medium">
+                                    {item.label}
+                                </span>
+                            </a>
+                        )
+                    }
+
                     return (
                         <Link
                             key={item.href}

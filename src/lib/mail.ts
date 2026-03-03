@@ -1,7 +1,7 @@
 const TENANT_ID = process.env.AZURE_AD_TENANT_ID!
 const CLIENT_ID = process.env.AZURE_AD_CLIENT_ID!
 const CLIENT_SECRET = process.env.AZURE_AD_CLIENT_SECRET!
-const SENDER = "noreply@nationalgroupindia.com"
+const SENDER = process.env.MAIL_SENDER || "noreply@nationalgroupindia.com"
 
 /* ── App-only token cache ─────────────────────────────── */
 let cachedToken: string | null = null

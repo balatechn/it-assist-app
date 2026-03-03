@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth"
 import { sendMail } from "@/lib/mail"
 import { isSuperAdmin } from "@/lib/utils"
 
+export const dynamic = "force-dynamic"
+
 // GET /api/test-email — Test email via Graph (Super Admin only)
 export async function GET() {
     try {

@@ -17,11 +17,19 @@ export async function GET(req: NextRequest) {
         const page = Math.max(1, parseInt(searchParams.get("page") || "1"))
         const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "20")))
         const status = searchParams.get("status")
+        const search = searchParams.get("search")?.trim()
 
         const where: Record<string, unknown> = {
             organizationId: session.user.organizationId,
         }
         if (status) where.status = status
+        if (search) {
+            where.OR = [
+                { name: { contains: search, mode: "insensitive" } },
+                { clientName: { contains: search, mode: "insensitive" } },
+                { description: { contains: search, mode: "insensitive" } },
+            ]
+        }
 
         const [projects, total] = await Promise.all([
             prisma.project.findMany({

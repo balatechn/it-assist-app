@@ -27,6 +27,8 @@ import {
     Users, UserPlus, Pencil, Trash2, Plus, Search, Mail, RefreshCw, Building, Phone, Briefcase,
 } from "lucide-react"
 import { getInitials, isSuperAdmin as checkIsSuperAdmin } from "@/lib/utils"
+import { RoleBadge } from "@/components/shared/role-badge"
+import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 
 interface OrgUser {
     id: string
@@ -79,6 +81,11 @@ export default function SettingsPage() {
     const [editRole, setEditRole] = useState("")
     const [saving, setSaving] = useState(false)
 
+    // Delete confirm dialog
+    const [deleteTarget, setDeleteTarget] = useState<OrgUser | null>(null)
+    // Error toast
+    const [errorMsg, setErrorMsg] = useState<string | null>(null)
+
     // Microsoft 365 Directory
     const [showM365, setShowM365] = useState(false)
     const [m365Users, setM365Users] = useState<M365User[]>([])
@@ -108,10 +115,12 @@ export default function SettingsPage() {
                 setM365Users(data.users || [])
             } else {
                 const err = await res.json().catch(() => ({}))
-                alert(err.error || "Failed to fetch Microsoft 365 directory")
+                setErrorMsg(err.error || "Failed to fetch Microsoft 365 directory")
+                setTimeout(() => setErrorMsg(null), 4000)
             }
         } catch {
-            alert("Network error")
+            setErrorMsg("Network error")
+            setTimeout(() => setErrorMsg(null), 4000)
         } finally {
             setM365Loading(false)
         }
@@ -151,7 +160,8 @@ export default function SettingsPage() {
                 fetchOrgUsers()
             } else {
                 const err = await res.json()
-                alert(err.error || "Failed to create user")
+                setErrorMsg(err.error || "Failed to create user")
+                setTimeout(() => setErrorMsg(null), 4000)
             }
         } finally {
             setAdding(false)
@@ -172,7 +182,8 @@ export default function SettingsPage() {
                 fetchOrgUsers()
             } else {
                 const err = await res.json()
-                alert(err.error || "Failed to update user")
+                setErrorMsg(err.error || "Failed to update user")
+                setTimeout(() => setErrorMsg(null), 4000)
             }
         } finally {
             setSaving(false)
@@ -180,16 +191,17 @@ export default function SettingsPage() {
     }
 
     const handleDeleteUser = async (user: OrgUser) => {
-        if (!confirm(`Delete user "${user.name}"? This action cannot be undone.`)) return
         try {
             const res = await fetch(`/api/users/${user.id}`, { method: "DELETE" })
             if (res.ok) fetchOrgUsers()
             else {
                 const err = await res.json()
-                alert(err.error || "Failed to delete user")
+                setErrorMsg(err.error || "Failed to delete user")
+                setTimeout(() => setErrorMsg(null), 4000)
             }
         } catch {
-            alert("Network error")
+            setErrorMsg("Network error")
+            setTimeout(() => setErrorMsg(null), 4000)
         }
     }
 
@@ -205,20 +217,7 @@ export default function SettingsPage() {
         u.role.toLowerCase().includes(userSearch.toLowerCase())
     )
 
-    const renderRoleBadge = (role: string) => {
-        switch (role) {
-            case "SUPER_ADMIN":
-                return <Badge className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-600 border-amber-300/30 text-[10px]">Super Admin</Badge>
-            case "ADMIN":
-                return <Badge className="bg-destructive/10 text-destructive text-[10px]">Admin</Badge>
-            case "MANAGEMENT":
-                return <Badge className="bg-purple-500/10 text-purple-500 text-[10px]">Management</Badge>
-            case "MANAGER":
-                return <Badge className="bg-blue-500/10 text-blue-500 text-[10px]">Manager</Badge>
-            default:
-                return <Badge className="bg-emerald-500/10 text-emerald-500 text-[10px]">Employee</Badge>
-        }
-    }
+    const renderRoleBadge = (role: string) => <RoleBadge role={role} />
 
     const handleSaveProfile = async () => {
         if (!profileName.trim()) return
@@ -388,7 +387,7 @@ export default function SettingsPage() {
                                                         <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDeleteUser(user)}
+                                                        onClick={() => setDeleteTarget(user)}
                                                         className="p-1.5 rounded-md hover:bg-destructive/10"
                                                         title="Delete user"
                                                     >
@@ -668,6 +667,27 @@ export default function SettingsPage() {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {/* Delete Confirm Dialog */}
+            <ConfirmDialog
+                open={!!deleteTarget}
+                onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}
+                title="Delete User"
+                description={`Delete user "${deleteTarget?.name}"? This action cannot be undone.`}
+                confirmLabel="Delete"
+                variant="destructive"
+                onConfirm={async () => {
+                    if (deleteTarget) await handleDeleteUser(deleteTarget)
+                    setDeleteTarget(null)
+                }}
+            />
+
+            {/* Error Toast */}
+            {errorMsg && (
+                <div className="fixed bottom-4 right-4 z-50 bg-destructive text-destructive-foreground px-4 py-2.5 rounded-lg shadow-lg text-sm animate-in slide-in-from-bottom-2">
+                    {errorMsg}
+                </div>
+            )}
         </div>
     )
 }

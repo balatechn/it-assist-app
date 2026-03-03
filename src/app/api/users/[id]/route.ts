@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import prisma from "@/lib/db"
+import { Role } from "@prisma/client"
 import { logAction } from "@/lib/audit"
 import { updateUserSchema } from "@/lib/validations"
 import { isAdmin, isSuperAdmin } from "@/lib/utils"
@@ -52,7 +53,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
             data: {
                 ...(name !== undefined && { name }),
                 ...(email !== undefined && { email }),
-                ...(role !== undefined && { role }),
+                ...(role !== undefined && { role: role as Role }),
             },
             select: { id: true, name: true, email: true, role: true },
         })

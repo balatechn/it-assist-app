@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -24,6 +23,8 @@ import {
 } from "@/components/ui/select"
 import { Search, Mail, FolderKanban, CheckSquare, Users, Plus, Pencil, Trash2, Loader2, UserPlus } from "lucide-react"
 import { getInitials, isAdmin as checkIsAdmin, isSuperAdmin as checkIsSuperAdmin } from "@/lib/utils"
+import { RoleBadge } from "@/components/shared/role-badge"
+import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 
 interface User {
     id: string
@@ -59,6 +60,11 @@ export default function TeamPage() {
     const [editName, setEditName] = useState("")
     const [editRole, setEditRole] = useState("")
     const [saving, setSaving] = useState(false)
+
+    // Delete confirm dialog
+    const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
+    // Error toast state
+    const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
     useEffect(() => {
         fetchUsers()
@@ -99,7 +105,8 @@ export default function TeamPage() {
                 fetchUsers()
             } else {
                 const err = await res.json()
-                alert(err.error || "Failed to create user")
+                setErrorMsg(err.error || "Failed to create user")
+                setTimeout(() => setErrorMsg(null), 4000)
             }
         } finally {
             setInviting(false)
@@ -120,7 +127,8 @@ export default function TeamPage() {
                 fetchUsers()
             } else {
                 const err = await res.json()
-                alert(err.error || "Failed to update user")
+                setErrorMsg(err.error || "Failed to update user")
+                setTimeout(() => setErrorMsg(null), 4000)
             }
         } finally {
             setSaving(false)
@@ -128,17 +136,18 @@ export default function TeamPage() {
     }
 
     const handleDelete = async (user: User) => {
-        if (!confirm(`Delete user "${user.name}"? This action cannot be undone.`)) return
         try {
             const res = await fetch(`/api/users/${user.id}`, { method: "DELETE" })
             if (res.ok) {
                 fetchUsers()
             } else {
                 const err = await res.json()
-                alert(err.error || "Failed to delete user")
+                setErrorMsg(err.error || "Failed to delete user")
+                setTimeout(() => setErrorMsg(null), 4000)
             }
         } catch {
-            alert("Network error")
+            setErrorMsg("Network error")
+            setTimeout(() => setErrorMsg(null), 4000)
         }
     }
 
@@ -154,20 +163,7 @@ export default function TeamPage() {
         user.role.toLowerCase().includes(search.toLowerCase())
     )
 
-    const renderRoleBadge = (role: string) => {
-        switch (role) {
-            case "SUPER_ADMIN":
-                return <Badge className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-600 border-amber-300/30">Super Admin</Badge>
-            case "ADMIN":
-                return <Badge className="bg-destructive/10 text-destructive">Admin</Badge>
-            case "MANAGEMENT":
-                return <Badge className="bg-purple-500/10 text-purple-500">Management</Badge>
-            case "MANAGER":
-                return <Badge className="bg-blue-500/10 text-blue-500">Manager</Badge>
-            default:
-                return <Badge className="bg-emerald-500/10 text-emerald-500">Employee</Badge>
-        }
-    }
+    const renderRoleBadge = (role: string) => <RoleBadge role={role} />
 
     return (
         <div className="space-y-6">
@@ -228,7 +224,7 @@ export default function TeamPage() {
                                                     <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(user)}
+                                                    onClick={() => setDeleteTarget(user)}
                                                     className="p-1 rounded hover:bg-destructive/10"
                                                     title="Delete"
                                                 >
@@ -400,6 +396,27 @@ export default function TeamPage() {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {/* Delete Confirm Dialog */}
+            <ConfirmDialog
+                open={!!deleteTarget}
+                onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}
+                title="Delete User"
+                description={`Delete user "${deleteTarget?.name}"? This action cannot be undone.`}
+                confirmLabel="Delete"
+                variant="destructive"
+                onConfirm={async () => {
+                    if (deleteTarget) await handleDelete(deleteTarget)
+                    setDeleteTarget(null)
+                }}
+            />
+
+            {/* Error Toast */}
+            {errorMsg && (
+                <div className="fixed bottom-4 right-4 z-50 bg-destructive text-destructive-foreground px-4 py-2.5 rounded-lg shadow-lg text-sm animate-in slide-in-from-bottom-2">
+                    {errorMsg}
+                </div>
+            )}
         </div>
     )
 }

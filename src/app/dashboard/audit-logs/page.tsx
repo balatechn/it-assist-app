@@ -34,7 +34,7 @@ export default function AuditLogsPage() {
                 const res = await fetch("/api/audit-logs")
                 if (res.ok) {
                     const data = await res.json()
-                    setLogs(data)
+                    setLogs(data.data || data)
                 }
             } finally {
                 setLoading(false)

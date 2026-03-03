@@ -1,7 +1,7 @@
 {
-    "name": "National Group India — IT Management",
-    "short_name": "NGI IT",
-    "description": "Enterprise IT Asset and Project Management Platform for National Group India. Manage projects, tasks, OneDrive files, and Outlook email.",
+    "name": "National Group India — Workspace",
+    "short_name": "NGI",
+    "description": "Enterprise project management platform with Microsoft 365 integration. Plan, track, and collaborate.",
     "start_url": "/dashboard",
     "id": "/dashboard",
     "display": "standalone",

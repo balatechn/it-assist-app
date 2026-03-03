@@ -2,10 +2,32 @@
 const nextConfig = {
     reactStrictMode: true,
     images: {
-        domains: ['graph.microsoft.com', 'avatars.githubusercontent.com'],
+        remotePatterns: [
+            { protocol: 'https', hostname: 'graph.microsoft.com' },
+            { protocol: 'https', hostname: 'avatars.githubusercontent.com' },
+        ],
     },
     experimental: {
         optimizeCss: false,
+        optimizePackageImports: ['lucide-react'],
+    },
+    compiler: {
+        removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
+    },
+    async headers() {
+        return [
+            {
+                source: '/(.*)',
+                headers: [
+                    { key: 'X-Frame-Options', value: 'DENY' },
+                    { key: 'X-Content-Type-Options', value: 'nosniff' },
+                    { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+                    { key: 'X-DNS-Prefetch-Control', value: 'on' },
+                    { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+                    { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+                ],
+            },
+        ]
     },
 };
 

@@ -14,9 +14,9 @@ export function formatDate(date: Date | string): string {
 }
 
 export function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
         style: 'currency',
-        currency: 'USD',
+        currency: 'INR',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
     }).format(amount)
@@ -49,6 +49,8 @@ export function getPriorityColor(priority: string): string {
         LOW: 'bg-slate-100 text-slate-600 dark:bg-slate-800/50 dark:text-slate-400',
         MEDIUM: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
         HIGH: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+        URGENT: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+        CRITICAL: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
     }
     return colors[priority] || 'bg-gray-100 text-gray-700'
 }

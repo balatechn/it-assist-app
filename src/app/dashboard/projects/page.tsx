@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useMemo, useRef } from "react"
+import { useEffect, useState, useMemo, useRef, useCallback } from "react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -14,21 +14,7 @@ import {
     CheckCircle2, Clock, PauseCircle, Loader2, ChevronRight,
 } from "lucide-react"
 import { cn, formatDate, formatCurrency, getInitials, getStatusColor } from "@/lib/utils"
-
-// Templates
-const PROJECT_TEMPLATES = [
-    { name: "IT Infrastructure", description: "Server setup, network, security", color: "#3B82F6", status: "PLANNED" },
-    { name: "Software Development", description: "Full SDLC with sprints", color: "#8B5CF6", status: "PLANNED" },
-    { name: "Website Redesign", description: "UI/UX overhaul and deployment", color: "#EC4899", status: "PLANNED" },
-    { name: "Cloud Migration", description: "On-prem to cloud transition", color: "#06B6D4", status: "PLANNED" },
-    { name: "Security Audit", description: "Vulnerability assessment", color: "#EF4444", status: "PLANNED" },
-    { name: "Office Setup", description: "New office IT infrastructure", color: "#F59E0B", status: "PLANNED" },
-]
-
-const PROJECT_COLORS = [
-    "#3B82F6", "#8B5CF6", "#10B981", "#F59E0B", "#EF4444",
-    "#EC4899", "#06B6D4", "#84CC16", "#F97316", "#6366F1",
-]
+import { PROJECT_COLORS, PROJECT_TEMPLATES } from "@/lib/constants"
 
 interface Project {
     id: string
@@ -65,15 +51,25 @@ export default function ProjectsPage() {
         name: "", description: "", clientName: "", startDate: "", endDate: "", budget: "", status: "PLANNED", color: PROJECT_COLORS[0],
     })
     const [createError, setCreateError] = useState<string | null>(null)
+    const searchDebounce = useRef<ReturnType<typeof setTimeout>>()
+    const [debouncedSearch, setDebouncedSearch] = useState("")
 
+    // Debounce search input
     useEffect(() => {
-        fetchProjects()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [page])
+        if (searchDebounce.current) clearTimeout(searchDebounce.current)
+        searchDebounce.current = setTimeout(() => {
+            setDebouncedSearch(search)
+            setPage(1)
+        }, 350)
+        return () => { if (searchDebounce.current) clearTimeout(searchDebounce.current) }
+    }, [search])
 
-    const fetchProjects = async () => {
+    const fetchProjects = useCallback(async () => {
         try {
-            const res = await fetch(`/api/projects?page=${page}&limit=50`)
+            const params = new URLSearchParams({ page: String(page), limit: "50" })
+            if (filter !== "ALL") params.set("status", filter)
+            if (debouncedSearch) params.set("search", debouncedSearch)
+            const res = await fetch(`/api/projects?${params}`)
             if (res.ok) {
                 const json = await res.json()
                 setProjects(json.data ?? json)
@@ -85,7 +81,11 @@ export default function ProjectsPage() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [page, filter, debouncedSearch])
+
+    useEffect(() => {
+        fetchProjects()
+    }, [fetchProjects])
 
     const handleQuickCreate = async () => {
         if (!quickForm.name.trim()) return
@@ -123,13 +123,11 @@ export default function ProjectsPage() {
         setShowQuickCreate(true)
     }
 
+    // Data is already filtered server-side, just use projects directly
     const filtered = projects
-        .filter(p => filter === "ALL" || p.status === filter)
-        .filter(p => p.name.toLowerCase().includes(search.toLowerCase()) ||
-            p.clientName?.toLowerCase().includes(search.toLowerCase()))
 
     const statusCounts = {
-        ALL: projects.length,
+        ALL: total,
         ACTIVE: projects.filter(p => p.status === "ACTIVE").length,
         PLANNED: projects.filter(p => p.status === "PLANNED").length,
         COMPLETED: projects.filter(p => p.status === "COMPLETED").length,
@@ -452,7 +450,7 @@ export default function ProjectsPage() {
                     {(["ALL", "ACTIVE", "PLANNED", "COMPLETED", "ON_HOLD"] as const).map((status) => (
                         <button
                             key={status}
-                            onClick={() => setFilter(status)}
+                            onClick={() => { setFilter(status); setPage(1) }}
                             className={cn(
                                 "px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200",
                                 filter === status
