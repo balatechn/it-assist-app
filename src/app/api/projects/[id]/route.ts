@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth"
 import prisma from "@/lib/db"
 import { logAction } from "@/lib/audit"
 import { updateProjectSchema } from "@/lib/validations"
-import { isManager, isAdmin } from "@/lib/utils"
+import { isManager, isAdmin, hasMinRole } from "@/lib/utils"
 
 // GET /api/projects/[id]
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -14,11 +14,31 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
+        const orgId = session.user.organizationId
+        const userId = session.user.id
+        const role = session.user.role
+
+        // Build where clause based on role
+        const where: Record<string, unknown> = {
+            id: params.id,
+            organizationId: orgId,
+        }
+
+        if (!hasMinRole(role, "MANAGEMENT")) {
+            if (role === "MANAGER") {
+                where.OR = [
+                    { creatorId: userId },
+                    { managerId: userId },
+                    { tasks: { some: { assigneeId: userId } } },
+                ]
+            } else {
+                // EMPLOYEE — must have an assigned task in this project
+                where.tasks = { some: { assigneeId: userId } }
+            }
+        }
+
         const project = await prisma.project.findFirst({
-            where: {
-                id: params.id,
-                organizationId: session.user.organizationId,
-            },
+            where,
             include: {
                 creator: { select: { id: true, name: true, email: true, avatar: true } },
                 manager: { select: { id: true, name: true, email: true, avatar: true } },

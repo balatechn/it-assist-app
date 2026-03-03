@@ -4,8 +4,9 @@ import { authOptions } from "@/lib/auth"
 import prisma from "@/lib/db"
 import { logAction } from "@/lib/audit"
 import { createProjectSchema } from "@/lib/validations"
+import { hasMinRole } from "@/lib/utils"
 
-// GET /api/projects — List all projects for org (with optional pagination)
+// GET /api/projects — List projects scoped by role
 export async function GET(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions)
@@ -19,16 +20,52 @@ export async function GET(req: NextRequest) {
         const status = searchParams.get("status")
         const search = searchParams.get("search")?.trim()
 
+        const orgId = session.user.organizationId
+        const userId = session.user.id
+        const role = session.user.role
+
+        // MANAGEMENT+ sees all org projects
+        // MANAGER sees projects they created/manage + projects with their assigned tasks
+        // EMPLOYEE sees only projects where they have assigned tasks
+        const isOrgWide = hasMinRole(role, "MANAGEMENT")
+        const isManagerRole = role === "MANAGER"
+
         const where: Record<string, unknown> = {
-            organizationId: session.user.organizationId,
+            organizationId: orgId,
         }
+
+        if (!isOrgWide) {
+            if (isManagerRole) {
+                where.OR = [
+                    { creatorId: userId },
+                    { managerId: userId },
+                    { tasks: { some: { assigneeId: userId } } },
+                ]
+            } else {
+                // EMPLOYEE — only projects with assigned tasks
+                where.tasks = { some: { assigneeId: userId } }
+            }
+        }
+
         if (status) where.status = status
         if (search) {
-            where.OR = [
+            // Wrap existing conditions with AND to combine role filter + search
+            const searchFilter = [
                 { name: { contains: search, mode: "insensitive" } },
                 { clientName: { contains: search, mode: "insensitive" } },
                 { description: { contains: search, mode: "insensitive" } },
             ]
+            if (where.OR) {
+                // MANAGER already has OR for role — combine with AND
+                const roleOr = where.OR
+                delete where.OR
+                where.AND = [
+                    { OR: roleOr as Record<string, unknown>[] },
+                    { OR: searchFilter },
+                ]
+            } else {
+                where.OR = searchFilter
+            }
         }
 
         const [projects, total] = await Promise.all([
