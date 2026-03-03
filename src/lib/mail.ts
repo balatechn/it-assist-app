@@ -1,39 +1,27 @@
-const TENANT_ID = process.env.AZURE_AD_TENANT_ID!
-const CLIENT_ID = process.env.AZURE_AD_CLIENT_ID!
-const CLIENT_SECRET = process.env.AZURE_AD_CLIENT_SECRET!
-const SENDER = process.env.MAIL_SENDER || "noreply@nationalgroupindia.com"
+import nodemailer from "nodemailer"
 
-/* ── App-only token cache ─────────────────────────────── */
-let cachedToken: string | null = null
-let tokenExpiry = 0
+const EMAIL_FROM = process.env.EMAIL_FROM || "no-reply@nationalgroupindia.com"
+const EMAIL_LOGIN = process.env.EMAIL_LOGIN
+const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD
+const EMAIL_SERVER = process.env.EMAIL_SERVER || "smtp.mailgun.org"
+const EMAIL_PORT = parseInt(process.env.EMAIL_PORT || "587")
 
-async function getAppToken(): Promise<string> {
-    if (cachedToken && Date.now() < tokenExpiry) return cachedToken
+/* ── Reusable transporter (created once) ───────────────── */
+let transporter: nodemailer.Transporter | null = null
 
-    const url = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`
-    const body = new URLSearchParams({
-        client_id: CLIENT_ID,
-        client_secret: CLIENT_SECRET,
-        scope: "https://graph.microsoft.com/.default",
-        grant_type: "client_credentials",
-    })
-
-    const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body,
-    })
-
-    if (!res.ok) {
-        const text = await res.text()
-        throw new Error(`Token request failed (${res.status}): ${text}`)
+function getTransporter(): nodemailer.Transporter {
+    if (!transporter) {
+        transporter = nodemailer.createTransport({
+            host: EMAIL_SERVER,
+            port: EMAIL_PORT,
+            secure: EMAIL_PORT === 465,
+            auth: {
+                user: EMAIL_LOGIN,
+                pass: EMAIL_PASSWORD,
+            },
+        })
     }
-
-    const data = await res.json()
-    cachedToken = data.access_token
-    // expire 5 min early to be safe
-    tokenExpiry = Date.now() + (data.expires_in - 300) * 1000
-    return cachedToken!
+    return transporter
 }
 
 /* ── Public API ────────────────────────────────────────── */
@@ -46,42 +34,23 @@ interface SendMailOptions {
 }
 
 /**
- * Send email as noreply@nationalgroupindia.com via Microsoft Graph (client credentials).
+ * Send email via Mailgun SMTP.
  */
 export async function sendMail({ toEmail, toName, subject, htmlBody }: SendMailOptions): Promise<boolean> {
     try {
-        if (!TENANT_ID || !CLIENT_ID || !CLIENT_SECRET) {
-            console.warn("Azure AD env vars missing — skipping email")
+        if (!EMAIL_LOGIN || !EMAIL_PASSWORD) {
+            console.warn("Email env vars missing — skipping email")
             return false
         }
 
-        const token = await getAppToken()
+        const transport = getTransporter()
 
-        const res = await fetch(
-            `https://graph.microsoft.com/v1.0/users/${SENDER}/sendMail`,
-            {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    message: {
-                        subject,
-                        body: { contentType: "HTML", content: htmlBody },
-                        toRecipients: [
-                            { emailAddress: { address: toEmail, name: toName } },
-                        ],
-                    },
-                    saveToSentItems: false,
-                }),
-            }
-        )
-
-        if (!res.ok) {
-            const text = await res.text()
-            throw new Error(`Graph sendMail failed (${res.status}): ${text}`)
-        }
+        await transport.sendMail({
+            from: `"National Group India" <${EMAIL_FROM}>`,
+            to: `"${toName}" <${toEmail}>`,
+            subject,
+            html: htmlBody,
+        })
 
         console.log(`Email sent to ${toEmail}: ${subject}`)
         return true

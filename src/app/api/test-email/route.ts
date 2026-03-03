@@ -6,7 +6,7 @@ import { isSuperAdmin } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
 
-// GET /api/test-email — Test email via Graph (Super Admin only)
+// GET /api/test-email — Test email via Mailgun SMTP (Super Admin only)
 export async function GET() {
     try {
         const session = await getServerSession(authOptions)
@@ -22,7 +22,7 @@ export async function GET() {
                 <div style="font-family:Segoe UI,sans-serif;padding:20px;">
                     <h2 style="color:#2d3a4e;">Email Test Successful!</h2>
                     <p style="color:#475569;">This confirms that Graph email is working correctly.</p>
-                    <p style="color:#94a3b8;font-size:12px;">Sent via: Microsoft Graph (client credentials)</p>
+                    <p style="color:#94a3b8;font-size:12px;">Sent via: Mailgun SMTP</p>
                     <p style="color:#94a3b8;font-size:12px;">Time: ${new Date().toISOString()}</p>
                 </div>
             `,
@@ -31,7 +31,7 @@ export async function GET() {
         if (result) {
             return NextResponse.json({ success: true, message: `Test email sent to ${session.user.email}` })
         } else {
-            return NextResponse.json({ success: false, message: "Email failed — check Azure AD env vars and server logs" }, { status: 500 })
+            return NextResponse.json({ success: false, message: "Email failed — check Mailgun SMTP env vars and server logs" }, { status: 500 })
         }
     } catch (error) {
         console.error("Test email error:", error)
