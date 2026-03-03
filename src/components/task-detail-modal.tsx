@@ -26,7 +26,8 @@ import {
     Calendar, User, Flag, MessageSquare, Paperclip,
     Save, Loader2, Clock, AlertTriangle, Trash2,
 } from "lucide-react"
-import { formatDate, getInitials, timeAgo, isAdmin as checkIsAdmin } from "@/lib/utils"
+import { formatDate, getInitials, timeAgo, isAdmin as checkIsAdmin, isManager as checkIsManager } from "@/lib/utils"
+import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 
 interface TaskComment {
     id: string
@@ -84,9 +85,35 @@ export function TaskDetailModal({ taskId, open, onOpenChange, onTaskUpdated }: T
     const [dueDate, setDueDate] = useState("")
     const [assigneeId, setAssigneeId] = useState("")
 
+    // Delete
+    const [deleteOpen, setDeleteOpen] = useState(false)
+    const [deleting, setDeleting] = useState(false)
+
     // Comments
     const [newComment, setNewComment] = useState("")
     const [postingComment, setPostingComment] = useState(false)
+
+    // Can current user delete this task? (creator, assignee, or Manager+)
+    const canDeleteTask = task && (
+        task.creator.id === session?.user?.id ||
+        task.assignee?.id === session?.user?.id ||
+        checkIsManager(session?.user?.role || "")
+    )
+
+    const handleDeleteTask = async () => {
+        if (!taskId) return
+        setDeleting(true)
+        try {
+            const res = await fetch(`/api/tasks/${taskId}`, { method: "DELETE" })
+            if (res.ok) {
+                onOpenChange(false)
+                onTaskUpdated?.()
+            }
+        } finally {
+            setDeleting(false)
+            setDeleteOpen(false)
+        }
+    }
 
     const handleDeleteComment = async (commentId: string) => {
         if (!taskId) return
@@ -326,20 +353,42 @@ export function TaskDetailModal({ taskId, open, onOpenChange, onTaskUpdated }: T
                                 )}
                             </div>
 
-                            {/* Save Button */}
+                            {/* Action Buttons */}
                             {!isViewer && (
-                                <Button
-                                    onClick={handleSave}
-                                    disabled={saving || !hasChanges || !title.trim()}
-                                    className="w-full"
-                                >
-                                    {saving ? (
-                                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</>
-                                    ) : (
-                                        <><Save className="w-4 h-4 mr-2" /> Save Changes</>
+                                <div className="flex gap-2">
+                                    {canDeleteTask && (
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => setDeleteOpen(true)}
+                                            className="text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
                                     )}
-                                </Button>
+                                    <Button
+                                        onClick={handleSave}
+                                        disabled={saving || !hasChanges || !title.trim()}
+                                        className="flex-1"
+                                    >
+                                        {saving ? (
+                                            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</>
+                                        ) : (
+                                            <><Save className="w-4 h-4 mr-2" /> Save Changes</>
+                                        )}
+                                    </Button>
+                                </div>
                             )}
+
+                            {/* Delete Confirmation */}
+                            <ConfirmDialog
+                                open={deleteOpen}
+                                onOpenChange={setDeleteOpen}
+                                title="Delete Task"
+                                description={`Are you sure you want to delete "${task?.title}"? This action cannot be undone.`}
+                                confirmLabel="Delete"
+                                variant="destructive"
+                                onConfirm={handleDeleteTask}
+                            />
 
                             {/* Comments Section */}
                             <div className="border-t pt-4">
