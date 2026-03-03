@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth"
 import prisma from "@/lib/db"
 import { logAction } from "@/lib/audit"
 import { updateTaskSchema } from "@/lib/validations"
-import { sendMail, buildTaskAssignedEmail } from "@/lib/mail"
+import { sendMail, buildTaskAssignedEmail, buildTaskUpdatedEmail } from "@/lib/mail"
 import { isManager } from "@/lib/utils"
 
 // GET /api/tasks/[id]
@@ -91,15 +91,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
             },
         })
 
-        // Send email if assignee changed
-        if (assigneeId && assigneeId !== existing.assigneeId && assigneeId !== session.user.id) {
+        // Send email if assignee changed to a new person
+        const assigneeChanged = assigneeId && assigneeId !== existing.assigneeId
+        if (assigneeChanged) {
             const [assignee, project] = await Promise.all([
                 prisma.user.findUnique({ where: { id: assigneeId }, select: { name: true, email: true } }),
                 prisma.project.findUnique({ where: { id: existing.projectId }, select: { name: true } }),
             ])
 
-            if (assignee?.email) {
-                // In-app notification
+            // In-app notification (skip if self-assigned)
+            if (assigneeId !== session.user.id) {
                 await prisma.notification.create({
                     data: {
                         type: "TASK_ASSIGNED",
@@ -109,8 +110,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
                         link: `/dashboard/projects/${existing.projectId}`,
                     },
                 })
+            }
 
-                // Email notification (fire-and-forget)
+            // Always send email to new assignee
+            if (assignee?.email) {
+                console.log(`Sending task reassignment email to ${assignee.email} for task "${task.title}"...`)
                 const appUrl = process.env.NEXTAUTH_URL || "https://sharepoint.nationalgroupindia.com"
                 const htmlBody = buildTaskAssignedEmail({
                     assigneeName: assignee.name,
@@ -127,7 +131,65 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
                     toName: assignee.name,
                     subject: `Task Assigned: ${task.title}`,
                     htmlBody,
-                }).catch(err => console.error("Email send error:", err))
+                }).catch(err => console.error("Task update email error:", err))
+            } else {
+                console.warn(`No email found for assignee ${assigneeId}`)
+            }
+        }
+
+        // Notify existing assignee about task modifications (if not a reassignment)
+        const effectiveAssigneeId = assigneeChanged ? null : (existing.assigneeId)
+        if (effectiveAssigneeId && effectiveAssigneeId !== session.user.id) {
+            // Build a list of what changed
+            const changes: string[] = []
+            if (status !== undefined && status !== existing.status) {
+                changes.push(`Status changed from <strong>${existing.status.replace(/_/g, " ")}</strong> to <strong>${status.replace(/_/g, " ")}</strong>`)
+            }
+            if (priority !== undefined && priority !== existing.priority) {
+                changes.push(`Priority changed from <strong>${existing.priority}</strong> to <strong>${priority}</strong>`)
+            }
+            if (title !== undefined && title !== existing.title) {
+                changes.push(`Title changed to <strong>${title}</strong>`)
+            }
+            if (dueDate !== undefined) {
+                const oldDue = existing.dueDate ? existing.dueDate.toISOString() : null
+                const newDue = dueDate ? new Date(dueDate).toISOString() : null
+                if (oldDue !== newDue) {
+                    changes.push(newDue
+                        ? `Due date set to <strong>${new Date(newDue).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</strong>`
+                        : `Due date removed`)
+                }
+            }
+
+            if (changes.length > 0) {
+                const assignee = await prisma.user.findUnique({
+                    where: { id: effectiveAssigneeId },
+                    select: { name: true, email: true },
+                })
+                const project = await prisma.project.findUnique({
+                    where: { id: existing.projectId },
+                    select: { name: true },
+                })
+
+                if (assignee?.email) {
+                    console.log(`Sending task-updated email to ${assignee.email} for task "${task.title}" (${changes.length} changes)...`)
+                    const appUrl = process.env.NEXTAUTH_URL || "https://sharepoint.nationalgroupindia.com"
+                    const htmlBody = buildTaskUpdatedEmail({
+                        assigneeName: assignee.name,
+                        updaterName: session.user.name || "Someone",
+                        taskTitle: task.title,
+                        projectName: project?.name || "Unknown Project",
+                        changes,
+                        appUrl,
+                        projectId: existing.projectId,
+                    })
+                    sendMail({
+                        toEmail: assignee.email,
+                        toName: assignee.name,
+                        subject: `Task Updated: ${task.title}`,
+                        htmlBody,
+                    }).catch(err => console.error("Task modification email error:", err))
+                }
             }
         }
 

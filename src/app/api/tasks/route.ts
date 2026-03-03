@@ -111,24 +111,28 @@ export async function POST(req: NextRequest) {
         })
 
         // Create notification + send email if assigned
-        if (assigneeId && assigneeId !== session.user.id) {
+        if (assigneeId) {
             const assignee = await prisma.user.findUnique({
                 where: { id: assigneeId },
                 select: { name: true, email: true },
             })
 
-            await prisma.notification.create({
-                data: {
-                    type: "TASK_ASSIGNED",
-                    title: "New task assigned",
-                    message: `You've been assigned "${title}" in ${project.name}`,
-                    userId: assigneeId,
-                    link: `/dashboard/projects/${projectId}`,
-                },
-            })
+            // In-app notification (skip if self-assigned)
+            if (assigneeId !== session.user.id) {
+                await prisma.notification.create({
+                    data: {
+                        type: "TASK_ASSIGNED",
+                        title: "New task assigned",
+                        message: `You've been assigned "${title}" in ${project.name}`,
+                        userId: assigneeId,
+                        link: `/dashboard/projects/${projectId}`,
+                    },
+                })
+            }
 
-            // Send email notification (fire-and-forget)
+            // Always send email notification to assignee
             if (assignee?.email) {
+                console.log(`Sending task assignment email to ${assignee.email} for task "${title}"...`)
                 const appUrl = process.env.NEXTAUTH_URL || "https://sharepoint.nationalgroupindia.com"
                 const htmlBody = buildTaskAssignedEmail({
                     assigneeName: assignee.name,
@@ -145,7 +149,9 @@ export async function POST(req: NextRequest) {
                     toName: assignee.name,
                     subject: `Task Assigned: ${title}`,
                     htmlBody,
-                }).catch(err => console.error("Email send error:", err))
+                }).catch(err => console.error("Task create email error:", err))
+            } else {
+                console.warn(`No email found for assignee ${assigneeId}`)
             }
         }
 

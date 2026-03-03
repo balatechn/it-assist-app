@@ -152,3 +152,78 @@ export function buildTaskAssignedEmail({
 </body>
 </html>`
 }
+
+/**
+ * Build a styled HTML email for task-update notifications (status/priority/dueDate changes).
+ */
+export function buildTaskUpdatedEmail({
+    assigneeName,
+    updaterName,
+    taskTitle,
+    projectName,
+    changes,
+    appUrl,
+    projectId,
+}: {
+    assigneeName: string
+    updaterName: string
+    taskTitle: string
+    projectName: string
+    changes: string[]
+    appUrl: string
+    projectId: string
+}): string {
+    const changeRows = changes
+        .map(c => `<li style="padding:4px 0;color:#475569;font-size:13px;">${c}</li>`)
+        .join("")
+
+    return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8" /></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+        <tr>
+          <td style="background:linear-gradient(135deg,#374a60,#4a6078);padding:28px 32px;">
+            <h1 style="margin:0;color:#e8b84a;font-size:18px;font-weight:700;">National Group India</h1>
+            <p style="margin:4px 0 0;color:#94a3b8;font-size:12px;">Task Updated</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:28px 32px;">
+            <p style="margin:0 0 16px;color:#2d3a4e;font-size:15px;">Hi <strong>${assigneeName}</strong>,</p>
+            <p style="margin:0 0 20px;color:#475569;font-size:14px;line-height:1.6;">
+              <strong>${updaterName}</strong> made changes to a task assigned to you:
+            </p>
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:20px;">
+              <tr>
+                <td style="padding:20px;">
+                  <h2 style="margin:0 0 8px;color:#2d3a4e;font-size:16px;font-weight:700;">${taskTitle}</h2>
+                  <p style="margin:0 0 10px;color:#94a3b8;font-size:12px;">Project: ${projectName}</p>
+                  <ul style="margin:0;padding:0 0 0 18px;">${changeRows}</ul>
+                </td>
+              </tr>
+            </table>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr><td align="center">
+                <a href="${appUrl}/dashboard/projects/${projectId}" target="_blank"
+                   style="display:inline-block;padding:10px 28px;background:linear-gradient(135deg,#c8932e,#e8b84a);color:#fff;font-size:13px;font-weight:700;text-decoration:none;border-radius:6px;">
+                  View Task
+                </a>
+              </td></tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:20px 32px;border-top:1px solid #e2e8f0;text-align:center;">
+            <p style="margin:0;color:#94a3b8;font-size:11px;">This is an automated notification from National Group India TaskFlow.</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+}
