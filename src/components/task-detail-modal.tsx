@@ -87,7 +87,6 @@ export function TaskDetailModal({ taskId, open, onOpenChange, onTaskUpdated }: T
 
     // Delete
     const [deleteOpen, setDeleteOpen] = useState(false)
-    const [deleting, setDeleting] = useState(false)
 
     // Comments
     const [newComment, setNewComment] = useState("")
@@ -102,7 +101,6 @@ export function TaskDetailModal({ taskId, open, onOpenChange, onTaskUpdated }: T
 
     const handleDeleteTask = async () => {
         if (!taskId) return
-        setDeleting(true)
         try {
             const res = await fetch(`/api/tasks/${taskId}`, { method: "DELETE" })
             if (res.ok) {
@@ -110,7 +108,6 @@ export function TaskDetailModal({ taskId, open, onOpenChange, onTaskUpdated }: T
                 onTaskUpdated?.()
             }
         } finally {
-            setDeleting(false)
             setDeleteOpen(false)
         }
     }
