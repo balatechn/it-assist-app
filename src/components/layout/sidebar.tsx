@@ -77,7 +77,7 @@ export function Sidebar() {
 
             <aside
                 className={cn(
-                    "fixed left-0 top-0 z-50 h-screen bg-sidebar text-sidebar-foreground border-r border-white/5 flex flex-col transition-all duration-300",
+                    "fixed left-0 top-0 z-50 h-screen bg-sidebar text-sidebar-foreground border-r border-sidebar-foreground/10 flex flex-col transition-all duration-300",
                     // Desktop: always visible, controlled by collapsed state
                     "hidden md:flex",
                     collapsed ? "md:w-[70px]" : "md:w-[260px]",
@@ -86,12 +86,12 @@ export function Sidebar() {
                 )}
             >
             {/* Logo */}
-            <div className="flex items-center gap-3 px-5 h-16 border-b border-white/5">
+            <div className="flex items-center gap-3 px-5 h-16 border-b border-sidebar-foreground/10">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/logo.webp" alt="National Group India" className={cn("transition-all duration-300", collapsed && !mobileSidebarOpen ? "h-8 w-auto" : "h-9 w-auto")} />
                 {(!collapsed || mobileSidebarOpen) && (
                     <div className="flex flex-col flex-1">
-                        <span className="text-sm font-bold text-white tracking-tight">National Group</span>
+                        <span className="text-sm font-bold text-sidebar-foreground tracking-tight">National Group</span>
                         <span className="text-[10px] font-medium tracking-widest uppercase" style={{ color: '#e8b84a' }}>India</span>
                     </div>
                 )}
@@ -99,7 +99,7 @@ export function Sidebar() {
                 {mobileSidebarOpen && (
                     <button
                         onClick={() => setMobileSidebarOpen(false)}
-                        className="md:hidden p-1.5 rounded-lg text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent/50 transition-colors"
+                        className="md:hidden p-1.5 rounded-lg text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
                         aria-label="Close navigation menu"
                     >
                         <X className="w-5 h-5" />
@@ -121,7 +121,7 @@ export function Sidebar() {
                         href={item.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent/50"
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                     >
                         <item.icon className="w-5 h-5 shrink-0 text-sidebar-foreground/40 group-hover:text-[#e8b84a]/70" />
                         {(!collapsed || mobileSidebarOpen) && (
@@ -150,8 +150,8 @@ export function Sidebar() {
                             className={cn(
                                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group",
                                 isActive
-                                    ? "bg-sidebar-accent text-white shadow-sm"
-                                    : "text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent/50"
+                                    ? "bg-sidebar-accent text-sidebar-foreground shadow-sm"
+                                    : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                             )}
                         >
                             <item.icon className={cn(
@@ -183,8 +183,8 @@ export function Sidebar() {
                                     className={cn(
                                         "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group",
                                         isActive
-                                            ? "bg-sidebar-accent text-white shadow-sm"
-                                            : "text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent/50"
+                                            ? "bg-sidebar-accent text-sidebar-foreground shadow-sm"
+                                            : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                                     )}
                                 >
                                     <item.icon className="w-5 h-5 shrink-0 text-sidebar-foreground/40 group-hover:text-[#e8b84a]/70" />
@@ -198,11 +198,11 @@ export function Sidebar() {
             </nav>
 
             {/* Bottom section */}
-            <div className="border-t border-white/5 p-3 space-y-2">
+            <div className="border-t border-sidebar-foreground/10 p-3 space-y-2">
                 {/* Theme toggle */}
                 <button
                     onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent/50 transition-all duration-200 w-full"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-all duration-200 w-full"
                     aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
                 >
                     {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -212,7 +212,7 @@ export function Sidebar() {
                 {/* Collapse toggle */}
                 <button
                     onClick={() => setCollapsed(!collapsed)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground/60 hover:text-white hover:bg-sidebar-accent/50 transition-all duration-200 w-full"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-all duration-200 w-full"
                     aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
                 >
                     {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
@@ -232,7 +232,7 @@ export function Sidebar() {
                         </Avatar>
                         {(!collapsed || mobileSidebarOpen) && (
                             <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium text-white truncate">{session.user.name}</p>
+                                <p className="text-xs font-medium text-sidebar-foreground truncate">{session.user.name}</p>
                                 <p className="text-[10px] text-sidebar-foreground/40 truncate">{session.user.organizationName}</p>
                             </div>
                         )}
