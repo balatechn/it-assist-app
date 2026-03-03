@@ -91,6 +91,7 @@ export default function SettingsPage() {
     const [m365Users, setM365Users] = useState<M365User[]>([])
     const [m365Loading, setM365Loading] = useState(false)
     const [m365Search, setM365Search] = useState("")
+    const [syncResult, setSyncResult] = useState<{ added: number; skipped: number; total: number } | null>(null)
 
     useEffect(() => {
         if (isSuperAdmin) fetchOrgUsers()
@@ -108,6 +109,7 @@ export default function SettingsPage() {
 
     const fetchM365Users = async () => {
         setM365Loading(true)
+        setSyncResult(null)
         try {
             const res = await fetch("/api/users/microsoft")
             if (res.ok) {
@@ -126,9 +128,32 @@ export default function SettingsPage() {
         }
     }
 
-    const handleSyncM365 = () => {
+    const handleSyncM365 = async () => {
         setShowM365(true)
-        if (m365Users.length === 0) fetchM365Users()
+        setM365Loading(true)
+        setSyncResult(null)
+        try {
+            // Auto-import all M365 users
+            const res = await fetch("/api/users/microsoft", { method: "POST" })
+            if (res.ok) {
+                const data = await res.json()
+                setSyncResult(data)
+                // Refresh org users list and M365 directory
+                fetchOrgUsers()
+                fetchM365Users()
+            } else {
+                const err = await res.json().catch(() => ({}))
+                setErrorMsg(err.error || "Failed to sync Microsoft 365 users")
+                setTimeout(() => setErrorMsg(null), 4000)
+                // Still show the directory
+                if (m365Users.length === 0) fetchM365Users()
+            }
+        } catch {
+            setErrorMsg("Network error")
+            setTimeout(() => setErrorMsg(null), 4000)
+        } finally {
+            setM365Loading(false)
+        }
     }
 
     const m365Filtered = m365Users.filter(u =>
@@ -146,13 +171,13 @@ export default function SettingsPage() {
     }
 
     const handleAddUser = async () => {
-        if (!addName.trim() || !addEmail.trim() || !addPassword.trim()) return
+        if (!addName.trim() || !addEmail.trim()) return
         setAdding(true)
         try {
             const res = await fetch("/api/users", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: addName.trim(), email: addEmail.trim(), password: addPassword, role: addRole }),
+                body: JSON.stringify({ name: addName.trim(), email: addEmail.trim(), password: addPassword || undefined, role: addRole }),
             })
             if (res.ok) {
                 setShowAddUser(false)
@@ -334,9 +359,10 @@ export default function SettingsPage() {
                                 size="sm"
                                 className="h-8"
                                 onClick={handleSyncM365}
+                                disabled={m365Loading}
                             >
-                                <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-                                Microsoft 365
+                                <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${m365Loading ? "animate-spin" : ""}`} />
+                                {m365Loading ? "Syncing..." : "Sync Microsoft 365"}
                             </Button>
                         </div>
                     </CardHeader>
@@ -427,14 +453,27 @@ export default function SettingsPage() {
                                         <Badge variant="secondary" className="text-[10px]">{m365Users.length} users</Badge>
                                     </div>
                                     <div className="flex items-center gap-1.5">
-                                        <Button variant="outline" size="icon" className="h-6 w-6" onClick={fetchM365Users} disabled={m365Loading}>
+                                        <Button variant="outline" size="icon" className="h-6 w-6" onClick={handleSyncM365} disabled={m365Loading}>
                                             <RefreshCw className={`w-3 h-3 ${m365Loading ? "animate-spin" : ""}`} />
                                         </Button>
-                                        <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={() => setShowM365(false)}>
+                                        <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={() => { setShowM365(false); setSyncResult(null) }}>
                                             Close
                                         </Button>
                                     </div>
                                 </div>
+
+                                {syncResult && (
+                                    <div className="rounded-md bg-emerald-500/10 border border-emerald-500/20 p-2.5 text-xs">
+                                        <p className="font-semibold text-emerald-600 dark:text-emerald-400">
+                                            {syncResult.added > 0
+                                                ? `✓ Added ${syncResult.added} new user${syncResult.added !== 1 ? "s" : ""} to team`
+                                                : "✓ All users already in team — no new users to add"}
+                                        </p>
+                                        <p className="text-muted-foreground mt-0.5">
+                                            {syncResult.total} total in directory · {syncResult.skipped} already added
+                                        </p>
+                                    </div>
+                                )}
 
                                 {m365Loading ? (
                                     <div className="flex items-center justify-center py-6">
@@ -491,7 +530,7 @@ export default function SettingsPage() {
                                                             </div>
                                                         </div>
                                                         <div className="shrink-0 ml-2">
-                                                            {alreadyAdded ? (
+                                            {alreadyAdded ? (
                                                                 <Badge variant="secondary" className="text-[9px]">Added</Badge>
                                                             ) : (
                                                                 <Button
@@ -593,8 +632,8 @@ export default function SettingsPage() {
                             <Input id="add-email" type="email" value={addEmail} onChange={(e) => setAddEmail(e.target.value)} placeholder="john@example.com" />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="add-password" className="text-xs font-medium">Password</Label>
-                            <Input id="add-password" type="password" value={addPassword} onChange={(e) => setAddPassword(e.target.value)} placeholder="Min. 6 characters" />
+                            <Label htmlFor="add-password" className="text-xs font-medium">Password <span className="text-muted-foreground font-normal">(optional for SSO users)</span></Label>
+                            <Input id="add-password" type="password" value={addPassword} onChange={(e) => setAddPassword(e.target.value)} placeholder="Leave blank for SSO users" />
                         </div>
                         <div className="space-y-2">
                             <Label className="text-xs font-medium">Role</Label>
@@ -616,7 +655,7 @@ export default function SettingsPage() {
                             <Button
                                 size="sm"
                                 onClick={handleAddUser}
-                                disabled={adding || !addName.trim() || !addEmail.trim() || !addPassword.trim()}
+                                disabled={adding || !addName.trim() || !addEmail.trim()}
                             >
                                 {adding ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Plus className="w-3.5 h-3.5 mr-1.5" />}
                                 {adding ? "Creating..." : "Create User"}

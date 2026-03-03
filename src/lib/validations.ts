@@ -70,7 +70,7 @@ export const createCommentSchema = z.object({
 export const createUserSchema = z.object({
     name: z.string().min(1, "Name is required").max(200),
     email: z.string().email("Valid email is required"),
-    password: z.string().min(6, "Password must be at least 6 characters").max(100),
+    password: z.string().min(6, "Password must be at least 6 characters").max(100).optional(),
     role: z.enum(["EMPLOYEE", "MANAGER", "MANAGEMENT", "ADMIN", "SUPER_ADMIN"]).optional(),
 })
 
