@@ -3,14 +3,13 @@
 import { Suspense, useState } from "react"
 import { signIn } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { AlertCircle, Shield } from "lucide-react"
+import { AlertCircle, Shield, Sparkles } from "lucide-react"
 
 export default function LoginPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+                <div className="w-8 h-8 border-3 border-[#e8b84a]/30 border-t-[#e8b84a] rounded-full animate-spin" />
             </div>
         }>
             <LoginContent />
@@ -30,92 +29,100 @@ function LoginContent() {
     }
 
     return (
-        <div className="min-h-screen flex">
-            {/* Left panel */}
-            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden" style={{ background: 'linear-gradient(145deg, #2d3a4e 0%, #374a60 35%, #3a4f66 70%, #2d3a4e 100%)' }}>
-                <div className="absolute inset-0">
-                    <div className="absolute top-16 left-16 w-80 h-80 rounded-full blur-[100px]" style={{ background: 'rgba(212, 160, 68, 0.08)' }} />
-                    <div className="absolute bottom-24 right-16 w-96 h-96 rounded-full blur-[120px]" style={{ background: 'rgba(130, 160, 210, 0.08)' }} />
-                    <div className="absolute top-1/2 left-1/3 w-64 h-64 rounded-full blur-[80px]" style={{ background: 'rgba(212, 160, 68, 0.05)' }} />
-                </div>
-                <div className="absolute inset-0 opacity-[0.02]" style={{
-                    backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
-                    backgroundSize: "60px 60px",
-                }} />
-                <div className="relative z-10 flex flex-col justify-center px-16">
-                    <div className="flex items-center gap-4 mb-8">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src="/logo.webp" alt="National Group India" className="h-12" />
-                    </div>
-                    <h2 className="text-4xl font-bold text-white leading-tight mb-4">
+        <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden">
+            {/* Background — gold/dark gradient */}
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 70%, #1a1a2e 100%)' }} />
+
+            {/* Decorative gold orbs (CSS only, no images) */}
+            <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-20" style={{ background: 'radial-gradient(circle, #e8b84a, transparent 70%)' }} />
+            <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] rounded-full blur-[100px] opacity-15" style={{ background: 'radial-gradient(circle, #e8b84a, transparent 70%)' }} />
+            <div className="absolute top-[40%] left-[60%] w-[300px] h-[300px] rounded-full blur-[80px] opacity-10" style={{ background: 'radial-gradient(circle, #f5d780, transparent 70%)' }} />
+
+            {/* Subtle grid pattern */}
+            <div className="absolute inset-0 opacity-[0.03]" style={{
+                backgroundImage: "linear-gradient(rgba(232,184,74,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(232,184,74,0.3) 1px, transparent 1px)",
+                backgroundSize: "80px 80px",
+            }} />
+
+            {/* Main content */}
+            <div className="relative z-10 w-full max-w-[960px] flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+
+                {/* Left — Branding */}
+                <div className="flex-1 text-center lg:text-left">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/logo.webp" alt="National Group India" className="h-12 mx-auto lg:mx-0 mb-8" />
+                    <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight mb-4">
                         Empower Your<br />
-                        <span style={{ background: 'linear-gradient(90deg, #e8b84a, #f5d780)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Workflow</span>
-                    </h2>
-                    <p className="text-lg max-w-md leading-relaxed" style={{ color: 'rgba(200, 215, 235, 0.75)' }}>
-                        Plan. Track. Collaborate. Deliver.
-                    </p>
-                    <div className="mt-12 space-y-4">
-                        {["Kanban & Gantt project views", "Microsoft OneDrive integration", "Microsoft To Do sync", "Role-based access control", "Real-time notifications & audit logs"].map((f, i) => (
+                        <span className="bg-gradient-to-r from-[#e8b84a] via-[#f5d780] to-[#e8b84a] bg-clip-text text-transparent">Workflow</span>
+                    </h1>
+                    <p className="text-white/50 text-lg mb-8">Plan. Track. Collaborate. Deliver.</p>
+                    <div className="hidden lg:flex flex-col gap-3">
+                        {["Kanban & Gantt project views", "Microsoft 365 integration", "Role-based access control", "Real-time collaboration"].map((f, i) => (
                             <div key={i} className="flex items-center gap-3">
-                                <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#e8b84a' }} />
-                                <span className="text-sm" style={{ color: 'rgba(200, 215, 235, 0.7)' }}>{f}</span>
+                                <div className="w-1.5 h-1.5 rounded-full bg-[#e8b84a]" />
+                                <span className="text-sm text-white/50">{f}</span>
                             </div>
                         ))}
                     </div>
-                    <div className="mt-16 text-xs" style={{ color: 'rgba(200, 215, 235, 0.45)' }}>
-                        nationalgroupindia.com
-                    </div>
                 </div>
-            </div>
 
-            {/* Right panel */}
-            <div className="flex-1 flex items-center justify-center p-8 bg-background">
-                <div className="w-full max-w-[400px] space-y-8">
-                    <div className="lg:hidden flex items-center gap-3 mb-4">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src="/logo.webp" alt="National Group India" className="h-10" />
-                    </div>
-
-                    <div className="text-center space-y-2">
-                        <h2 className="text-2xl font-bold tracking-tight">Welcome to National Group India</h2>
-                        <p className="text-muted-foreground">Sign in with your organization account</p>
-                    </div>
-
-                    {error && (
-                        <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm space-y-1">
-                            <div className="flex items-center gap-2">
-                                <AlertCircle className="w-4 h-4 shrink-0" />
-                                <span className="font-medium">Error: {error}</span>
-                            </div>
-                            {errorDesc && <p className="text-xs opacity-75 pl-6">{errorDesc}</p>}
-                            <p className="text-xs opacity-75 pl-6">Callback: /api/auth/callback/azure-ad</p>
-                        </div>
-                    )}
-
-                    <Button
-                        className="w-full h-12 text-base font-semibold shadow-lg transition-all duration-300 hover:shadow-xl"
-                        onClick={handleLogin}
-                        disabled={loading}
+                {/* Right — Glassmorphism Login Card */}
+                <div className="w-full max-w-[420px]">
+                    <div
+                        className="rounded-2xl p-8 md:p-10 border border-white/10 shadow-2xl shadow-black/20"
+                        style={{
+                            background: 'rgba(255, 255, 255, 0.07)',
+                            backdropFilter: 'blur(20px)',
+                            WebkitBackdropFilter: 'blur(20px)',
+                        }}
                     >
-                        {loading ? (
-                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        ) : (
-                            <>
-                                <svg className="w-5 h-5 mr-3" viewBox="0 0 21 21" fill="none">
-                                    <path d="M10 0H0V10H10V0Z" fill="#F25022" />
-                                    <path d="M21 0H11V10H21V0Z" fill="#7FBA00" />
-                                    <path d="M10 11H0V21H10V11Z" fill="#00A4EF" />
-                                    <path d="M21 11H11V21H21V11Z" fill="#FFB900" />
-                                </svg>
-                                Sign in with Microsoft
-                            </>
-                        )}
-                    </Button>
+                        <div className="text-center mb-8">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#e8b84a]/20 bg-[#e8b84a]/10 mb-5">
+                                <Sparkles className="w-3.5 h-3.5 text-[#e8b84a]" />
+                                <span className="text-[11px] font-semibold tracking-wide text-[#e8b84a] uppercase">Workspace</span>
+                            </div>
+                            <h2 className="text-2xl font-bold text-white mb-2">Welcome Back</h2>
+                            <p className="text-sm text-white/40">Sign in with your organization account</p>
+                        </div>
 
-                    <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                        <Shield className="w-3.5 h-3.5" />
-                        <span>Secured by Microsoft Entra ID</span>
+                        {error && (
+                            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm mb-6 space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <AlertCircle className="w-4 h-4 shrink-0" />
+                                    <span className="font-medium">Error: {error}</span>
+                                </div>
+                                {errorDesc && <p className="text-xs opacity-75 pl-6">{errorDesc}</p>}
+                            </div>
+                        )}
+
+                        <button
+                            onClick={handleLogin}
+                            disabled={loading}
+                            className="w-full h-13 flex items-center justify-center gap-3 rounded-xl text-base font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:hover:scale-100 shadow-lg shadow-[#c8932e]/25 hover:shadow-xl hover:shadow-[#c8932e]/35"
+                            style={{ background: 'linear-gradient(135deg, #c8932e 0%, #e8b84a 50%, #d4a044 100%)' }}
+                        >
+                            {loading ? (
+                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : (
+                                <>
+                                    <svg className="w-5 h-5" viewBox="0 0 21 21" fill="none">
+                                        <path d="M10 0H0V10H10V0Z" fill="#F25022" />
+                                        <path d="M21 0H11V10H21V0Z" fill="#7FBA00" />
+                                        <path d="M10 11H0V21H10V11Z" fill="#00A4EF" />
+                                        <path d="M21 11H11V21H21V11Z" fill="#FFB900" />
+                                    </svg>
+                                    Sign in with Microsoft
+                                </>
+                            )}
+                        </button>
+
+                        <div className="flex items-center justify-center gap-2 mt-6 text-xs text-white/30">
+                            <Shield className="w-3.5 h-3.5" />
+                            <span>Secured by Microsoft Entra ID</span>
+                        </div>
                     </div>
+
+                    <p className="text-center text-xs text-white/20 mt-6">nationalgroupindia.com</p>
                 </div>
             </div>
         </div>
