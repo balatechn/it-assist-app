@@ -6,8 +6,8 @@ import {
     LayoutDashboard,
     FolderKanban,
     CheckSquare,
+    MessageSquare,
     Mail,
-    Video,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -15,8 +15,8 @@ const bottomNavItems = [
     { href: "/dashboard", label: "Home", icon: LayoutDashboard, external: false },
     { href: "/dashboard/projects", label: "Projects", icon: FolderKanban, external: false },
     { href: "/dashboard/tasks", label: "Tasks", icon: CheckSquare, external: false },
+    { href: "/dashboard/chat", label: "Chat", icon: MessageSquare, external: false },
     { href: "https://outlook.office.com/mail", label: "Outlook", icon: Mail, external: true },
-    { href: "https://teams.microsoft.com", label: "Teams", icon: Video, external: true },
 ]
 
 export function MobileBottomNav() {

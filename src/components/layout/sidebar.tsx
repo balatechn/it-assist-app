@@ -25,6 +25,7 @@ import {
     Video,
     CalendarDays,
     ExternalLink,
+    MessageSquare,
 } from "lucide-react"
 import { useLayoutStore } from "@/lib/store"
 import { isAdmin as checkIsAdmin } from "@/lib/utils"
@@ -39,6 +40,7 @@ const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/dashboard/projects", label: "Projects", icon: FolderKanban },
     { href: "/dashboard/tasks", label: "My Tasks", icon: CheckSquare },
+    { href: "/dashboard/chat", label: "Chat", icon: MessageSquare },
     { href: "/dashboard/team", label: "Team", icon: Users },
     { href: "/dashboard/files", label: "OneDrive", icon: Cloud },
     { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
