@@ -76,8 +76,12 @@ export async function fetchGraph(endpoint: string, accessToken: string, options:
 
     if (!res.ok) {
         const error = await res.json().catch(() => ({}))
-        console.error("Graph API Error", error)
-        throw new Error(`Graph API error: ${res.statusText}`)
+        console.error("Graph API Error", res.status, error)
+        const msg = error?.error?.message || res.statusText
+        const err = new Error(`Graph API error: ${msg}`)
+        ;(err as Error & { graphError?: unknown }).graphError = error?.error
+        ;(err as Error & { status?: number }).status = res.status
+        throw err
     }
 
     if (res.status === 204) return null

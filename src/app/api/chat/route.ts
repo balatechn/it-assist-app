@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import prisma from "@/lib/db"
 import { getAccessToken, fetchGraph } from "@/lib/onedrive"
 
 // GET /api/chat — list user's recent chats
@@ -52,9 +51,11 @@ export async function GET() {
         })
 
         return NextResponse.json(chats)
-    } catch (error) {
+    } catch (error: unknown) {
         console.error("Chat list error:", error)
-        return NextResponse.json({ error: "Failed to load chats" }, { status: 500 })
+        const e = error as Error & { graphError?: { message?: string }; status?: number }
+        const msg = e?.graphError?.message || e?.message || "Failed to load chats"
+        return NextResponse.json({ error: msg }, { status: e?.status || 500 })
     }
 }
 
@@ -64,25 +65,27 @@ export async function POST(req: NextRequest) {
     if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const token = await getAccessToken(session.user.id)
-    if (!token) return NextResponse.json({ error: "No Microsoft token" }, { status: 401 })
+    if (!token) return NextResponse.json({ error: "No Microsoft token. Please sign out and sign in again." }, { status: 401 })
 
     const body = await req.json()
     const { userEmail } = body
 
     if (!userEmail) return NextResponse.json({ error: "userEmail is required" }, { status: 400 })
 
-    // Look up the target user's Azure AD id
-    const targetUser = await prisma.user.findUnique({ where: { email: userEmail } })
-    if (!targetUser?.azureAdId) {
-        return NextResponse.json({ error: "User not found or not linked to Microsoft account" }, { status: 404 })
-    }
-
-    const currentUser = await prisma.user.findUnique({ where: { id: session.user.id } })
-    if (!currentUser?.azureAdId) {
-        return NextResponse.json({ error: "Your account is not linked to Microsoft" }, { status: 400 })
-    }
-
     try {
+        // Resolve the current user's Azure AD id via Graph /me
+        const me = await fetchGraph("/me?$select=id", token)
+        const myAadId = me.id
+
+        // Resolve the target user's Azure AD id via Graph
+        let targetAadId: string
+        try {
+            const targetUser = await fetchGraph(`/users/${encodeURIComponent(userEmail)}?$select=id`, token)
+            targetAadId = targetUser.id
+        } catch {
+            return NextResponse.json({ error: `Could not find Microsoft account for ${userEmail}` }, { status: 404 })
+        }
+
         const chatData = await fetchGraph("/chats", token, {
             method: "POST",
             body: JSON.stringify({
@@ -91,20 +94,22 @@ export async function POST(req: NextRequest) {
                     {
                         "@odata.type": "#microsoft.graph.aadUserConversationMember",
                         roles: ["owner"],
-                        "user@odata.bind": `https://graph.microsoft.com/v1.0/users('${currentUser.azureAdId}')`,
+                        "user@odata.bind": `https://graph.microsoft.com/v1.0/users('${myAadId}')`,
                     },
                     {
                         "@odata.type": "#microsoft.graph.aadUserConversationMember",
                         roles: ["owner"],
-                        "user@odata.bind": `https://graph.microsoft.com/v1.0/users('${targetUser.azureAdId}')`,
+                        "user@odata.bind": `https://graph.microsoft.com/v1.0/users('${targetAadId}')`,
                     },
                 ],
             }),
         })
 
         return NextResponse.json({ chatId: chatData.id })
-    } catch (error) {
-        console.error("Create chat error:", error)
-        return NextResponse.json({ error: "Failed to create chat" }, { status: 500 })
+    } catch (error: unknown) {
+        const e = error as Error & { graphError?: { message?: string }; status?: number; message?: string }
+        console.error("Create chat error:", e?.message, e?.graphError)
+        const msg = e?.graphError?.message || e?.message || "Failed to create chat"
+        return NextResponse.json({ error: msg }, { status: e?.status || 500 })
     }
 }
