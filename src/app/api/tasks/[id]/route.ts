@@ -24,6 +24,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
                 project: { select: { id: true, name: true, color: true } },
                 assignee: { select: { id: true, name: true, email: true, avatar: true } },
                 creator: { select: { id: true, name: true, email: true } },
+                subtasks: {
+                    include: {
+                        assignee: { select: { id: true, name: true, avatar: true } },
+                    },
+                    orderBy: { sortOrder: "asc" },
+                },
                 comments: {
                     include: {
                         author: { select: { id: true, name: true, avatar: true } },
@@ -33,7 +39,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
                 files: {
                     orderBy: { createdAt: "desc" },
                 },
-                _count: { select: { comments: true, files: true } },
+                _count: { select: { comments: true, files: true, subtasks: true } },
             },
         })
 
@@ -72,13 +78,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         if (!parsed.success) {
             return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
         }
-        const { title, description, dueDate, priority, status, assigneeId, sortOrder } = parsed.data
+        const { title, description, startDate, dueDate, priority, status, assigneeId, sortOrder } = parsed.data
 
         const task = await prisma.task.update({
             where: { id: params.id },
             data: {
                 ...(title !== undefined && { title }),
                 ...(description !== undefined && { description }),
+                ...(startDate !== undefined && { startDate: startDate ? new Date(startDate) : null }),
                 ...(dueDate !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
                 ...(priority !== undefined && { priority }),
                 ...(status !== undefined && { status }),

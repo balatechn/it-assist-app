@@ -25,8 +25,9 @@ import {
 import {
     Calendar, User, Flag, MessageSquare, Paperclip,
     Save, Loader2, Clock, AlertTriangle, Trash2,
+    ListChecks, Plus, CheckCircle2, Circle, X,
 } from "lucide-react"
-import { formatDate, getInitials, timeAgo, isAdmin as checkIsAdmin, isManager as checkIsManager } from "@/lib/utils"
+import { cn, formatDate, getInitials, timeAgo, isAdmin as checkIsAdmin, isManager as checkIsManager } from "@/lib/utils"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 
 interface TaskComment {
@@ -36,12 +37,21 @@ interface TaskComment {
     author: { id: string; name: string; avatar: string | null }
 }
 
+interface Subtask {
+    id: string
+    title: string
+    status: string
+    priority: string
+    assignee: { id: string; name: string; avatar: string | null } | null
+}
+
 interface TaskDetail {
     id: string
     title: string
     description: string | null
     status: string
     priority: string
+    startDate: string | null
     dueDate: string | null
     sortOrder: number
     createdAt: string
@@ -49,9 +59,10 @@ interface TaskDetail {
     project: { id: string; name: string; color: string | null }
     assignee: { id: string; name: string; email: string; avatar: string | null } | null
     creator: { id: string; name: string; email: string }
+    subtasks: Subtask[]
     comments: TaskComment[]
     files: Array<{ id: string; name: string; mimeType: string | null; size: number | null; oneDriveUrl: string | null }>
-    _count: { comments: number; files: number }
+    _count: { comments: number; files: number; subtasks: number }
 }
 
 interface TeamMember {
@@ -88,6 +99,10 @@ export function TaskDetailModal({ taskId, open, onOpenChange, onTaskUpdated }: T
     // Delete
     const [deleteOpen, setDeleteOpen] = useState(false)
 
+    // Subtasks
+    const [newSubtaskTitle, setNewSubtaskTitle] = useState("")
+    const [addingSubtask, setAddingSubtask] = useState(false)
+
     // Comments
     const [newComment, setNewComment] = useState("")
     const [postingComment, setPostingComment] = useState(false)
@@ -121,6 +136,54 @@ export function TaskDetailModal({ taskId, open, onOpenChange, onTaskUpdated }: T
             if (res.ok) {
                 await fetchTask()
             }
+        } catch {
+            // silently fail
+        }
+    }
+
+    const handleAddSubtask = async () => {
+        if (!newSubtaskTitle.trim() || !task) return
+        setAddingSubtask(true)
+        try {
+            const res = await fetch("/api/tasks", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    title: newSubtaskTitle.trim(),
+                    projectId: task.project.id,
+                    parentId: task.id,
+                }),
+            })
+            if (res.ok) {
+                setNewSubtaskTitle("")
+                await fetchTask()
+                onTaskUpdated?.()
+            }
+        } finally {
+            setAddingSubtask(false)
+        }
+    }
+
+    const handleToggleSubtask = async (subtaskId: string, currentStatus: string) => {
+        const newStatus = currentStatus === "DONE" ? "TODO" : "DONE"
+        try {
+            await fetch(`/api/tasks/${subtaskId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: newStatus }),
+            })
+            await fetchTask()
+            onTaskUpdated?.()
+        } catch {
+            // silently fail
+        }
+    }
+
+    const handleDeleteSubtask = async (subtaskId: string) => {
+        try {
+            await fetch(`/api/tasks/${subtaskId}`, { method: "DELETE" })
+            await fetchTask()
+            onTaskUpdated?.()
         } catch {
             // silently fail
         }
@@ -386,6 +449,100 @@ export function TaskDetailModal({ taskId, open, onOpenChange, onTaskUpdated }: T
                                 variant="destructive"
                                 onConfirm={handleDeleteTask}
                             />
+
+                            {/* Subtasks Section */}
+                            <div className="border-t pt-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <h4 className="text-sm font-semibold flex items-center gap-2">
+                                        <ListChecks className="w-4 h-4" />
+                                        Subtasks
+                                        {task.subtasks.length > 0 && (
+                                            <span className="text-xs font-normal text-muted-foreground">
+                                                ({task.subtasks.filter(s => s.status === "DONE").length}/{task.subtasks.length})
+                                            </span>
+                                        )}
+                                    </h4>
+                                </div>
+
+                                {/* Subtask Progress Bar */}
+                                {task.subtasks.length > 0 && (
+                                    <div className="mb-3">
+                                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+                                                style={{
+                                                    width: `${(task.subtasks.filter(s => s.status === "DONE").length / task.subtasks.length) * 100}%`,
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Subtask List */}
+                                <div className="space-y-1 mb-3">
+                                    {task.subtasks.map((subtask) => (
+                                        <div
+                                            key={subtask.id}
+                                            className="flex items-center gap-2 group/subtask py-1.5 px-2 rounded-md hover:bg-muted/50 transition-colors"
+                                        >
+                                            <button
+                                                onClick={() => handleToggleSubtask(subtask.id, subtask.status)}
+                                                className="flex-shrink-0"
+                                                disabled={isViewer}
+                                            >
+                                                {subtask.status === "DONE" ? (
+                                                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                                ) : (
+                                                    <Circle className="w-4 h-4 text-muted-foreground/40 hover:text-muted-foreground" />
+                                                )}
+                                            </button>
+                                            <span className={cn(
+                                                "flex-1 text-sm",
+                                                subtask.status === "DONE" && "line-through text-muted-foreground"
+                                            )}>
+                                                {subtask.title}
+                                            </span>
+                                            {subtask.assignee && (
+                                                <Avatar className="w-5 h-5 flex-shrink-0">
+                                                    <AvatarFallback className="text-[8px] bg-primary/10 text-primary">
+                                                        {getInitials(subtask.assignee.name)}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                            )}
+                                            {!isViewer && (
+                                                <button
+                                                    onClick={() => handleDeleteSubtask(subtask.id)}
+                                                    className="opacity-0 group-hover/subtask:opacity-100 p-0.5 rounded hover:bg-destructive/10 text-destructive/60 transition-opacity flex-shrink-0"
+                                                >
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Add Subtask input */}
+                                {!isViewer && (
+                                    <div className="flex gap-2">
+                                        <Input
+                                            placeholder="Add a subtask..."
+                                            value={newSubtaskTitle}
+                                            onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                                            onKeyDown={(e) => e.key === "Enter" && handleAddSubtask()}
+                                            className="flex-1 h-8 text-sm"
+                                        />
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={handleAddSubtask}
+                                            disabled={addingSubtask || !newSubtaskTitle.trim()}
+                                            className="h-8 px-2"
+                                        >
+                                            {addingSubtask ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
 
                             {/* Comments Section */}
                             <div className="border-t pt-4">

@@ -32,16 +32,19 @@ export const updateProjectSchema = z.object({
 export const createTaskSchema = z.object({
     title: z.string().min(1, "Title is required").max(300),
     description: z.string().max(5000).optional().nullable(),
+    startDate: z.string().optional().nullable(),
     dueDate: z.string().optional().nullable(),
     priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT", "CRITICAL"]).optional(),
     status: z.enum(["TODO", "IN_PROGRESS", "DONE"]).optional(),
     projectId: z.string().uuid("Valid projectId is required"),
     assigneeId: z.string().uuid().optional().nullable(),
+    parentId: z.string().uuid().optional().nullable(),
 })
 
 export const updateTaskSchema = z.object({
     title: z.string().min(1).max(300).optional(),
     description: z.string().max(5000).optional().nullable(),
+    startDate: z.string().optional().nullable(),
     dueDate: z.string().optional().nullable(),
     priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT", "CRITICAL"]).optional(),
     status: z.enum(["TODO", "IN_PROGRESS", "DONE"]).optional(),

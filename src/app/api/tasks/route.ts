@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
 
         const where: Record<string, unknown> = {
             project: { organizationId: session.user.organizationId },
+            parentId: null, // Only return top-level tasks, not subtasks
         }
 
         if (projectId) where.projectId = projectId
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
                     project: { select: { id: true, name: true, color: true } },
                     assignee: { select: { id: true, name: true, avatar: true } },
                     creator: { select: { id: true, name: true } },
-                    _count: { select: { comments: true, files: true } },
+                    _count: { select: { comments: true, files: true, subtasks: true } },
                 },
                 orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
                 skip: (page - 1) * limit,
@@ -75,7 +76,7 @@ export async function POST(req: NextRequest) {
         if (!parsed.success) {
             return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
         }
-        const { title, description, dueDate, priority, status, projectId, assigneeId } = parsed.data
+        const { title, description, startDate, dueDate, priority, status, projectId, assigneeId, parentId } = parsed.data
 
         // Verify project belongs to org
         const project = await prisma.project.findFirst({
@@ -96,6 +97,7 @@ export async function POST(req: NextRequest) {
             data: {
                 title,
                 description,
+                startDate: startDate ? new Date(startDate) : null,
                 dueDate: dueDate ? new Date(dueDate) : null,
                 priority: priority || "MEDIUM",
                 status: status || "TODO",
@@ -103,6 +105,7 @@ export async function POST(req: NextRequest) {
                 projectId,
                 assigneeId: assigneeId || null,
                 creatorId: session.user.id,
+                parentId: parentId || null,
             },
             include: {
                 project: { select: { id: true, name: true, color: true } },

@@ -14,12 +14,13 @@ import { Input } from "@/components/ui/input"
 import {
     ArrowLeft, Plus, Calendar, DollarSign, Clock,
     CheckSquare, MessageSquare, Paperclip, GripVertical,
-    Target, Trash2, Pencil,
+    Target, Trash2, Pencil, BarChart3, LayoutGrid,
 } from "lucide-react"
 import { cn, formatDate, formatCurrency, getInitials, getStatusColor, getPriorityColor, isManager } from "@/lib/utils"
 import { TaskDetailModal } from "@/components/task-detail-modal"
 import { ProjectEditModal } from "@/components/project-edit-modal"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
+import { GanttChart } from "@/components/gantt-chart"
 
 interface Task {
     id: string
@@ -27,10 +28,20 @@ interface Task {
     description: string | null
     status: string
     priority: string
+    startDate: string | null
     dueDate: string | null
     sortOrder: number
     assignee: { id: string; name: string; avatar: string | null } | null
-    _count: { comments: number; files: number }
+    subtasks?: Array<{
+        id: string
+        title: string
+        status: string
+        priority: string
+        startDate: string | null
+        dueDate: string | null
+        assignee: { id: string; name: string; avatar: string | null } | null
+    }>
+    _count: { comments: number; files: number; subtasks: number }
 }
 
 interface Project {
@@ -76,6 +87,7 @@ export default function ProjectDetailPage() {
     const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
     const [showEditProject, setShowEditProject] = useState(false)
     const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null)
+    const [viewMode, setViewMode] = useState<"kanban" | "gantt">("kanban")
 
     // Local Kanban State
     const [tasks, setTasks] = useState<Record<string, Task[]>>({
@@ -303,10 +315,46 @@ export default function ProjectDetailPage() {
                 )}
             </div>
 
-            {/* Kanban Board */}
+            {/* Board View Toggle + Kanban/Gantt */}
             <div>
-                <h3 className="text-lg font-semibold mb-4">Kanban Board</h3>
-                {isBrowser && (
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">
+                        {viewMode === "kanban" ? "Kanban Board" : "Gantt Chart"}
+                    </h3>
+                    <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-0.5">
+                        <Button
+                            variant={viewMode === "kanban" ? "default" : "ghost"}
+                            size="sm"
+                            onClick={() => setViewMode("kanban")}
+                            className="h-7 text-xs gap-1.5"
+                        >
+                            <LayoutGrid className="w-3.5 h-3.5" />
+                            Kanban
+                        </Button>
+                        <Button
+                            variant={viewMode === "gantt" ? "default" : "ghost"}
+                            size="sm"
+                            onClick={() => setViewMode("gantt")}
+                            className="h-7 text-xs gap-1.5"
+                        >
+                            <BarChart3 className="w-3.5 h-3.5" />
+                            Gantt
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Gantt Chart View */}
+                {viewMode === "gantt" && project && (
+                    <GanttChart
+                        tasks={Object.values(tasks).flat()}
+                        projectStart={project.startDate}
+                        projectEnd={project.endDate}
+                        onTaskClick={(id) => setSelectedTaskId(id)}
+                    />
+                )}
+
+                {/* Kanban Board View */}
+                {viewMode === "kanban" && isBrowser && (
                     <DragDropContext onDragEnd={onDragEnd}>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {COLUMNS.map((column) => {
@@ -441,6 +489,12 @@ export default function ProjectDetailPage() {
                                                                                 {task._count?.files > 0 && (
                                                                                     <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                                                                                         <Paperclip className="w-2.5 h-2.5" /> {task._count.files}
+                                                                                    </span>
+                                                                                )}
+                                                                                {task._count?.subtasks > 0 && (
+                                                                                    <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                                                                                        <CheckSquare className="w-2.5 h-2.5" />
+                                                                                        {task.subtasks?.filter(s => s.status === "DONE").length || 0}/{task._count.subtasks}
                                                                                     </span>
                                                                                 )}
                                                                                 {task.assignee && (

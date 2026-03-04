@@ -43,9 +43,16 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
                 creator: { select: { id: true, name: true, email: true, avatar: true } },
                 manager: { select: { id: true, name: true, email: true, avatar: true } },
                 tasks: {
+                    where: { parentId: null },
                     include: {
                         assignee: { select: { id: true, name: true, avatar: true } },
-                        _count: { select: { comments: true, files: true } },
+                        subtasks: {
+                            include: {
+                                assignee: { select: { id: true, name: true, avatar: true } },
+                            },
+                            orderBy: { sortOrder: "asc" },
+                        },
+                        _count: { select: { comments: true, files: true, subtasks: true } },
                     },
                     orderBy: { sortOrder: "asc" },
                 },

@@ -137,6 +137,7 @@ model Task {
   id          String       @id @default(uuid())
   title       String
   description String?
+  startDate   DateTime?
   dueDate     DateTime?
   priority    TaskPriority @default(MEDIUM)
   status      TaskStatus   @default(TODO)
@@ -147,6 +148,11 @@ model Task {
 
   assigneeId String?
   assignee   User?   @relation("TaskAssignee", fields: [assigneeId], references: [id])
+
+  // Subtask hierarchy
+  parentId String?
+  parent   Task?   @relation("TaskSubtasks", fields: [parentId], references: [id], onDelete: Cascade)
+  subtasks Task[]  @relation("TaskSubtasks")
 
   creatorId String
   creator   User   @relation("TaskCreator", fields: [creatorId], references: [id])
@@ -160,6 +166,7 @@ model Task {
   @@index([projectId])
   @@index([assigneeId])
   @@index([status])
+  @@index([parentId])
 }
 
 model TaskComment {
