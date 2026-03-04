@@ -35,9 +35,12 @@ const PRIORITY_COLORS: Record<string, string> = {
 }
 
 const STATUS_FILLS: Record<string, { bg: string; border: string }> = {
+    NOT_STARTED: { bg: "bg-gray-300/60 dark:bg-gray-600/60", border: "border-gray-400 dark:border-gray-500" },
     TODO: { bg: "bg-slate-300/60 dark:bg-slate-600/60", border: "border-slate-400 dark:border-slate-500" },
     IN_PROGRESS: { bg: "bg-blue-400/70 dark:bg-blue-500/70", border: "border-blue-500 dark:border-blue-400" },
+    BLOCKED: { bg: "bg-red-400/70 dark:bg-red-500/70", border: "border-red-500 dark:border-red-400" },
     DONE: { bg: "bg-emerald-400/70 dark:bg-emerald-500/70", border: "border-emerald-500 dark:border-emerald-400" },
+    CANCELLED: { bg: "bg-rose-300/60 dark:bg-rose-600/60", border: "border-rose-400 dark:border-rose-500" },
 }
 
 function getInitials(name: string) {

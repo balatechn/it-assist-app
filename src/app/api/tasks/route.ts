@@ -18,6 +18,10 @@ export async function GET(req: NextRequest) {
         const projectId = searchParams.get("projectId")
         const assigneeId = searchParams.get("assigneeId")
         const status = searchParams.get("status")
+        const priority = searchParams.get("priority")
+        const department = searchParams.get("department")
+        const dueDateFrom = searchParams.get("dueDateFrom")
+        const dueDateTo = searchParams.get("dueDateTo")
         const search = searchParams.get("search")?.trim()
         const page = Math.max(1, parseInt(searchParams.get("page") || "1"))
         const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "20")))
@@ -30,10 +34,19 @@ export async function GET(req: NextRequest) {
         if (projectId) where.projectId = projectId
         if (assigneeId) where.assigneeId = assigneeId
         if (status) where.status = status
+        if (priority) where.priority = priority
+        if (department) where.department = department
+        if (dueDateFrom || dueDateTo) {
+            where.dueDate = {
+                ...(dueDateFrom ? { gte: new Date(dueDateFrom) } : {}),
+                ...(dueDateTo ? { lte: new Date(dueDateTo) } : {}),
+            }
+        }
         if (search) {
             where.OR = [
                 { title: { contains: search, mode: "insensitive" } },
                 { description: { contains: search, mode: "insensitive" } },
+                { tags: { has: search } },
             ]
         }
 
@@ -76,7 +89,7 @@ export async function POST(req: NextRequest) {
         if (!parsed.success) {
             return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
         }
-        const { title, description, startDate, dueDate, priority, status, projectId, assigneeId, parentId } = parsed.data
+        const { title, description, startDate, dueDate, priority, status, projectId, assigneeId, parentId, tags, department, estimatedTime } = parsed.data
 
         // Verify project belongs to org
         const project = await prisma.project.findFirst({
@@ -106,10 +119,23 @@ export async function POST(req: NextRequest) {
                 assigneeId: assigneeId || null,
                 creatorId: session.user.id,
                 parentId: parentId || null,
+                tags: tags || [],
+                department: department || null,
+                estimatedTime: estimatedTime ?? null,
             },
             include: {
                 project: { select: { id: true, name: true, color: true } },
                 assignee: { select: { id: true, name: true } },
+            },
+        })
+
+        // Log activity
+        await prisma.taskActivity.create({
+            data: {
+                action: "created",
+                details: `Task "${title}" created`,
+                taskId: task.id,
+                userId: session.user.id,
             },
         })
 

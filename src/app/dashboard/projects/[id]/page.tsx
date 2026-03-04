@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input"
 import {
     ArrowLeft, Plus, Calendar, DollarSign, Clock,
     CheckSquare, MessageSquare, Paperclip, GripVertical,
-    Target, Trash2, Pencil, BarChart3, LayoutGrid,
+    Target, Trash2, Pencil, BarChart3, LayoutGrid, AlertTriangle,
 } from "lucide-react"
 import { cn, formatDate, formatCurrency, getInitials, getStatusColor, getPriorityColor, isManager } from "@/lib/utils"
 import { TaskDetailModal } from "@/components/task-detail-modal"
@@ -62,8 +62,10 @@ interface Project {
 }
 
 const COLUMNS = [
+    { id: "NOT_STARTED", label: "Not Started", icon: Target, color: "text-gray-500" },
     { id: "TODO", label: "To Do", icon: Target, color: "text-slate-500" },
     { id: "IN_PROGRESS", label: "In Progress", icon: Clock, color: "text-blue-500" },
+    { id: "BLOCKED", label: "Blocked", icon: AlertTriangle, color: "text-red-500" },
     { id: "DONE", label: "Done", icon: CheckSquare, color: "text-emerald-500" },
 ]
 
@@ -91,8 +93,10 @@ export default function ProjectDetailPage() {
 
     // Local Kanban State
     const [tasks, setTasks] = useState<Record<string, Task[]>>({
+        NOT_STARTED: [],
         TODO: [],
         IN_PROGRESS: [],
+        BLOCKED: [],
         DONE: [],
     })
 
@@ -110,9 +114,13 @@ export default function ProjectDetailPage() {
                 setProject(data)
 
                 // Group tasks locally for DnD
-                const grouped: Record<string, Task[]> = { TODO: [], IN_PROGRESS: [], DONE: [] }
+                const grouped: Record<string, Task[]> = { NOT_STARTED: [], TODO: [], IN_PROGRESS: [], BLOCKED: [], DONE: [] }
                 data.tasks.forEach((t: Task) => {
                     if (grouped[t.status]) grouped[t.status].push(t)
+                    else {
+                        // Handle CANCELLED or any other status by putting in DONE column
+                        grouped["DONE"].push(t)
+                    }
                 })
 
                 // sort within each array by sortOrder
@@ -356,7 +364,7 @@ export default function ProjectDetailPage() {
                 {/* Kanban Board View */}
                 {viewMode === "kanban" && isBrowser && (
                     <DragDropContext onDragEnd={onDragEnd}>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                             {COLUMNS.map((column) => {
                                 const columnTasks = tasks[column.id] || []
                                 return (

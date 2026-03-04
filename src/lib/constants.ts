@@ -16,6 +16,30 @@ export const PROJECT_TEMPLATES = [
 
 export const TASK_PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT", "CRITICAL"] as const
 
+export const TASK_STATUSES = ["TODO", "IN_PROGRESS", "DONE", "NOT_STARTED", "BLOCKED", "CANCELLED"] as const
+
+export const TASK_STATUS_LABELS: Record<string, string> = {
+    TODO: "To Do",
+    IN_PROGRESS: "In Progress",
+    DONE: "Done",
+    NOT_STARTED: "Not Started",
+    BLOCKED: "Blocked",
+    CANCELLED: "Cancelled",
+}
+
+export const DEPARTMENTS = [
+    "IT",
+    "HR",
+    "Finance",
+    "Marketing",
+    "Sales",
+    "Operations",
+    "Admin",
+    "Legal",
+    "Support",
+    "Engineering",
+] as const
+
 export const ROLE_OPTIONS = [
     { value: "EMPLOYEE", label: "Employee" },
     { value: "MANAGER", label: "Manager" },

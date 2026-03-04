@@ -74,6 +74,9 @@ export async function GET() {
             doneTasks,
             todoCount,
             inProgressCount,
+            notStartedCount,
+            blockedCount,
+            cancelledCount,
             lowPriority,
             mediumPriority,
             highPriority,
@@ -81,21 +84,28 @@ export async function GET() {
             criticalPriority,
             newProjectsThisMonth,
             completedTasksThisMonth,
+            assignedToMeCount,
+            highPriorityCount,
         ] = await Promise.all([
             prisma.project.count({ where: projectFilter }),
             prisma.task.count({ where: taskFilter }),
-            prisma.task.count({ where: { ...taskFilter, status: { not: "DONE" } } }),
-            prisma.task.count({ where: { ...taskFilter, status: { not: "DONE" }, dueDate: { lt: now } } }),
+            prisma.task.count({ where: { ...taskFilter, status: { notIn: ["DONE", "CANCELLED"] } } }),
+            prisma.task.count({ where: { ...taskFilter, status: { notIn: ["DONE", "CANCELLED"] }, dueDate: { lt: now } } }),
             prisma.task.count({ where: { ...taskFilter, status: "DONE" } }),
             prisma.task.count({ where: { ...taskFilter, status: "TODO" } }),
             prisma.task.count({ where: { ...taskFilter, status: "IN_PROGRESS" } }),
-            prisma.task.count({ where: { ...taskFilter, status: { not: "DONE" }, priority: "LOW" } }),
-            prisma.task.count({ where: { ...taskFilter, status: { not: "DONE" }, priority: "MEDIUM" } }),
-            prisma.task.count({ where: { ...taskFilter, status: { not: "DONE" }, priority: "HIGH" } }),
-            prisma.task.count({ where: { ...taskFilter, status: { not: "DONE" }, priority: "URGENT" as never } }),
-            prisma.task.count({ where: { ...taskFilter, status: { not: "DONE" }, priority: "CRITICAL" as never } }),
+            prisma.task.count({ where: { ...taskFilter, status: "NOT_STARTED" } }),
+            prisma.task.count({ where: { ...taskFilter, status: "BLOCKED" } }),
+            prisma.task.count({ where: { ...taskFilter, status: "CANCELLED" } }),
+            prisma.task.count({ where: { ...taskFilter, status: { notIn: ["DONE", "CANCELLED"] }, priority: "LOW" } }),
+            prisma.task.count({ where: { ...taskFilter, status: { notIn: ["DONE", "CANCELLED"] }, priority: "MEDIUM" } }),
+            prisma.task.count({ where: { ...taskFilter, status: { notIn: ["DONE", "CANCELLED"] }, priority: "HIGH" } }),
+            prisma.task.count({ where: { ...taskFilter, status: { notIn: ["DONE", "CANCELLED"] }, priority: "URGENT" as never } }),
+            prisma.task.count({ where: { ...taskFilter, status: { notIn: ["DONE", "CANCELLED"] }, priority: "CRITICAL" as never } }),
             prisma.project.count({ where: { ...projectFilter, createdAt: { gte: startOfMonth } } }),
             prisma.task.count({ where: { ...taskFilter, status: "DONE", updatedAt: { gte: startOfMonth } } }),
+            prisma.task.count({ where: { ...taskFilter, assigneeId: userId, status: { notIn: ["DONE", "CANCELLED"] } } }),
+            prisma.task.count({ where: { ...taskFilter, status: { notIn: ["DONE", "CANCELLED"] }, priority: { in: ["HIGH", "URGENT" as never, "CRITICAL" as never] } } }),
         ])
 
         const completionRate = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0
@@ -112,6 +122,9 @@ export async function GET() {
             TODO: todoCount,
             IN_PROGRESS: inProgressCount,
             DONE: doneTasks,
+            NOT_STARTED: notStartedCount,
+            BLOCKED: blockedCount,
+            CANCELLED: cancelledCount,
         }
 
         // Projects with task counts (scoped)
@@ -157,6 +170,8 @@ export async function GET() {
             recentTasks,
             newProjectsThisMonth,
             completedTasksThisMonth,
+            assignedToMe: assignedToMeCount,
+            highPriorityTasks: highPriorityCount,
         })
     } catch (error) {
         console.error("Dashboard API error:", error)

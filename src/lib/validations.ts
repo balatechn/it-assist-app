@@ -35,10 +35,13 @@ export const createTaskSchema = z.object({
     startDate: z.string().optional().nullable(),
     dueDate: z.string().optional().nullable(),
     priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT", "CRITICAL"]).optional(),
-    status: z.enum(["TODO", "IN_PROGRESS", "DONE"]).optional(),
+    status: z.enum(["TODO", "IN_PROGRESS", "DONE", "NOT_STARTED", "BLOCKED", "CANCELLED"]).optional(),
     projectId: z.string().uuid("Valid projectId is required"),
     assigneeId: z.string().uuid().optional().nullable(),
     parentId: z.string().uuid().optional().nullable(),
+    tags: z.array(z.string().max(50)).max(10).optional(),
+    department: z.string().max(100).optional().nullable(),
+    estimatedTime: z.number().min(0).max(10000).optional().nullable(),
 })
 
 export const updateTaskSchema = z.object({
@@ -47,9 +50,12 @@ export const updateTaskSchema = z.object({
     startDate: z.string().optional().nullable(),
     dueDate: z.string().optional().nullable(),
     priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT", "CRITICAL"]).optional(),
-    status: z.enum(["TODO", "IN_PROGRESS", "DONE"]).optional(),
+    status: z.enum(["TODO", "IN_PROGRESS", "DONE", "NOT_STARTED", "BLOCKED", "CANCELLED"]).optional(),
     assigneeId: z.string().uuid().optional().nullable(),
     sortOrder: z.number().int().min(0).optional(),
+    tags: z.array(z.string().max(50)).max(10).optional(),
+    department: z.string().max(100).optional().nullable(),
+    estimatedTime: z.number().min(0).max(10000).optional().nullable(),
 })
 
 export const reorderTasksSchema = z.object({
@@ -57,7 +63,7 @@ export const reorderTasksSchema = z.object({
         z.object({
             id: z.string().uuid(),
             sortOrder: z.number().int().min(0),
-            status: z.enum(["TODO", "IN_PROGRESS", "DONE"]),
+            status: z.enum(["TODO", "IN_PROGRESS", "DONE", "NOT_STARTED", "BLOCKED", "CANCELLED"]),
         })
     ).min(1, "At least one update is required"),
 })

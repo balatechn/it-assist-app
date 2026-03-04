@@ -40,6 +40,9 @@ export function getStatusColor(status: string): string {
         TODO: 'bg-slate-100 text-slate-700 dark:bg-slate-800/50 dark:text-slate-400',
         IN_PROGRESS: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
         DONE: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+        NOT_STARTED: 'bg-gray-100 text-gray-600 dark:bg-gray-800/50 dark:text-gray-400',
+        BLOCKED: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+        CANCELLED: 'bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400',
     }
     return colors[status] || 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
 }

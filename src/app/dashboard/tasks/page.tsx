@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import {
     CheckSquare, Calendar, MessageSquare, Plus, Loader2,
     CheckCircle2, Circle, Star, Trash2, CloudOff, RefreshCw, X,
+    Filter,
 } from "lucide-react"
 import { cn, formatDate, getInitials, getStatusColor, getPriorityColor } from "@/lib/utils"
 import { TaskDetailModal } from "@/components/task-detail-modal"
@@ -61,6 +62,13 @@ export default function TasksPage() {
     const [totalPages, setTotalPages] = useState(1)
     const [total, setTotal] = useState(0)
 
+    // Smart Filters
+    const [filterProjectId, setFilterProjectId] = useState("")
+    const [filterPriority, setFilterPriority] = useState("")
+    const [filterDueDateFrom, setFilterDueDateFrom] = useState("")
+    const [filterDueDateTo, setFilterDueDateTo] = useState("")
+    const [showFilters, setShowFilters] = useState(false)
+
     // Project task create
     const [showProjectTaskCreate, setShowProjectTaskCreate] = useState(false)
     const [projectsList, setProjectsList] = useState<SimpleProject[]>([])
@@ -70,6 +78,8 @@ export default function TasksPage() {
     const [ptDue, setPtDue] = useState("")
     const [ptPriority, setPtPriority] = useState("MEDIUM")
     const [ptAssigneeId, setPtAssigneeId] = useState("")
+    const [ptDepartment, setPtDepartment] = useState("")
+    const [ptEstimatedTime, setPtEstimatedTime] = useState("")
     const [ptCreating, setPtCreating] = useState(false)
 
     // Microsoft Tasks state
@@ -97,7 +107,7 @@ export default function TasksPage() {
     useEffect(() => {
         fetchTasks()
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [page, filter, debouncedSearch])
+    }, [page, filter, debouncedSearch, filterProjectId, filterPriority, filterDueDateFrom, filterDueDateTo])
 
     useEffect(() => {
         fetchProjectsList()
@@ -138,6 +148,8 @@ export default function TasksPage() {
                     dueDate: ptDue || null,
                     priority: ptPriority,
                     assigneeId: ptAssigneeId || undefined,
+                    department: ptDepartment || null,
+                    estimatedTime: ptEstimatedTime ? parseFloat(ptEstimatedTime) : null,
                 }),
             })
             if (res.ok) {
@@ -145,6 +157,8 @@ export default function TasksPage() {
                 setPtDue("")
                 setPtPriority("MEDIUM")
                 setPtAssigneeId("")
+                setPtDepartment("")
+                setPtEstimatedTime("")
                 setShowProjectTaskCreate(false)
                 fetchTasks()
             }
@@ -157,6 +171,10 @@ export default function TasksPage() {
             const params = new URLSearchParams({ page: String(page), limit: "20" })
             if (filter !== "ALL") params.set("status", filter)
             if (debouncedSearch) params.set("search", debouncedSearch)
+            if (filterProjectId) params.set("projectId", filterProjectId)
+            if (filterPriority) params.set("priority", filterPriority)
+            if (filterDueDateFrom) params.set("dueDateFrom", filterDueDateFrom)
+            if (filterDueDateTo) params.set("dueDateTo", filterDueDateTo)
             const res = await fetch(`/api/tasks?${params}`)
             if (res.ok) {
                 const json = await res.json()
@@ -169,7 +187,7 @@ export default function TasksPage() {
         } finally {
             setLoading(false)
         }
-    }, [page, filter, debouncedSearch])
+    }, [page, filter, debouncedSearch, filterProjectId, filterPriority, filterDueDateFrom, filterDueDateTo])
 
     const fetchMsTasks = useCallback(async (listId?: string) => {
         setMsLoading(true)
@@ -262,8 +280,20 @@ export default function TasksPage() {
         { id: "ALL", label: "All" },
         { id: "TODO", label: "To Do" },
         { id: "IN_PROGRESS", label: "Active" },
+        { id: "NOT_STARTED", label: "Not Started" },
+        { id: "BLOCKED", label: "Blocked" },
         { id: "DONE", label: "Done" },
+        { id: "CANCELLED", label: "Cancelled" },
     ]
+
+    const activeFilterCount = [filterProjectId, filterPriority, filterDueDateFrom, filterDueDateTo].filter(Boolean).length
+    const clearFilters = () => {
+        setFilterProjectId("")
+        setFilterPriority("")
+        setFilterDueDateFrom("")
+        setFilterDueDateTo("")
+        setPage(1)
+    }
 
     // ─── Keyboard Shortcuts ─────────────────────────────────────────────────────
 
@@ -412,7 +442,24 @@ export default function TasksPage() {
                                     <option value="MEDIUM">Medium</option>
                                     <option value="HIGH">High</option>
                                     <option value="URGENT">Urgent</option>
+                                    <option value="CRITICAL">Critical</option>
                                 </select>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                                <select value={ptDepartment} onChange={(e) => setPtDepartment(e.target.value)} className="h-9 rounded-md border bg-background px-2 text-xs">
+                                    <option value="">Department...</option>
+                                    <option value="IT">IT</option>
+                                    <option value="HR">HR</option>
+                                    <option value="Finance">Finance</option>
+                                    <option value="Marketing">Marketing</option>
+                                    <option value="Sales">Sales</option>
+                                    <option value="Operations">Operations</option>
+                                    <option value="Admin">Admin</option>
+                                    <option value="Legal">Legal</option>
+                                    <option value="Support">Support</option>
+                                    <option value="Engineering">Engineering</option>
+                                </select>
+                                <Input type="number" placeholder="Est. hours" value={ptEstimatedTime} onChange={(e) => setPtEstimatedTime(e.target.value)} className="h-9 text-xs" min="0" step="0.5" />
                             </div>
                             <div className="flex justify-end gap-2">
                                 <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setShowProjectTaskCreate(false)}>Cancel</Button>
@@ -425,29 +472,88 @@ export default function TasksPage() {
                     )}
 
                     {/* Search + Filters */}
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                        <Input
-                            placeholder="Search tasks..."
-                            value={searchQuery}
-                            onChange={(e) => { setSearchQuery(e.target.value); setPage(1) }}
-                            className="h-9 text-sm sm:max-w-xs"
-                        />
-                        <div className="flex gap-1.5 flex-wrap">
-                            {statusFilters.map((s) => (
-                                <button
-                                    key={s.id}
-                                    onClick={() => { setFilter(s.id); setPage(1) }}
-                                    className={cn(
-                                        "px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200",
-                                        filter === s.id
-                                            ? "bg-primary text-primary-foreground shadow-sm"
-                                            : "bg-muted/50 text-muted-foreground hover:bg-muted"
-                                    )}
-                                >
-                                    {s.label}{filter === s.id ? ` (${total})` : ""}
-                                </button>
-                            ))}
+                    <div className="space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <Input
+                                placeholder="Search tasks..."
+                                value={searchQuery}
+                                onChange={(e) => { setSearchQuery(e.target.value); setPage(1) }}
+                                className="h-9 text-sm sm:max-w-xs"
+                            />
+                            <div className="flex gap-1.5 flex-wrap flex-1">
+                                {statusFilters.map((s) => (
+                                    <button
+                                        key={s.id}
+                                        onClick={() => { setFilter(s.id); setPage(1) }}
+                                        className={cn(
+                                            "px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200",
+                                            filter === s.id
+                                                ? "bg-primary text-primary-foreground shadow-sm"
+                                                : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                                        )}
+                                    >
+                                        {s.label}{filter === s.id ? ` (${total})` : ""}
+                                    </button>
+                                ))}
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className={cn("h-9 text-xs gap-1.5 shrink-0", showFilters && "bg-primary/10 border-primary/30")}
+                                onClick={() => setShowFilters(!showFilters)}
+                            >
+                                <Filter className="w-3.5 h-3.5" />
+                                Filters
+                                {activeFilterCount > 0 && (
+                                    <span className="bg-primary text-primary-foreground rounded-full w-4 h-4 text-[10px] flex items-center justify-center">
+                                        {activeFilterCount}
+                                    </span>
+                                )}
+                            </Button>
                         </div>
+
+                        {/* Smart Filters Panel */}
+                        {showFilters && (
+                            <Card className="p-3 border-primary/20 animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                                    <div>
+                                        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-1 block">Project</label>
+                                        <select value={filterProjectId} onChange={(e) => { setFilterProjectId(e.target.value); setPage(1) }} className="h-8 w-full rounded-md border bg-background px-2 text-xs">
+                                            <option value="">All Projects</option>
+                                            {projectsList.map(p => (
+                                                <option key={p.id} value={p.id}>{p.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-1 block">Priority</label>
+                                        <select value={filterPriority} onChange={(e) => { setFilterPriority(e.target.value); setPage(1) }} className="h-8 w-full rounded-md border bg-background px-2 text-xs">
+                                            <option value="">All Priorities</option>
+                                            <option value="CRITICAL">Critical</option>
+                                            <option value="URGENT">Urgent</option>
+                                            <option value="HIGH">High</option>
+                                            <option value="MEDIUM">Medium</option>
+                                            <option value="LOW">Low</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-1 block">Due From</label>
+                                        <Input type="date" value={filterDueDateFrom} onChange={(e) => { setFilterDueDateFrom(e.target.value); setPage(1) }} className="h-8 text-xs" />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-1 block">Due To</label>
+                                        <Input type="date" value={filterDueDateTo} onChange={(e) => { setFilterDueDateTo(e.target.value); setPage(1) }} className="h-8 text-xs" />
+                                    </div>
+                                </div>
+                                {activeFilterCount > 0 && (
+                                    <div className="flex justify-end mt-2">
+                                        <button onClick={clearFilters} className="text-[11px] text-primary hover:underline">
+                                            Clear all filters
+                                        </button>
+                                    </div>
+                                )}
+                            </Card>
+                        )}
                     </div>
 
                     {/* Tasks List */}

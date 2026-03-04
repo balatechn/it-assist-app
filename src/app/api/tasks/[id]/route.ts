@@ -39,6 +39,13 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
                 files: {
                     orderBy: { createdAt: "desc" },
                 },
+                activities: {
+                    include: {
+                        user: { select: { id: true, name: true, avatar: true } },
+                    },
+                    orderBy: { createdAt: "desc" },
+                    take: 30,
+                },
                 _count: { select: { comments: true, files: true, subtasks: true } },
             },
         })
@@ -78,7 +85,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         if (!parsed.success) {
             return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
         }
-        const { title, description, startDate, dueDate, priority, status, assigneeId, sortOrder } = parsed.data
+        const { title, description, startDate, dueDate, priority, status, assigneeId, sortOrder, tags, department, estimatedTime } = parsed.data
 
         const task = await prisma.task.update({
             where: { id: params.id },
@@ -91,12 +98,50 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
                 ...(status !== undefined && { status }),
                 ...(assigneeId !== undefined && { assigneeId: assigneeId || null }),
                 ...(sortOrder !== undefined && { sortOrder }),
+                ...(tags !== undefined && { tags }),
+                ...(department !== undefined && { department: department || null }),
+                ...(estimatedTime !== undefined && { estimatedTime: estimatedTime ?? null }),
             },
             include: {
                 project: { select: { id: true, name: true, color: true } },
                 assignee: { select: { id: true, name: true } },
             },
         })
+
+        // Log activity for field changes
+        const activityPromises: Promise<unknown>[] = []
+        if (status !== undefined && status !== existing.status) {
+            activityPromises.push(prisma.taskActivity.create({
+                data: { action: "status_changed", field: "status", oldValue: existing.status, newValue: status, taskId: params.id, userId: session.user.id },
+            }))
+        }
+        if (priority !== undefined && priority !== existing.priority) {
+            activityPromises.push(prisma.taskActivity.create({
+                data: { action: "priority_changed", field: "priority", oldValue: existing.priority, newValue: priority, taskId: params.id, userId: session.user.id },
+            }))
+        }
+        if (assigneeId !== undefined && assigneeId !== existing.assigneeId) {
+            activityPromises.push(prisma.taskActivity.create({
+                data: { action: "assigned", field: "assignee", oldValue: existing.assigneeId || "unassigned", newValue: assigneeId || "unassigned", taskId: params.id, userId: session.user.id },
+            }))
+        }
+        if (title !== undefined && title !== existing.title) {
+            activityPromises.push(prisma.taskActivity.create({
+                data: { action: "updated", field: "title", oldValue: existing.title, newValue: title, taskId: params.id, userId: session.user.id },
+            }))
+        }
+        if (dueDate !== undefined) {
+            const oldDue = existing.dueDate ? existing.dueDate.toISOString() : null
+            const newDue = dueDate ? new Date(dueDate).toISOString() : null
+            if (oldDue !== newDue) {
+                activityPromises.push(prisma.taskActivity.create({
+                    data: { action: "updated", field: "dueDate", oldValue: oldDue || "none", newValue: newDue || "none", taskId: params.id, userId: session.user.id },
+                }))
+            }
+        }
+        if (activityPromises.length > 0) {
+            await Promise.all(activityPromises)
+        }
 
         // Send email if assignee changed to a new person
         const assigneeChanged = assigneeId && assigneeId !== existing.assigneeId

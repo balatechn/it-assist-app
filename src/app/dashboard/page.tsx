@@ -19,6 +19,10 @@ import {
     ArrowUpRight,
     Layers,
     Calendar,
+    Ban,
+    Circle,
+    ShieldAlert,
+    UserCheck,
 } from "lucide-react"
 import { cn, formatDate, getInitials, getStatusColor, getPriorityColor } from "@/lib/utils"
 
@@ -45,10 +49,15 @@ interface DashboardStats {
         project: { name: string; color: string | null }
         assignee: { name: string } | null
     }>
-    tasksByPriority: { LOW: number; MEDIUM: number; HIGH: number }
-    tasksByStatus: { TODO: number; IN_PROGRESS: number; DONE: number }
+    tasksByPriority: { LOW: number; MEDIUM: number; HIGH: number; CRITICAL?: number }
+    tasksByStatus: { NOT_STARTED: number; TODO: number; IN_PROGRESS: number; BLOCKED: number; DONE: number; CANCELLED: number }
     newProjectsThisMonth: number
     completedTasksThisMonth: number
+    notStartedCount: number
+    blockedCount: number
+    cancelledCount: number
+    assignedToMeCount: number
+    highPriorityCount: number
 }
 
 /* ── Animated number counter ───────────────────────────────── */
@@ -343,9 +352,12 @@ export default function DashboardPage() {
                     {/* Status tiles */}
                     <div className="grid grid-cols-3 gap-2.5">
                         {[
+                            { label: "Not Started", count: stats?.tasksByStatus?.NOT_STARTED || 0, icon: Circle, accent: "border-gray-500/30 bg-gray-500/5" },
                             { label: "To Do", count: stats?.tasksByStatus?.TODO || 0, icon: Target, accent: "border-slate-500/30 bg-slate-500/5" },
                             { label: "In Progress", count: stats?.tasksByStatus?.IN_PROGRESS || 0, icon: Clock, accent: "border-blue-500/30 bg-blue-500/5" },
+                            { label: "Blocked", count: stats?.tasksByStatus?.BLOCKED || 0, icon: ShieldAlert, accent: "border-red-500/30 bg-red-500/5" },
                             { label: "Done", count: stats?.tasksByStatus?.DONE || 0, icon: CheckSquare, accent: "border-emerald-500/30 bg-emerald-500/5" },
+                            { label: "Cancelled", count: stats?.tasksByStatus?.CANCELLED || 0, icon: Ban, accent: "border-rose-500/30 bg-rose-500/5" },
                         ].map((item) => (
                             <div key={item.label} className={cn("text-center p-3 rounded-xl border transition-all hover:scale-[1.02]", item.accent)}>
                                 <item.icon className="w-4 h-4 text-muted-foreground mx-auto mb-1" />
@@ -353,6 +365,24 @@ export default function DashboardPage() {
                                 <p className="text-[10px] text-muted-foreground mt-0.5">{item.label}</p>
                             </div>
                         ))}
+                    </div>
+
+                    {/* Assigned to Me & Blocked quick-stats */}
+                    <div className="grid grid-cols-2 gap-2.5">
+                        <div className="flex items-center gap-3 p-3 rounded-xl border border-[#e8b84a]/30 bg-[#e8b84a]/5">
+                            <UserCheck className="w-5 h-5 text-[#e8b84a]" />
+                            <div>
+                                <p className="text-lg font-bold leading-tight"><AnimatedNumber value={stats?.assignedToMeCount || 0} /></p>
+                                <p className="text-[10px] text-muted-foreground">Assigned to Me</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3 p-3 rounded-xl border border-orange-500/30 bg-orange-500/5">
+                            <AlertTriangle className="w-5 h-5 text-orange-500" />
+                            <div>
+                                <p className="text-lg font-bold leading-tight"><AnimatedNumber value={stats?.highPriorityCount || 0} /></p>
+                                <p className="text-[10px] text-muted-foreground">High Priority</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
