@@ -24,6 +24,7 @@ import {
     Mail,
     Video,
     CalendarDays,
+    IndianRupee,
 } from "lucide-react"
 import { useLayoutStore } from "@/lib/store"
 import { isAdmin as checkIsAdmin } from "@/lib/utils"
@@ -40,6 +41,7 @@ const navItems = [
     { href: "/dashboard/tasks", label: "My Tasks", icon: CheckSquare },
     { href: "/dashboard/team", label: "Team", icon: Users },
     { href: "/dashboard/files", label: "OneDrive", icon: Cloud },
+    { href: "https://finance.nationalgroupindia.com/login", label: "Finance Approval", icon: IndianRupee, external: true },
     { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
     { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ]
@@ -152,9 +154,12 @@ export function Sidebar() {
                 )}
                 {collapsed && !mobileSidebarOpen && <div className="mt-4" />}
                 {navItems.map((item) => {
-                    const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))
+                    const isExternal = 'external' in item && item.external
+                    const isActive = !isExternal && (pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href)))
+                    const Tag = isExternal ? 'a' : Link
+                    const extraProps = isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {}
                     return (
-                        <Link
+                        <Tag
                             key={item.href}
                             href={item.href}
                             aria-current={isActive ? "page" : undefined}
@@ -164,6 +169,7 @@ export function Sidebar() {
                                     ? "bg-sidebar-accent text-sidebar-foreground shadow-sm"
                                     : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                             )}
+                            {...extraProps}
                         >
                             <item.icon className={cn(
                                 "w-5 h-5 shrink-0 transition-colors",
@@ -173,7 +179,7 @@ export function Sidebar() {
                             {isActive && (!collapsed || mobileSidebarOpen) && (
                                 <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#e8b84a] animate-pulse" />
                             )}
-                        </Link>
+                        </Tag>
                     )
                 })}
 
