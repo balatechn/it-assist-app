@@ -37,13 +37,22 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
             }
         }
 
+        // For employees, only show tasks assigned to them within the project
+        const taskWhere: Record<string, unknown> = { parentId: null }
+        if (!hasMinRole(role, "MANAGER")) {
+            taskWhere.OR = [
+                { assigneeId: userId },
+                { creatorId: userId },
+            ]
+        }
+
         const project = await prisma.project.findFirst({
             where,
             include: {
                 creator: { select: { id: true, name: true, email: true, avatar: true } },
                 manager: { select: { id: true, name: true, email: true, avatar: true } },
                 tasks: {
-                    where: { parentId: null },
+                    where: taskWhere,
                     include: {
                         assignee: { select: { id: true, name: true, avatar: true } },
                         subtasks: {

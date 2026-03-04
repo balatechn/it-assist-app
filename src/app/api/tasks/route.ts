@@ -5,6 +5,7 @@ import prisma from "@/lib/db"
 import { logAction } from "@/lib/audit"
 import { createTaskSchema } from "@/lib/validations"
 import { sendMail, buildTaskAssignedEmail } from "@/lib/mail"
+import { isManager } from "@/lib/utils"
 
 // GET /api/tasks — Get tasks (with optional pagination and filters)
 export async function GET(req: NextRequest) {
@@ -31,6 +32,14 @@ export async function GET(req: NextRequest) {
             parentId: null, // Only return top-level tasks, not subtasks
         }
 
+        // EMPLOYEE role: only see tasks assigned to them or created by them
+        if (!isManager(session.user.role)) {
+            where.OR = [
+                { assigneeId: session.user.id },
+                { creatorId: session.user.id },
+            ]
+        }
+
         if (projectId) where.projectId = projectId
         if (assigneeId) where.assigneeId = assigneeId
         if (status) where.status = status
@@ -43,11 +52,21 @@ export async function GET(req: NextRequest) {
             }
         }
         if (search) {
-            where.OR = [
+            // If we already have OR from role-based filter, wrap in AND
+            const searchFilter = [
                 { title: { contains: search, mode: "insensitive" } },
                 { description: { contains: search, mode: "insensitive" } },
                 { tags: { has: search } },
             ]
+            if (where.OR) {
+                where.AND = [
+                    { OR: where.OR as Record<string, unknown>[] },
+                    { OR: searchFilter },
+                ]
+                delete where.OR
+            } else {
+                where.OR = searchFilter
+            }
         }
 
         const [tasks, total] = await Promise.all([
