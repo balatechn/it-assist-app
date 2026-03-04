@@ -29,9 +29,9 @@ import { useLayoutStore } from "@/lib/store"
 import { isAdmin as checkIsAdmin } from "@/lib/utils"
 
 const ms365Items = [
-    { href: "https://outlook.office.com/mail", label: "Outlook", icon: Mail },
-    { href: "https://teams.microsoft.com", label: "Teams", icon: Video },
-    { href: "https://outlook.office.com/calendar", label: "Calendar", icon: CalendarDays },
+    { href: "https://outlook.office.com/mail", label: "Outlook", icon: Mail, color: "text-[#e8b84a] hover:text-[#d4a030]" },
+    { href: "https://teams.microsoft.com", label: "Teams", icon: Video, color: "text-orange-500 hover:text-orange-400" },
+    { href: "https://outlook.office.com/calendar", label: "Calendar", icon: CalendarDays, color: "text-blue-500 hover:text-blue-400" },
 ]
 
 const navItems = [
@@ -121,7 +121,7 @@ export function Sidebar() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 title={item.label}
-                                className="p-2 rounded-lg transition-all duration-200 text-sidebar-foreground/50 hover:text-[#e8b84a] hover:bg-sidebar-accent/50"
+                                className={`p-2 rounded-lg transition-all duration-200 hover:bg-sidebar-accent/50 ${item.color}`}
                             >
                                 <item.icon className="w-4.5 h-4.5" />
                             </a>
@@ -136,7 +136,7 @@ export function Sidebar() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 title={item.label}
-                                className="p-2 rounded-lg transition-all duration-200 text-sidebar-foreground/50 hover:text-[#e8b84a] hover:bg-sidebar-accent/50"
+                                className={`p-2 rounded-lg transition-all duration-200 hover:bg-sidebar-accent/50 ${item.color}`}
                             >
                                 <item.icon className="w-5 h-5" />
                             </a>
