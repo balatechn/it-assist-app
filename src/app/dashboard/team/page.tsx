@@ -239,11 +239,11 @@ export default function TeamPage() {
         user.role.toLowerCase().includes(search.toLowerCase())
     )
 
-    // Entity definitions: domain → entity name
-    const ENTITIES: { name: string; domain: string }[] = [
-        { name: "National Group India", domain: "nationalgroupindia.com" },
-        { name: "Rainland Autocorp", domain: "rainlandautocorp.com" },
-        { name: "Isky Transport", domain: "iskytransport.com" },
+    // Entity definitions: domain → entity name + brand color
+    const ENTITIES: { name: string; domain: string; color: string; bgClass: string }[] = [
+        { name: "National Group India", domain: "nationalgroupindia.com", color: "#c8932e", bgClass: "from-[#1a1a2e] to-[#0f3460]" },
+        { name: "Rainland Autocorp", domain: "rainlandautocorp.com", color: "#3B82F6", bgClass: "from-blue-900 to-blue-700" },
+        { name: "Isky Transport", domain: "iskytransport.com", color: "#10B981", bgClass: "from-emerald-900 to-emerald-700" },
     ]
 
     // Group filtered users by entity
@@ -300,13 +300,18 @@ export default function TeamPage() {
                 <div className="space-y-8">
                     {groupedUsers.map((entity) => entity.members.length > 0 && (
                         <div key={entity.domain}>
-                            <div className="flex items-center gap-2.5 mb-4">
-                                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                                    <Building2 className="w-4 h-4 text-primary" />
+                            <div className={`flex items-center gap-3 mb-4 px-4 py-3 rounded-xl bg-gradient-to-r ${entity.bgClass} text-white shadow-sm`}>
+                                <div className="w-9 h-9 rounded-lg bg-white/15 backdrop-blur flex items-center justify-center">
+                                    <Building2 className="w-5 h-5 text-white" />
                                 </div>
-                                <div>
-                                    <h3 className="text-base font-semibold">{entity.name}</h3>
-                                    <p className="text-[11px] text-muted-foreground">{entity.domain} &middot; {entity.members.length} member{entity.members.length !== 1 ? "s" : ""}</p>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="text-sm font-bold tracking-wide">{entity.name}</h3>
+                                    <p className="text-[11px] text-white/60">{entity.domain} &middot; {entity.members.length} member{entity.members.length !== 1 ? "s" : ""}</p>
+                                </div>
+                                <div className="text-right hidden sm:block">
+                                    <span className="text-xs font-semibold bg-white/15 backdrop-blur px-2.5 py-1 rounded-full">
+                                        {entity.members.length} {entity.members.length === 1 ? "Member" : "Members"}
+                                    </span>
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
