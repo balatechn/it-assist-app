@@ -24,7 +24,6 @@ import {
     Mail,
     Video,
     CalendarDays,
-    ExternalLink,
 } from "lucide-react"
 import { useLayoutStore } from "@/lib/store"
 import { isAdmin as checkIsAdmin } from "@/lib/utils"
@@ -109,29 +108,41 @@ export function Sidebar() {
 
             {/* Navigation */}
             <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-                {/* Microsoft 365 - Top section */}
-                {(!collapsed || mobileSidebarOpen) && (
-                    <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
-                        Microsoft 365
-                    </p>
+                {/* Microsoft 365 - Icon row */}
+                {(!collapsed || mobileSidebarOpen) ? (
+                    <div className="flex items-center gap-1 px-2 mb-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40 mr-auto">
+                            M365
+                        </p>
+                        {ms365Items.map((item) => (
+                            <a
+                                key={item.href}
+                                href={item.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title={item.label}
+                                className="p-2 rounded-lg transition-all duration-200 text-sidebar-foreground/50 hover:text-[#e8b84a] hover:bg-sidebar-accent/50"
+                            >
+                                <item.icon className="w-4.5 h-4.5" />
+                            </a>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center gap-1 mb-3">
+                        {ms365Items.map((item) => (
+                            <a
+                                key={item.href}
+                                href={item.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title={item.label}
+                                className="p-2 rounded-lg transition-all duration-200 text-sidebar-foreground/50 hover:text-[#e8b84a] hover:bg-sidebar-accent/50"
+                            >
+                                <item.icon className="w-5 h-5" />
+                            </a>
+                        ))}
+                    </div>
                 )}
-                {ms365Items.map((item) => (
-                    <a
-                        key={item.href}
-                        href={item.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
-                    >
-                        <item.icon className="w-5 h-5 shrink-0 text-sidebar-foreground/40 group-hover:text-[#e8b84a]/70" />
-                        {(!collapsed || mobileSidebarOpen) && (
-                            <span className="flex-1">{item.label}</span>
-                        )}
-                        {(!collapsed || mobileSidebarOpen) && (
-                            <ExternalLink className="w-3.5 h-3.5 text-sidebar-foreground/20 group-hover:text-sidebar-foreground/40" />
-                        )}
-                    </a>
-                ))}
 
                 {/* Menu section */}
                 {(!collapsed || mobileSidebarOpen) && (
