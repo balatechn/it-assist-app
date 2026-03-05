@@ -24,8 +24,58 @@ import {
     Circle,
     ShieldAlert,
     UserCheck,
+    ExternalLink,
 } from "lucide-react"
 import { cn, formatDate, getInitials, getStatusColor, getPriorityColor } from "@/lib/utils"
+
+/* ── Group company hierarchy config ────────────────────────── */
+const GROUP_COMPANIES = {
+    parent: {
+        name: "National Group India",
+        logo: "/logos/national-group.png",
+        website: "https://nationalgroupindia.com",
+        color: "#e8b84a",
+        tagline: "Since 1949",
+    },
+    subsidiaries: [
+        {
+            name: "Rainland AutoCorp",
+            logo: "/logos/rainland-autocorp.png",
+            website: "https://rainlandautocorp.com",
+            color: "#F97316",
+            bgGradient: "from-orange-500/10 to-orange-600/5",
+            borderColor: "border-orange-500/40",
+            domain: "rainlandautocorp.com",
+        },
+        {
+            name: "National Consulting India",
+            logo: null,
+            website: null,
+            color: "#10B981",
+            bgGradient: "from-emerald-500/10 to-emerald-600/5",
+            borderColor: "border-emerald-500/40",
+            domain: "nationalconsultingindia.com",
+        },
+        {
+            name: "iSky Transport",
+            logo: "/logos/isky-transport.png",
+            website: "https://iskytransport.com",
+            color: "#0EA5E9",
+            bgGradient: "from-sky-500/10 to-sky-600/5",
+            borderColor: "border-sky-500/40",
+            domain: "iskytransport.com",
+        },
+        {
+            name: "National Infra Build",
+            logo: "/logos/national-infrabuild.png",
+            website: "https://nationalinfrabuild.com",
+            color: "#3B82F6",
+            bgGradient: "from-blue-500/10 to-blue-600/5",
+            borderColor: "border-blue-500/40",
+            domain: "nationalinfrabuild.com",
+        },
+    ],
+}
 
 interface DashboardStats {
     totalProjects: number
@@ -162,24 +212,27 @@ export default function DashboardPage() {
                     style={{ background: "radial-gradient(circle, #e8b84a 0%, transparent 70%)" }} />
                 <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        {/* Organization branding */}
-                        {stats?.organization && (
-                            <div className="flex items-center gap-3 mb-3">
-                                {stats.organization.logo ? (
-                                    <Image
-                                        src={stats.organization.logo}
-                                        alt={stats.organization.name}
-                                        width={36}
-                                        height={36}
-                                        className="rounded-lg object-contain bg-white/10 p-1"
-                                    />
-                                ) : (
-                                    <div className="h-9 w-9 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-                                        style={{ background: "linear-gradient(135deg, #c8932e 0%, #e8b84a 100%)" }}>
-                                        {stats.organization.name.charAt(0)}
-                                    </div>
-                                )}
+                        {/* Parent company branding */}
+                        <div className="flex items-center gap-3 mb-3">
+                            <Image
+                                src={GROUP_COMPANIES.parent.logo}
+                                alt={GROUP_COMPANIES.parent.name}
+                                width={40}
+                                height={40}
+                                className="rounded-lg object-contain bg-white/10 p-1"
+                            />
+                            <div>
                                 <span className="text-sm md:text-base font-bold tracking-[0.15em] text-[#e8b84a]">
+                                    {GROUP_COMPANIES.parent.name.toUpperCase()}
+                                </span>
+                                <p className="text-[10px] text-[#e8b84a]/50 tracking-wider">{GROUP_COMPANIES.parent.tagline}</p>
+                            </div>
+                        </div>
+                        {/* Current organization highlight */}
+                        {stats?.organization && stats.organization.name.toLowerCase() !== "national group india" && (
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="h-1 w-1 rounded-full bg-[#e8b84a]/40" />
+                                <span className="text-xs font-semibold tracking-wider text-white/70">
                                     {stats.organization.name.toUpperCase()}
                                 </span>
                             </div>
@@ -203,6 +256,75 @@ export default function DashboardPage() {
                         <Plus className="w-4 h-4" /> New Project
                     </Link>
                 </div>
+            </div>
+
+            {/* ── Group Companies Strip ──────────────── */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+                {GROUP_COMPANIES.subsidiaries.map((company) => {
+                    const isCurrentOrg = stats?.organization?.name?.toLowerCase().replace(/\s+/g, "").includes(
+                        company.name.toLowerCase().replace(/\s+/g, "").slice(0, 8)
+                    )
+                    return (
+                        <div
+                            key={company.name}
+                            className={cn(
+                                "relative group rounded-xl border p-3 transition-all duration-300 overflow-hidden",
+                                isCurrentOrg
+                                    ? `${company.borderColor} bg-gradient-to-br ${company.bgGradient} shadow-md`
+                                    : "border-border/50 bg-card hover:bg-muted/30"
+                            )}
+                            style={isCurrentOrg ? { boxShadow: `0 0 0 2px ${company.color}30` } : undefined}
+                        >
+                            {isCurrentOrg && (
+                                <div className="absolute top-1.5 right-1.5">
+                                    <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full text-white"
+                                        style={{ backgroundColor: company.color }}>
+                                        You
+                                    </span>
+                                </div>
+                            )}
+                            <div className="flex items-center gap-2.5">
+                                {company.logo ? (
+                                    <Image
+                                        src={company.logo}
+                                        alt={company.name}
+                                        width={32}
+                                        height={32}
+                                        className="rounded-lg object-contain bg-white/80 dark:bg-white/10 p-0.5 shrink-0"
+                                    />
+                                ) : (
+                                    <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0"
+                                        style={{ backgroundColor: company.color }}>
+                                        {company.name.split(" ").map(w => w[0]).join("").slice(0, 2)}
+                                    </div>
+                                )}
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-xs font-semibold truncate" style={isCurrentOrg ? { color: company.color } : undefined}>
+                                        {company.name}
+                                    </p>
+                                    {company.website ? (
+                                        <a
+                                            href={company.website}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-[10px] text-muted-foreground hover:underline flex items-center gap-0.5"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            Visit <ExternalLink className="w-2.5 h-2.5" />
+                                        </a>
+                                    ) : (
+                                        <span className="text-[10px] text-muted-foreground">Group Company</span>
+                                    )}
+                                </div>
+                            </div>
+                            {/* Bottom color accent bar */}
+                            <div
+                                className="absolute bottom-0 left-0 right-0 h-0.5 opacity-60 group-hover:opacity-100 transition-opacity"
+                                style={{ backgroundColor: company.color }}
+                            />
+                        </div>
+                    )
+                })}
             </div>
 
             {/* ── Stat Cards ─────────────────────────── */}
