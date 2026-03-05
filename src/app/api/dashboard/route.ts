@@ -136,6 +136,12 @@ export async function GET() {
             CANCELLED: cancelledCount,
         }
 
+        // Fetch organization info
+        const organization = await prisma.organization.findUnique({
+            where: { id: orgId },
+            select: { name: true, logo: true },
+        })
+
         // Projects with task counts (scoped)
         const projects = await prisma.project.findMany({
             where: projectFilter,
@@ -181,6 +187,7 @@ export async function GET() {
             completedTasksThisMonth,
             assignedToMe: assignedToMeCount,
             highPriorityTasks: highPriorityCount,
+            organization: organization ? { name: organization.name, logo: organization.logo } : null,
         })
     } catch (error) {
         console.error("Dashboard API error:", error)

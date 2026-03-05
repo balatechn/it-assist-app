@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
+import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -58,6 +59,7 @@ interface DashboardStats {
     cancelledCount: number
     assignedToMeCount: number
     highPriorityCount: number
+    organization?: { name: string; logo: string | null } | null
 }
 
 /* ── Animated number counter ───────────────────────────────── */
@@ -160,6 +162,28 @@ export default function DashboardPage() {
                     style={{ background: "radial-gradient(circle, #e8b84a 0%, transparent 70%)" }} />
                 <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
+                        {/* Organization branding */}
+                        {stats?.organization && (
+                            <div className="flex items-center gap-3 mb-3">
+                                {stats.organization.logo ? (
+                                    <Image
+                                        src={stats.organization.logo}
+                                        alt={stats.organization.name}
+                                        width={36}
+                                        height={36}
+                                        className="rounded-lg object-contain bg-white/10 p-1"
+                                    />
+                                ) : (
+                                    <div className="h-9 w-9 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+                                        style={{ background: "linear-gradient(135deg, #c8932e 0%, #e8b84a 100%)" }}>
+                                        {stats.organization.name.charAt(0)}
+                                    </div>
+                                )}
+                                <span className="text-sm md:text-base font-bold tracking-[0.15em] text-[#e8b84a]">
+                                    {stats.organization.name.toUpperCase()}
+                                </span>
+                            </div>
+                        )}
                         <div className="flex items-center gap-2 mb-1">
                             <Zap className="w-5 h-5 text-[#e8b84a]" />
                             <span className="text-[11px] font-semibold uppercase tracking-widest text-[#e8b84a]/80">
