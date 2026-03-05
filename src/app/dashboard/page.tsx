@@ -109,7 +109,7 @@ interface DashboardStats {
     cancelledCount: number
     assignedToMeCount: number
     highPriorityCount: number
-    organization?: { name: string; logo: string | null } | null
+    organization?: { name: string; logo: string | null; domain: string } | null
 }
 
 /* ── Animated number counter ───────────────────────────────── */
@@ -229,11 +229,11 @@ export default function DashboardPage() {
                             </div>
                         </div>
                         {/* Current organization highlight */}
-                        {stats?.organization && stats.organization.name.toLowerCase() !== "national group india" && (
+                        {stats?.organization && (
                             <div className="flex items-center gap-2 mb-2">
                                 <div className="h-1 w-1 rounded-full bg-[#e8b84a]/40" />
                                 <span className="text-xs font-semibold tracking-wider text-white/70">
-                                    {stats.organization.name.toUpperCase()}
+                                    {GROUP_COMPANIES.parent.name} ({stats.organization.domain})
                                 </span>
                             </div>
                         )}
@@ -261,9 +261,7 @@ export default function DashboardPage() {
             {/* ── Group Companies Strip ──────────────── */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
                 {GROUP_COMPANIES.subsidiaries.map((company) => {
-                    const isCurrentOrg = stats?.organization?.name?.toLowerCase().replace(/\s+/g, "").includes(
-                        company.name.toLowerCase().replace(/\s+/g, "").slice(0, 8)
-                    )
+                    const isCurrentOrg = stats?.organization?.domain === company.domain
                     return (
                         <div
                             key={company.name}

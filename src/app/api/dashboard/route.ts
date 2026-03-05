@@ -139,7 +139,7 @@ export async function GET() {
         // Fetch organization info
         const organization = await prisma.organization.findUnique({
             where: { id: orgId },
-            select: { name: true, logo: true },
+            select: { name: true, logo: true, domain: true },
         })
 
         // Projects with task counts (scoped)
