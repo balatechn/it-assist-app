@@ -1,18 +1,32 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ArrowLeft, Zap } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { ArrowLeft, Zap, Users, X } from "lucide-react"
 import Link from "next/link"
 import { PROJECT_COLORS } from "@/lib/constants"
+import { getInitials } from "@/lib/utils"
+
+interface TeamMember { id: string; name: string; email: string; avatar: string | null }
 
 export default function NewProjectPage() {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
+    const [ccUserIds, setCcUserIds] = useState<string[]>([])
 
     const [form, setForm] = useState({
         name: "",
@@ -24,6 +38,10 @@ export default function NewProjectPage() {
         status: "PLANNED",
         color: PROJECT_COLORS[0],
     })
+
+    useEffect(() => {
+        fetch("/api/users").then(r => r.ok ? r.json() : []).then(setTeamMembers).catch(() => {})
+    }, [])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -39,6 +57,7 @@ export default function NewProjectPage() {
                     startDate: form.startDate || null,
                     endDate: form.endDate || null,
                     budget: form.budget || null,
+                    ccUserIds: ccUserIds.length > 0 ? ccUserIds : undefined,
                 }),
             })
 
@@ -165,6 +184,51 @@ export default function NewProjectPage() {
                                         style={{ backgroundColor: color }}
                                     />
                                 ))}
+                            </div>
+                        </div>
+
+                        {/* CC Users (View Only) */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium flex items-center gap-1.5">
+                                <Users className="w-3.5 h-3.5" /> CC (View Only)
+                            </label>
+                            <div className="flex flex-wrap gap-1.5">
+                                {ccUserIds.map((uid) => {
+                                    const member = teamMembers.find(m => m.id === uid)
+                                    return (
+                                        <Badge key={uid} variant="outline" className="text-[11px] px-2 py-1 gap-1.5 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+                                            <Avatar className="w-4 h-4">
+                                                <AvatarFallback className="text-[7px] bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                                                    {getInitials(member?.name || "?")}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            {member?.name || uid}
+                                            <button type="button" onClick={() => setCcUserIds(ccUserIds.filter(id => id !== uid))}
+                                                className="ml-0.5 hover:text-destructive">
+                                                <X className="w-2.5 h-2.5" />
+                                            </button>
+                                        </Badge>
+                                    )
+                                })}
+                                <Select
+                                    value=""
+                                    onValueChange={(v) => {
+                                        if (v && !ccUserIds.includes(v)) setCcUserIds([...ccUserIds, v])
+                                    }}
+                                >
+                                    <SelectTrigger className="h-8 w-44 text-xs px-2">
+                                        <SelectValue placeholder="+ Add CC user" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {teamMembers
+                                            .filter(m => !ccUserIds.includes(m.id))
+                                            .map((m) => (
+                                                <SelectItem key={m.id} value={m.id} className="text-xs">
+                                                    {m.name}
+                                                </SelectItem>
+                                            ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
 

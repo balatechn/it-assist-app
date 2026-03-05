@@ -24,6 +24,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
                 project: { select: { id: true, name: true, color: true } },
                 assignee: { select: { id: true, name: true, email: true, avatar: true } },
                 creator: { select: { id: true, name: true, email: true } },
+                ccUsers: { select: { id: true, name: true, email: true, avatar: true } },
                 subtasks: {
                     include: {
                         assignee: { select: { id: true, name: true, avatar: true } },
@@ -85,7 +86,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         if (!parsed.success) {
             return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
         }
-        const { title, description, startDate, dueDate, priority, status, assigneeId, sortOrder, tags, department, estimatedTime } = parsed.data
+        const { title, description, startDate, dueDate, priority, status, assigneeId, sortOrder, tags, department, estimatedTime, ccUserIds } = parsed.data
 
         const task = await prisma.task.update({
             where: { id: params.id },
@@ -101,6 +102,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
                 ...(tags !== undefined && { tags }),
                 ...(department !== undefined && { department: department || null }),
                 ...(estimatedTime !== undefined && { estimatedTime: estimatedTime ?? null }),
+                ...(ccUserIds !== undefined && {
+                    ccUsers: { set: ccUserIds.map((id: string) => ({ id })) },
+                }),
             },
             include: {
                 project: { select: { id: true, name: true, color: true } },

@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select"
 import {
     Save, Loader2, DollarSign,
-    Calendar, User, FolderKanban,
+    Calendar, User, FolderKanban, Users, X,
 } from "lucide-react"
 import { cn, getInitials, getStatusColor, isManager } from "@/lib/utils"
 
@@ -48,6 +48,7 @@ interface ProjectData {
     color: string | null
     creator: { id: string; name: string; email: string }
     manager: { id: string; name: string; email: string } | null
+    ccUsers?: { id: string; name: string; email: string; avatar: string | null }[]
 }
 
 interface ProjectEditModalProps {
@@ -88,6 +89,7 @@ export function ProjectEditModal({ project, open, onOpenChange, onProjectUpdated
     const [progress, setProgress] = useState("0")
     const [color, setColor] = useState("#3B82F6")
     const [managerId, setManagerId] = useState("")
+    const [ccUserIds, setCcUserIds] = useState<string[]>([])
 
     const fetchTeamMembers = useCallback(async () => {
         try {
@@ -114,6 +116,7 @@ export function ProjectEditModal({ project, open, onOpenChange, onProjectUpdated
             setProgress(String(project.progress))
             setColor(project.color || "#3B82F6")
             setManagerId(project.manager?.id || "")
+            setCcUserIds(project.ccUsers?.map(u => u.id) || [])
             fetchTeamMembers()
         }
     }, [project, open, fetchTeamMembers])
@@ -134,6 +137,7 @@ export function ProjectEditModal({ project, open, onOpenChange, onProjectUpdated
                 progress: parseInt(progress) || 0,
                 color,
                 managerId: managerId || null,
+                ccUserIds,
             }
 
             const res = await fetch(`/api/projects/${project.id}`, {
@@ -349,6 +353,55 @@ export function ProjectEditModal({ project, open, onOpenChange, onProjectUpdated
                                     disabled={!canEdit}
                                 />
                             ))}
+                        </div>
+                    </div>
+
+                    {/* CC Users (View Only Access) */}
+                    <div className="space-y-2">
+                        <Label className="flex items-center gap-1.5 text-xs font-medium">
+                            <Users className="w-3.5 h-3.5" /> CC (View Only)
+                        </Label>
+                        <div className="flex flex-wrap gap-1.5">
+                            {ccUserIds.map((uid) => {
+                                const member = teamMembers.find(m => m.id === uid) || project?.ccUsers?.find(u => u.id === uid)
+                                return (
+                                    <Badge key={uid} variant="outline" className="text-[10px] px-2 py-0.5 gap-1.5 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+                                        <Avatar className="w-4 h-4">
+                                            <AvatarFallback className="text-[7px] bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                                                {getInitials(member?.name || "?")}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        {member?.name || uid}
+                                        {canEdit && (
+                                            <button onClick={() => setCcUserIds(ccUserIds.filter(id => id !== uid))}
+                                                className="ml-0.5 hover:text-destructive">
+                                                <X className="w-2.5 h-2.5" />
+                                            </button>
+                                        )}
+                                    </Badge>
+                                )
+                            })}
+                            {canEdit && (
+                                <Select
+                                    value=""
+                                    onValueChange={(v) => {
+                                        if (v && !ccUserIds.includes(v)) setCcUserIds([...ccUserIds, v])
+                                    }}
+                                >
+                                    <SelectTrigger className="h-7 w-40 text-[11px] px-2">
+                                        <SelectValue placeholder="+ Add CC user" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {teamMembers
+                                            .filter(m => !ccUserIds.includes(m.id) && m.id !== managerId && m.id !== project?.creator.id)
+                                            .map((m) => (
+                                                <SelectItem key={m.id} value={m.id} className="text-xs">
+                                                    {m.name}
+                                                </SelectItem>
+                                            ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
                         </div>
                     </div>
 

@@ -12,6 +12,7 @@ export const createProjectSchema = z.object({
     status: z.enum(["PLANNED", "ACTIVE", "COMPLETED", "ON_HOLD"]).optional(),
     color: z.string().max(20).optional().nullable(),
     managerId: z.string().uuid().optional().nullable(),
+    ccUserIds: z.array(z.string().uuid()).optional(),
 })
 
 export const updateProjectSchema = z.object({
@@ -25,6 +26,7 @@ export const updateProjectSchema = z.object({
     progress: z.union([z.string(), z.number()]).optional(),
     color: z.string().max(20).optional().nullable(),
     managerId: z.string().uuid().optional().nullable(),
+    ccUserIds: z.array(z.string().uuid()).optional(),
 })
 
 // ═══ Task Schemas ═══
@@ -42,6 +44,7 @@ export const createTaskSchema = z.object({
     tags: z.array(z.string().max(50)).max(10).optional(),
     department: z.string().max(100).optional().nullable(),
     estimatedTime: z.number().min(0).max(10000).optional().nullable(),
+    ccUserIds: z.array(z.string().uuid()).optional(),
 })
 
 export const updateTaskSchema = z.object({
@@ -56,6 +59,7 @@ export const updateTaskSchema = z.object({
     tags: z.array(z.string().max(50)).max(10).optional(),
     department: z.string().max(100).optional().nullable(),
     estimatedTime: z.number().min(0).max(10000).optional().nullable(),
+    ccUserIds: z.array(z.string().uuid()).optional(),
 })
 
 export const reorderTasksSchema = z.object({

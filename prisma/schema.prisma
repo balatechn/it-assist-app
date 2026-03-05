@@ -88,6 +88,8 @@ model User {
   createdTasks    Task[]          @relation("TaskCreator")
   createdProjects Project[]       @relation("ProjectCreator")
   managedProjects Project[]       @relation("ProjectManager")
+  ccProjects      Project[]       @relation("ProjectCcUsers")
+  ccTasks         Task[]          @relation("TaskCcUsers")
   comments        TaskComment[]
   notifications   Notification[]
   auditLogs       AuditLog[]
@@ -126,8 +128,9 @@ model Project {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tasks Task[]
-  files FileAttachment[]
+  tasks   Task[]
+  files   FileAttachment[]
+  ccUsers User[] @relation("ProjectCcUsers")
 
   @@index([organizationId])
   @@index([status])
@@ -170,6 +173,7 @@ model Task {
   comments   TaskComment[]
   files      FileAttachment[]
   activities TaskActivity[]
+  ccUsers    User[]          @relation("TaskCcUsers")
 
   @@index([projectId])
   @@index([assigneeId])

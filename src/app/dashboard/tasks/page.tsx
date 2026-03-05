@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import {
     CheckSquare, Calendar, MessageSquare, Plus, Loader2,
     CheckCircle2, Circle, Star, Trash2, CloudOff, RefreshCw, X,
-    Filter,
+    Filter, Users,
 } from "lucide-react"
 import { cn, formatDate, getInitials, getStatusColor, getPriorityColor } from "@/lib/utils"
 import { TaskDetailModal } from "@/components/task-detail-modal"
@@ -80,6 +80,7 @@ export default function TasksPage() {
     const [ptAssigneeId, setPtAssigneeId] = useState("")
     const [ptDepartment, setPtDepartment] = useState("")
     const [ptEstimatedTime, setPtEstimatedTime] = useState("")
+    const [ptCcUserIds, setPtCcUserIds] = useState<string[]>([])
     const [ptCreating, setPtCreating] = useState(false)
 
     // Microsoft Tasks state
@@ -150,6 +151,7 @@ export default function TasksPage() {
                     assigneeId: ptAssigneeId || undefined,
                     department: ptDepartment || null,
                     estimatedTime: ptEstimatedTime ? parseFloat(ptEstimatedTime) : null,
+                    ccUserIds: ptCcUserIds.length > 0 ? ptCcUserIds : undefined,
                 }),
             })
             if (res.ok) {
@@ -159,6 +161,7 @@ export default function TasksPage() {
                 setPtAssigneeId("")
                 setPtDepartment("")
                 setPtEstimatedTime("")
+                setPtCcUserIds([])
                 setShowProjectTaskCreate(false)
                 fetchTasks()
             }
@@ -460,6 +463,31 @@ export default function TasksPage() {
                                     <option value="Engineering">Engineering</option>
                                 </select>
                                 <Input type="number" placeholder="Est. hours" value={ptEstimatedTime} onChange={(e) => setPtEstimatedTime(e.target.value)} className="h-9 text-xs" min="0" step="0.5" />
+                            </div>
+                            {/* CC Users */}
+                            <div className="flex flex-wrap items-center gap-1.5">
+                                <span className="text-[11px] text-muted-foreground flex items-center gap-1"><Users className="w-3 h-3" /> CC:</span>
+                                {ptCcUserIds.map((uid) => {
+                                    const member = teamMembers.find(m => m.id === uid)
+                                    return (
+                                        <Badge key={uid} variant="outline" className="text-[10px] px-1.5 py-0.5 gap-1 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+                                            {member?.name || uid}
+                                            <button type="button" onClick={() => setPtCcUserIds(ptCcUserIds.filter(id => id !== uid))} className="hover:text-destructive">
+                                                <X className="w-2.5 h-2.5" />
+                                            </button>
+                                        </Badge>
+                                    )
+                                })}
+                                <select
+                                    value=""
+                                    onChange={(e) => { if (e.target.value && !ptCcUserIds.includes(e.target.value)) setPtCcUserIds([...ptCcUserIds, e.target.value]) }}
+                                    className="h-7 rounded-md border bg-background px-1.5 text-[11px] min-w-[120px]"
+                                >
+                                    <option value="">+ Add CC user</option>
+                                    {teamMembers.filter(m => !ptCcUserIds.includes(m.id) && m.id !== ptAssigneeId).map(m => (
+                                        <option key={m.id} value={m.id}>{m.name}</option>
+                                    ))}
+                                </select>
                             </div>
                             <div className="flex justify-end gap-2">
                                 <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setShowProjectTaskCreate(false)}>Cancel</Button>

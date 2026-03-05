@@ -34,13 +34,14 @@ export async function GET() {
             taskFilter = { project: { organizationId: orgId } }
             projectFilter = { organizationId: orgId }
         } else if (isManagerRole) {
-            // MANAGER sees tasks in projects they created/manage + tasks assigned to them
+            // MANAGER sees tasks in projects they created/manage + tasks assigned to them + CC'd
             taskFilter = {
                 project: { organizationId: orgId },
                 OR: [
                     { assigneeId: userId },
                     { project: { creatorId: userId } },
                     { project: { managerId: userId } },
+                    { ccUsers: { some: { id: userId } } },
                 ],
             }
             projectFilter = {
@@ -49,17 +50,25 @@ export async function GET() {
                     { creatorId: userId },
                     { managerId: userId },
                     { tasks: { some: { assigneeId: userId } } },
+                    { ccUsers: { some: { id: userId } } },
                 ],
             }
         } else {
-            // EMPLOYEE sees only their assigned tasks and those projects
+            // EMPLOYEE sees only their assigned/created tasks, CC'd tasks, and those projects
             taskFilter = {
                 project: { organizationId: orgId },
-                assigneeId: userId,
+                OR: [
+                    { assigneeId: userId },
+                    { creatorId: userId },
+                    { ccUsers: { some: { id: userId } } },
+                ],
             }
             projectFilter = {
                 organizationId: orgId,
-                tasks: { some: { assigneeId: userId } },
+                OR: [
+                    { tasks: { some: { assigneeId: userId } } },
+                    { ccUsers: { some: { id: userId } } },
+                ],
             }
         }
 

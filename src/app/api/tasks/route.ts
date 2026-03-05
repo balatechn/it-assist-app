@@ -32,11 +32,12 @@ export async function GET(req: NextRequest) {
             parentId: null, // Only return top-level tasks, not subtasks
         }
 
-        // EMPLOYEE role: only see tasks assigned to them or created by them
+        // EMPLOYEE role: only see tasks assigned to them, created by them, or CC'd on
         if (!isManager(session.user.role)) {
             where.OR = [
                 { assigneeId: session.user.id },
                 { creatorId: session.user.id },
+                { ccUsers: { some: { id: session.user.id } } },
             ]
         }
 
@@ -76,6 +77,7 @@ export async function GET(req: NextRequest) {
                     project: { select: { id: true, name: true, color: true } },
                     assignee: { select: { id: true, name: true, avatar: true } },
                     creator: { select: { id: true, name: true } },
+                    ccUsers: { select: { id: true, name: true, avatar: true } },
                     _count: { select: { comments: true, files: true, subtasks: true } },
                 },
                 orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
@@ -108,7 +110,7 @@ export async function POST(req: NextRequest) {
         if (!parsed.success) {
             return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
         }
-        const { title, description, startDate, dueDate, priority, status, projectId, assigneeId, parentId, tags, department, estimatedTime } = parsed.data
+        const { title, description, startDate, dueDate, priority, status, projectId, assigneeId, parentId, tags, department, estimatedTime, ccUserIds } = parsed.data
 
         // Verify project belongs to org
         const project = await prisma.project.findFirst({
@@ -141,6 +143,9 @@ export async function POST(req: NextRequest) {
                 tags: tags || [],
                 department: department || null,
                 estimatedTime: estimatedTime ?? null,
+                ...(ccUserIds && ccUserIds.length > 0 && {
+                    ccUsers: { connect: ccUserIds.map((id: string) => ({ id })) },
+                }),
             },
             include: {
                 project: { select: { id: true, name: true, color: true } },

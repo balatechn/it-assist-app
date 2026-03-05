@@ -26,7 +26,7 @@ import {
     Calendar, User, Flag, MessageSquare, Paperclip,
     Save, Loader2, Clock, AlertTriangle, Trash2,
     ListChecks, Plus, CheckCircle2, Circle, X,
-    Tag, Building2, Timer, Activity,
+    Tag, Building2, Timer, Activity, Users,
 } from "lucide-react"
 import { cn, formatDate, getInitials, timeAgo, isAdmin as checkIsAdmin, isManager as checkIsManager } from "@/lib/utils"
 import { TASK_STATUS_LABELS, DEPARTMENTS } from "@/lib/constants"
@@ -76,6 +76,7 @@ interface TaskDetail {
     project: { id: string; name: string; color: string | null }
     assignee: { id: string; name: string; email: string; avatar: string | null } | null
     creator: { id: string; name: string; email: string }
+    ccUsers: { id: string; name: string; email: string; avatar: string | null }[]
     subtasks: Subtask[]
     comments: TaskComment[]
     files: Array<{ id: string; name: string; mimeType: string | null; size: number | null; oneDriveUrl: string | null }>
@@ -99,7 +100,6 @@ interface TaskDetailModalProps {
 
 export function TaskDetailModal({ taskId, open, onOpenChange, onTaskUpdated }: TaskDetailModalProps) {
     const { data: session } = useSession()
-    const isViewer = false
 
     const [task, setTask] = useState<TaskDetail | null>(null)
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
@@ -118,6 +118,16 @@ export function TaskDetailModal({ taskId, open, onOpenChange, onTaskUpdated }: T
     const [tagInput, setTagInput] = useState("")
     const [department, setDepartment] = useState("")
     const [estimatedTime, setEstimatedTime] = useState("")
+    const [ccUserIds, setCcUserIds] = useState<string[]>([])
+
+    // CC-only viewer: user is in ccUsers list but not creator, assignee, or manager+
+    const isCcOnlyViewer = task && session?.user
+        ? task.ccUsers?.some(u => u.id === session.user.id) &&
+          task.creator.id !== session.user.id &&
+          task.assignee?.id !== session.user.id &&
+          !checkIsManager(session.user.role || "")
+        : false
+    const isViewer = isCcOnlyViewer
 
     // Delete
     const [deleteOpen, setDeleteOpen] = useState(false)
@@ -217,6 +227,7 @@ export function TaskDetailModal({ taskId, open, onOpenChange, onTaskUpdated }: T
                 setTags(data.tags || [])
                 setDepartment(data.department || "")
                 setEstimatedTime(data.estimatedTime ? String(data.estimatedTime) : "")
+                setCcUserIds(data.ccUsers?.map(u => u.id) || [])
             }
         } finally { setLoading(false) }
     }, [taskId])
@@ -248,6 +259,7 @@ export function TaskDetailModal({ taskId, open, onOpenChange, onTaskUpdated }: T
                     assigneeId: assigneeId === "unassigned" ? null : assigneeId,
                     tags, department: department || null,
                     estimatedTime: estimatedTime ? parseFloat(estimatedTime) : null,
+                    ccUserIds,
                 }),
             })
             if (res.ok) { await fetchTask(); onTaskUpdated?.() }
@@ -277,7 +289,8 @@ export function TaskDetailModal({ taskId, open, onOpenChange, onTaskUpdated }: T
         assigneeId !== (task.assignee?.id || "unassigned") ||
         JSON.stringify(tags) !== JSON.stringify(task.tags || []) ||
         department !== (task.department || "") ||
-        estimatedTime !== (task.estimatedTime ? String(task.estimatedTime) : "")
+        estimatedTime !== (task.estimatedTime ? String(task.estimatedTime) : "") ||
+        JSON.stringify([...ccUserIds].sort()) !== JSON.stringify([...(task.ccUsers?.map(u => u.id) || [])].sort())
     )
 
     const subtaskProgress = task && task.subtasks.length > 0
@@ -451,6 +464,53 @@ export function TaskDetailModal({ taskId, open, onOpenChange, onTaskUpdated }: T
                                                     <Plus className="w-3 h-3" />
                                                 </Button>
                                             </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* CC Users (View-only access) */}
+                                <div>
+                                    <Label className="text-xs text-muted-foreground flex items-center gap-1"><Users className="w-3 h-3" /> CC (View Only)</Label>
+                                    <div className="flex flex-wrap gap-1.5 mt-1.5">
+                                        {ccUserIds.map((uid) => {
+                                            const member = teamMembers.find(m => m.id === uid) || task?.ccUsers?.find(u => u.id === uid)
+                                            return (
+                                                <Badge key={uid} variant="outline" className="text-[10px] px-2 py-0.5 gap-1.5 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+                                                    <Avatar className="w-4 h-4">
+                                                        <AvatarFallback className="text-[7px] bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                                                            {getInitials(member?.name || "?")}
+                                                        </AvatarFallback>
+                                                    </Avatar>
+                                                    {member?.name || uid}
+                                                    {!isViewer && (
+                                                        <button onClick={() => setCcUserIds(ccUserIds.filter(id => id !== uid))}
+                                                            className="ml-0.5 hover:text-destructive">
+                                                            <X className="w-2.5 h-2.5" />
+                                                        </button>
+                                                    )}
+                                                </Badge>
+                                            )
+                                        })}
+                                        {!isViewer && (
+                                            <Select
+                                                value=""
+                                                onValueChange={(v) => {
+                                                    if (v && !ccUserIds.includes(v)) setCcUserIds([...ccUserIds, v])
+                                                }}
+                                            >
+                                                <SelectTrigger className="h-6 w-36 text-[11px] px-2">
+                                                    <SelectValue placeholder="+ Add CC user" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {teamMembers
+                                                        .filter(m => !ccUserIds.includes(m.id) && m.id !== assigneeId && m.id !== task?.creator.id)
+                                                        .map((m) => (
+                                                            <SelectItem key={m.id} value={m.id} className="text-xs">
+                                                                {m.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                </SelectContent>
+                                            </Select>
                                         )}
                                     </div>
                                 </div>

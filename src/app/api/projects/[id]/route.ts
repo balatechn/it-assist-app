@@ -30,10 +30,14 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
                     { creatorId: userId },
                     { managerId: userId },
                     { tasks: { some: { assigneeId: userId } } },
+                    { ccUsers: { some: { id: userId } } },
                 ]
             } else {
-                // EMPLOYEE — must have an assigned task in this project
-                where.tasks = { some: { assigneeId: userId } }
+                // EMPLOYEE — must have an assigned task or be CC'd
+                where.OR = [
+                    { tasks: { some: { assigneeId: userId } } },
+                    { ccUsers: { some: { id: userId } } },
+                ]
             }
         }
 
@@ -51,6 +55,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
             include: {
                 creator: { select: { id: true, name: true, email: true, avatar: true } },
                 manager: { select: { id: true, name: true, email: true, avatar: true } },
+                ccUsers: { select: { id: true, name: true, email: true, avatar: true } },
                 tasks: {
                     where: taskWhere,
                     include: {
@@ -110,7 +115,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         if (!parsed.success) {
             return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
         }
-        const { name, description, clientName, startDate, endDate, budget, status, progress, color, managerId } = parsed.data
+        const { name, description, clientName, startDate, endDate, budget, status, progress, color, managerId, ccUserIds } = parsed.data
 
         const project = await prisma.project.update({
             where: { id: params.id },
@@ -125,6 +130,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
                 ...(progress !== undefined && { progress: parseInt(String(progress)) }),
                 ...(color !== undefined && { color }),
                 ...(managerId !== undefined && { managerId: managerId || null }),
+                ...(ccUserIds !== undefined && {
+                    ccUsers: { set: ccUserIds.map((id: string) => ({ id })) },
+                }),
             },
         })
 

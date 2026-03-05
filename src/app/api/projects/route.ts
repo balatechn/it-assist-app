@@ -40,10 +40,14 @@ export async function GET(req: NextRequest) {
                     { creatorId: userId },
                     { managerId: userId },
                     { tasks: { some: { assigneeId: userId } } },
+                    { ccUsers: { some: { id: userId } } },
                 ]
             } else {
-                // EMPLOYEE — only projects with assigned tasks
-                where.tasks = { some: { assigneeId: userId } }
+                // EMPLOYEE — only projects with assigned tasks or CC'd
+                where.OR = [
+                    { tasks: { some: { assigneeId: userId } } },
+                    { ccUsers: { some: { id: userId } } },
+                ]
             }
         }
 
@@ -74,6 +78,7 @@ export async function GET(req: NextRequest) {
                 include: {
                     creator: { select: { id: true, name: true, email: true } },
                     manager: { select: { id: true, name: true, email: true } },
+                    ccUsers: { select: { id: true, name: true, email: true, avatar: true } },
                     _count: { select: { tasks: true, files: true } },
                 },
                 orderBy: { updatedAt: "desc" },
@@ -106,7 +111,7 @@ export async function POST(req: NextRequest) {
         if (!parsed.success) {
             return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
         }
-        const { name, description, clientName, startDate, endDate, budget, status, color, managerId } = parsed.data
+        const { name, description, clientName, startDate, endDate, budget, status, color, managerId, ccUserIds } = parsed.data
 
         const project = await prisma.project.create({
             data: {
@@ -121,10 +126,14 @@ export async function POST(req: NextRequest) {
                 organizationId: session.user.organizationId,
                 creatorId: session.user.id,
                 managerId: managerId || null,
+                ...(ccUserIds && ccUserIds.length > 0 && {
+                    ccUsers: { connect: ccUserIds.map((id: string) => ({ id })) },
+                }),
             },
             include: {
                 creator: { select: { id: true, name: true } },
                 manager: { select: { id: true, name: true } },
+                ccUsers: { select: { id: true, name: true, email: true, avatar: true } },
             },
         })
 
