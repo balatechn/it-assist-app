@@ -187,7 +187,7 @@ export async function GET() {
             completedTasksThisMonth,
             assignedToMe: assignedToMeCount,
             highPriorityTasks: highPriorityCount,
-            organization: organization ? { name: organization.name, logo: organization.logo } : null,
+            organization: organization ? { name: organization.name, logo: organization.logo, domain: organization.domain } : null,
         })
     } catch (error) {
         console.error("Dashboard API error:", error)

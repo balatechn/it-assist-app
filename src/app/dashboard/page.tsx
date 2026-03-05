@@ -199,6 +199,15 @@ export default function DashboardPage() {
 
     const total = stats?.activeTasks || 1
 
+    // Resolve the user's company from their organization domain
+    const userSubsidiary = GROUP_COMPANIES.subsidiaries.find(
+        (c) => stats?.organization?.domain === c.domain
+    )
+    // If user belongs to a subsidiary, show that branding; otherwise show parent
+    const heroBrand = userSubsidiary
+        ? { name: userSubsidiary.name, logo: userSubsidiary.logo, color: userSubsidiary.color, tagline: null as string | null }
+        : { name: GROUP_COMPANIES.parent.name, logo: GROUP_COMPANIES.parent.logo, color: GROUP_COMPANIES.parent.color, tagline: GROUP_COMPANIES.parent.tagline }
+
     return (
         <div className="space-y-5 pb-20 md:pb-6">
 
@@ -207,39 +216,48 @@ export default function DashboardPage() {
                 style={{ background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%)" }}>
                 {/* Decorative circles */}
                 <div className="absolute -right-10 -top-10 w-52 h-52 rounded-full opacity-10"
-                    style={{ background: "radial-gradient(circle, #e8b84a 0%, transparent 70%)" }} />
+                    style={{ background: `radial-gradient(circle, ${heroBrand.color} 0%, transparent 70%)` }} />
                 <div className="absolute -left-6 -bottom-6 w-32 h-32 rounded-full opacity-[0.07]"
-                    style={{ background: "radial-gradient(circle, #e8b84a 0%, transparent 70%)" }} />
+                    style={{ background: `radial-gradient(circle, ${heroBrand.color} 0%, transparent 70%)` }} />
                 <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        {/* Parent company branding */}
+                        {/* Company branding — shows user's own subsidiary or parent */}
                         <div className="flex items-center gap-3 mb-3">
-                            <Image
-                                src={GROUP_COMPANIES.parent.logo}
-                                alt={GROUP_COMPANIES.parent.name}
-                                width={40}
-                                height={40}
-                                className="rounded-lg object-contain bg-white/10 p-1"
-                            />
+                            {heroBrand.logo ? (
+                                <Image
+                                    src={heroBrand.logo}
+                                    alt={heroBrand.name}
+                                    width={40}
+                                    height={40}
+                                    className="rounded-lg object-contain bg-white/10 p-1"
+                                />
+                            ) : (
+                                <div className="h-10 w-10 rounded-lg flex items-center justify-center text-white text-sm font-bold"
+                                    style={{ backgroundColor: heroBrand.color }}>
+                                    {heroBrand.name.split(" ").map(w => w[0]).join("").slice(0, 2)}
+                                </div>
+                            )}
                             <div>
-                                <span className="text-sm md:text-base font-bold tracking-[0.15em] text-[#e8b84a]">
-                                    {GROUP_COMPANIES.parent.name.toUpperCase()}
+                                <span className="text-sm md:text-base font-bold tracking-[0.15em]" style={{ color: heroBrand.color }}>
+                                    {heroBrand.name.toUpperCase()}
                                 </span>
-                                <p className="text-[10px] text-[#e8b84a]/50 tracking-wider">{GROUP_COMPANIES.parent.tagline}</p>
+                                {heroBrand.tagline && (
+                                    <p className="text-[10px] tracking-wider" style={{ color: `${heroBrand.color}80` }}>{heroBrand.tagline}</p>
+                                )}
                             </div>
                         </div>
                         {/* Current organization highlight */}
                         {stats?.organization && (
                             <div className="flex items-center gap-2 mb-2">
-                                <div className="h-1 w-1 rounded-full bg-[#e8b84a]/40" />
+                                <div className="h-1 w-1 rounded-full" style={{ backgroundColor: `${heroBrand.color}66` }} />
                                 <span className="text-xs font-semibold tracking-wider text-white/70">
-                                    {GROUP_COMPANIES.parent.name} ({stats.organization.domain})
+                                    {stats.organization.name}{stats.organization.domain ? ` (${stats.organization.domain})` : ""}
                                 </span>
                             </div>
                         )}
                         <div className="flex items-center gap-2 mb-1">
-                            <Zap className="w-5 h-5 text-[#e8b84a]" />
-                            <span className="text-[11px] font-semibold uppercase tracking-widest text-[#e8b84a]/80">
+                            <Zap className="w-5 h-5" style={{ color: heroBrand.color }} />
+                            <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: `${heroBrand.color}CC` }}>
                                 Dashboard
                             </span>
                         </div>
@@ -251,8 +269,8 @@ export default function DashboardPage() {
                         </p>
                     </div>
                     <Link href="/dashboard/projects/new"
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-lg shadow-[#c8932e]/20 transition-all hover:shadow-[#c8932e]/40 hover:scale-[1.02] active:scale-[0.98]"
-                        style={{ background: "linear-gradient(135deg, #c8932e 0%, #e8b84a 100%)" }}>
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        style={{ background: `linear-gradient(135deg, ${heroBrand.color} 0%, ${heroBrand.color}DD 100%)`, boxShadow: `0 4px 14px ${heroBrand.color}33` }}>
                         <Plus className="w-4 h-4" /> New Project
                     </Link>
                 </div>
