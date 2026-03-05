@@ -164,16 +164,16 @@ export function Sidebar() {
                             href={item.href}
                             aria-current={isActive ? "page" : undefined}
                             className={cn(
-                                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group",
+                                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 group",
                                 isActive
                                     ? "bg-sidebar-accent text-sidebar-foreground shadow-sm"
-                                    : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                                    : "text-sidebar-foreground/75 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                             )}
                             {...extraProps}
                         >
                             <item.icon className={cn(
                                 "w-5 h-5 shrink-0 transition-colors",
-                                isActive ? "text-[#e8b84a]" : "text-sidebar-foreground/40 group-hover:text-[#e8b84a]/70"
+                                isActive ? "text-[#e8b84a]" : "text-sidebar-foreground/55 group-hover:text-[#e8b84a]/70"
                             )} />
                             {(!collapsed || mobileSidebarOpen) && <span>{item.label}</span>}
                             {isActive && (!collapsed || mobileSidebarOpen) && (
@@ -198,13 +198,13 @@ export function Sidebar() {
                                     href={item.href}
                                     aria-current={isActive ? "page" : undefined}
                                     className={cn(
-                                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group",
+                                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 group",
                                         isActive
                                             ? "bg-sidebar-accent text-sidebar-foreground shadow-sm"
-                                            : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                                            : "text-sidebar-foreground/75 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                                     )}
                                 >
-                                    <item.icon className="w-5 h-5 shrink-0 text-sidebar-foreground/40 group-hover:text-[#e8b84a]/70" />
+                                    <item.icon className="w-5 h-5 shrink-0 text-sidebar-foreground/55 group-hover:text-[#e8b84a]/70" />
                                     {(!collapsed || mobileSidebarOpen) && <span>{item.label}</span>}
                                 </Link>
                             )
@@ -219,7 +219,7 @@ export function Sidebar() {
                 {/* Theme toggle */}
                 <button
                     onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-all duration-200 w-full"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold text-sidebar-foreground/75 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-all duration-200 w-full"
                     aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
                 >
                     {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -229,7 +229,7 @@ export function Sidebar() {
                 {/* Collapse toggle */}
                 <button
                     onClick={() => setCollapsed(!collapsed)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-all duration-200 w-full"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold text-sidebar-foreground/75 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-all duration-200 w-full"
                     aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
                 >
                     {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
