@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { useSession, signOut } from "next-auth/react"
-import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { useTheme } from "next-themes"
 import { Bell, LogOut, Search, Sun, Moon, Menu } from "lucide-react"
@@ -14,7 +13,6 @@ import { SearchBar } from "./search-bar"
 
 export function Header() {
     const { data: session } = useSession()
-    const pathname = usePathname()
     const { theme, setTheme } = useTheme()
     const [unreadCount, setUnreadCount] = useState(0)
     const setMobileSidebarOpen = useLayoutStore((state) => state.setMobileSidebarOpen)
