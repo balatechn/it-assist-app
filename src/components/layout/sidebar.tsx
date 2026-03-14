@@ -40,8 +40,8 @@ const navItems = [
     { href: "/dashboard/projects", label: "Projects", icon: FolderKanban },
     { href: "/dashboard/tasks", label: "My Tasks", icon: CheckSquare },
     { href: "/dashboard/team", label: "Team", icon: Users },
-    { href: "/dashboard/files", label: "OneDrive", icon: Cloud },
-    { href: "https://finance.nationalgroupindia.com/login", label: "Finance Approval", icon: IndianRupee, external: true },
+    { href: "https://nationalgroupindia-my.sharepoint.com/", label: "OneDrive", icon: Cloud, external: true },
+    { href: "/dashboard/finance", label: "Finance", icon: IndianRupee },
     { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
     { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ]

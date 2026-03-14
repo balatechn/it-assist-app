@@ -25,8 +25,8 @@ const navItems = [
     { href: "/dashboard/projects", label: "Projects", icon: FolderKanban },
     { href: "/dashboard/tasks", label: "Tasks", icon: CheckSquare },
     { href: "/dashboard/team", label: "Team", icon: Users },
-    { href: "/dashboard/files", label: "OneDrive", icon: Cloud },
-    { href: "https://finance.nationalgroupindia.com/login", label: "Finance", icon: IndianRupee, external: true },
+    { href: "https://nationalgroupindia-my.sharepoint.com/", label: "OneDrive", icon: Cloud, external: true },
+    { href: "/dashboard/finance", label: "Finance", icon: IndianRupee },
     { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
     { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ]
@@ -68,16 +68,16 @@ export function TopNav() {
                             href={item.href}
                             aria-current={isActive ? "page" : undefined}
                             className={cn(
-                                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-200",
+                                "flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 border",
                                 isActive
-                                    ? "bg-[#DAA520]/15 text-[#DAA520]"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                    ? "bg-[#DAA520] text-white border-[#DAA520] shadow-sm"
+                                    : "text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/50 hover:border-border/50"
                             )}
                             {...extraProps}
                         >
                             <item.icon className={cn(
                                 "w-4 h-4 shrink-0",
-                                isActive ? "text-[#DAA520]" : ""
+                                isActive ? "text-white" : ""
                             )} />
                             <span>{item.label}</span>
                         </Tag>
