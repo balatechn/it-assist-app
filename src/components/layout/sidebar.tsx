@@ -79,9 +79,8 @@ export function Sidebar() {
             <aside
                 className={cn(
                     "fixed left-0 top-0 z-50 h-screen bg-sidebar text-sidebar-foreground border-r border-sidebar-foreground/10 flex flex-col transition-all duration-300",
-                    // Desktop: always visible, controlled by collapsed state
-                    "hidden md:flex",
-                    collapsed ? "md:w-[70px]" : "md:w-[260px]",
+                    // Desktop: hidden (top nav replaces sidebar)
+                    "hidden",
                     // Mobile: show/hide based on mobileSidebarOpen
                     mobileSidebarOpen && "!flex w-[260px]"
                 )}

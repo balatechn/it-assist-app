@@ -4,26 +4,18 @@ import { useEffect, useState, useCallback } from "react"
 import { useSession, signOut } from "next-auth/react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { Bell, LogOut, Search, Menu } from "lucide-react"
+import { useTheme } from "next-themes"
+import { Bell, LogOut, Search, Sun, Moon, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { getInitials } from "@/lib/utils"
 import { useLayoutStore } from "@/lib/store"
 import { SearchBar } from "./search-bar"
 
-const pageTitles: Record<string, string> = {
-    "/dashboard": "Dashboard",
-    "/dashboard/projects": "Projects",
-    "/dashboard/tasks": "My Tasks",
-    "/dashboard/files": "OneDrive Files",
-    "/dashboard/notifications": "Notifications",
-    "/dashboard/settings": "Settings",
-    "/dashboard/audit-logs": "Audit Logs",
-}
-
 export function Header() {
     const { data: session } = useSession()
     const pathname = usePathname()
+    const { theme, setTheme } = useTheme()
     const [unreadCount, setUnreadCount] = useState(0)
     const setMobileSidebarOpen = useLayoutStore((state) => state.setMobileSidebarOpen)
 
@@ -58,20 +50,13 @@ export function Header() {
         }
     }, [fetchUnreadCount])
 
-    const getTitle = () => {
-        if (pathname.startsWith("/dashboard/projects/") && pathname !== "/dashboard/projects") {
-            return "Project Details"
-        }
-        return pageTitles[pathname] || "National Group India"
-    }
-
     // Mobile search state
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
 
     return (
         <header className="sticky top-0 z-30 flex items-center justify-between h-14 md:h-16 px-3 md:px-6 border-b border-border/50 bg-background/80 backdrop-blur-xl">
             <div className="flex items-center gap-2 md:gap-3 min-w-0">
-                {/* Mobile hamburger */}
+                {/* Mobile hamburger — opens mobile sidebar */}
                 <Button
                     variant="ghost"
                     size="icon-sm"
@@ -81,10 +66,18 @@ export function Header() {
                 >
                     <Menu className="w-5 h-5" />
                 </Button>
-                <h1 className="text-base md:text-xl font-bold text-foreground tracking-tight truncate">{getTitle()}</h1>
+                {/* Logo + brand */}
+                <Link href="/dashboard" className="flex items-center gap-2.5 shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/logo.webp" alt="National Group India" className="h-8 w-auto" />
+                    <div className="hidden sm:flex flex-col">
+                        <span className="text-sm font-bold text-foreground tracking-tight leading-tight">National Group</span>
+                        <span className="text-[10px] font-semibold tracking-widest uppercase leading-tight" style={{ color: '#DAA520' }}>India</span>
+                    </div>
+                </Link>
             </div>
 
-            <div className="flex items-center gap-1.5 md:gap-3">
+            <div className="flex items-center gap-1.5 md:gap-2">
                 {/* Mobile search toggle */}
                 <Button
                     variant="ghost"
@@ -104,18 +97,28 @@ export function Header() {
                     <Button variant="ghost" size="icon-sm" className="relative" aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ""}`}>
                         <Bell className="w-5 h-5 text-muted-foreground" />
                         {unreadCount > 0 && (
-                            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-[10px] text-white flex items-center justify-center font-bold" style={{ background: '#d4a044' }}>
+                            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-[10px] text-white flex items-center justify-center font-bold" style={{ background: '#DAA520' }}>
                                 {unreadCount > 9 ? "9+" : unreadCount}
                             </span>
                         )}
                     </Button>
                 </Link>
 
+                {/* Theme toggle */}
+                <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                    aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                >
+                    {theme === "dark" ? <Sun className="w-4.5 h-4.5 text-muted-foreground" /> : <Moon className="w-4.5 h-4.5 text-muted-foreground" />}
+                </Button>
+
                 {/* User menu */}
                 {session?.user && (
                     <div className="flex items-center gap-1.5 md:gap-2 pl-2 md:pl-3 border-l border-border/50">
                         <Avatar className="w-8 h-8">
-                            <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                            <AvatarFallback className="bg-[#DAA520]/15 text-[#DAA520] text-xs font-semibold">
                                 {getInitials(session.user.name)}
                             </AvatarFallback>
                         </Avatar>
