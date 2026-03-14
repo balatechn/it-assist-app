@@ -25,7 +25,7 @@ const navItems = [
     { href: "/dashboard/projects", label: "Projects", icon: FolderKanban },
     { href: "/dashboard/tasks", label: "Tasks", icon: CheckSquare },
     { href: "/dashboard/team", label: "Team", icon: Users },
-    { href: "https://nationalgroupindia-my.sharepoint.com/", label: "OneDrive", icon: Cloud, external: true },
+    { href: "https://nationalconsultingindia-my.sharepoint.com/", label: "OneDrive", icon: Cloud, external: true },
     { href: "/dashboard/finance", label: "Finance", icon: IndianRupee },
     { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
     { href: "/dashboard/settings", label: "Settings", icon: Settings },
