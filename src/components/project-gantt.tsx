@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState, useMemo, useRef, useCallback } from "react"
-import Link from "next/link"
 import { cn } from "@/lib/utils"
 import {
     ChevronRight, ChevronDown, Pencil, Loader2,
@@ -9,6 +8,8 @@ import {
 } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import { ProjectEditModal } from "@/components/project-edit-modal"
+import { TaskDetailModal } from "@/components/task-detail-modal"
 
 // ─── Types ────────────────────────────────────────────────
 interface Person { id: string; name: string; avatar: string | null }
@@ -88,6 +89,13 @@ export default function ProjectGantt() {
     const [allExpanded, setAllExpanded] = useState(true)
     const scrollRef = useRef<HTMLDivElement>(null)
 
+    // Modal state
+    const [editProject, setEditProject] = useState<Record<string, unknown> | null>(null)
+    const [editProjectOpen, setEditProjectOpen] = useState(false)
+    const [editTaskId, setEditTaskId] = useState<string | null>(null)
+    const [editTaskOpen, setEditTaskOpen] = useState(false)
+    const [fetchingProject, setFetchingProject] = useState<string | null>(null)
+
     // Fetch data
     useEffect(() => {
         fetch("/api/projects/gantt")
@@ -98,6 +106,35 @@ export default function ProjectGantt() {
                 setLoading(false)
             })
             .catch(() => { setError(true); setLoading(false) })
+    }, [])
+
+    // Open project edit modal
+    const openProjectEdit = useCallback(async (projectId: string) => {
+        setFetchingProject(projectId)
+        try {
+            const res = await fetch(`/api/projects/${projectId}`)
+            if (res.ok) {
+                const proj = await res.json()
+                setEditProject(proj)
+                setEditProjectOpen(true)
+            }
+        } finally {
+            setFetchingProject(null)
+        }
+    }, [])
+
+    // Open task edit modal
+    const openTaskEdit = useCallback((taskId: string) => {
+        setEditTaskId(taskId)
+        setEditTaskOpen(true)
+    }, [])
+
+    // Refresh data after modal edit
+    const refreshData = useCallback(() => {
+        fetch("/api/projects/gantt")
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then((d: ProjectItem[]) => setData(d))
+            .catch(() => {})
     }, [])
 
     // Toggle handlers
@@ -423,13 +460,20 @@ export default function ProjectGantt() {
                                     )}
 
                                     {/* Edit pencil */}
-                                    <Link
-                                        href={`/dashboard/projects/${row.projectId}`}
-                                        onClick={e => e.stopPropagation()}
+                                    <button
+                                        onClick={e => {
+                                            e.stopPropagation()
+                                            if (isProject) openProjectEdit(row.id)
+                                            else openTaskEdit(row.id)
+                                        }}
                                         className="opacity-0 group-hover/row:opacity-100 transition-opacity shrink-0"
+                                        disabled={fetchingProject === row.id}
                                     >
-                                        <Pencil className="w-3 h-3 text-muted-foreground hover:text-primary transition-colors" />
-                                    </Link>
+                                        {fetchingProject === row.id
+                                            ? <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
+                                            : <Pencil className="w-3 h-3 text-muted-foreground hover:text-primary transition-colors" />
+                                        }
+                                    </button>
                                 </div>
 
                                 {/* ─── Timeline cell ──────── */}
@@ -511,6 +555,20 @@ export default function ProjectGantt() {
                 <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "#EAB308" }} /> Medium</span>
                 <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "#22C55E" }} /> Low</span>
             </div>
+
+            {/* ─── Modals ───────────────────────────────── */}
+            <ProjectEditModal
+                project={editProject as never}
+                open={editProjectOpen}
+                onOpenChange={setEditProjectOpen}
+                onProjectUpdated={refreshData}
+            />
+            <TaskDetailModal
+                taskId={editTaskId}
+                open={editTaskOpen}
+                onOpenChange={setEditTaskOpen}
+                onTaskUpdated={refreshData}
+            />
         </div>
     )
 }
