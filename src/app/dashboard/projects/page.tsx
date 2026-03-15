@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useMemo, useRef, useCallback } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import { cn, formatDate, formatCurrency, getInitials, getStatusColor } from "@/lib/utils"
 import { PROJECT_COLORS, PROJECT_TEMPLATES } from "@/lib/constants"
+import ProjectGantt from "@/components/project-gantt"
 
 interface Project {
     id: string
@@ -37,7 +38,7 @@ export default function ProjectsPage() {
     const [projects, setProjects] = useState<Project[]>([])
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState("")
-    const [view, setView] = useState<ViewMode>("grid")
+    const [view, setView] = useState<ViewMode>("gantt")
     const [filter, setFilter] = useState<string>("ALL")
     const [page, setPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
@@ -146,39 +147,7 @@ export default function ProjectsPage() {
         { id: "ON_HOLD", label: "On Hold", icon: PauseCircle, color: "text-slate-400" },
     ]
 
-    // Gantt helpers
-    const ganttData = useMemo(() => {
-        const withDates = filtered.filter(p => p.startDate && p.endDate)
-        if (withDates.length === 0) return null
-        const allStarts = withDates.map(p => new Date(p.startDate!).getTime())
-        const allEnds = withDates.map(p => new Date(p.endDate!).getTime())
-        const minDate = Math.min(...allStarts)
-        const maxDate = Math.max(...allEnds)
-        const range = maxDate - minDate || 1
-        // Generate month labels
-        const months: { label: string; left: number }[] = []
-        const d = new Date(minDate)
-        d.setDate(1)
-        while (d.getTime() <= maxDate + 30 * 86400000) {
-            const pct = ((d.getTime() - minDate) / range) * 100
-            if (pct >= 0 && pct <= 105) {
-                months.push({ label: d.toLocaleDateString("en", { month: "short", year: "2-digit" }), left: Math.max(0, pct) })
-            }
-            d.setMonth(d.getMonth() + 1)
-        }
-        return {
-            projects: withDates.map(p => {
-                const start = new Date(p.startDate!).getTime()
-                const end = new Date(p.endDate!).getTime()
-                return {
-                    ...p,
-                    left: ((start - minDate) / range) * 100,
-                    width: Math.max(2, ((end - start) / range) * 100),
-                }
-            }),
-            months,
-        }
-    }, [filtered])
+
 
     const viewButtons: { id: ViewMode; icon: typeof Grid3X3; label: string }[] = [
         { id: "grid", icon: Grid3X3, label: "Grid" },
@@ -302,7 +271,7 @@ export default function ProjectsPage() {
             </div>
 
             {/* Dashboard Summary Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {view !== "gantt" && <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <Card className="p-3 md:p-4">
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
@@ -347,7 +316,7 @@ export default function ProjectsPage() {
                         </div>
                     </div>
                 </Card>
-            </div>
+            </div>}
 
             {/* Templates Panel */}
             {showTemplates && (
@@ -619,66 +588,7 @@ export default function ProjectsPage() {
             )}
 
             {/* ===== GANTT VIEW ===== */}
-            {view === "gantt" && (
-                <Card className="p-4 overflow-x-auto">
-                    {ganttData && ganttData.projects.length > 0 ? (
-                        <div className="min-w-[600px]">
-                            {/* Month headers */}
-                            <div className="relative h-7 mb-2 border-b border-border/50">
-                                {ganttData.months.map((m, i) => (
-                                    <span key={i} className="absolute text-[10px] text-muted-foreground font-medium" style={{ left: `${m.left}%` }}>
-                                        {m.label}
-                                    </span>
-                                ))}
-                            </div>
-                            {/* Project bars */}
-                            <div className="space-y-2">
-                                {ganttData.projects.map((p) => (
-                                    <Link key={p.id} href={`/dashboard/projects/${p.id}`} className="block">
-                                        <div className="flex items-center gap-3 group py-1">
-                                            <div className="w-32 md:w-44 shrink-0">
-                                                <p className="text-xs font-medium truncate group-hover:text-primary transition-colors">{p.name}</p>
-                                                <p className="text-[10px] text-muted-foreground">{formatDate(p.startDate!)} — {formatDate(p.endDate!)}</p>
-                                            </div>
-                                            <div className="flex-1 relative h-7 bg-muted/30 rounded">
-                                                <div
-                                                    className="absolute top-0.5 bottom-0.5 rounded transition-all group-hover:opacity-90"
-                                                    style={{
-                                                        left: `${p.left}%`,
-                                                        width: `${p.width}%`,
-                                                        backgroundColor: p.color || "#3B82F6",
-                                                        opacity: 0.8,
-                                                    }}
-                                                >
-                                                    <div className="h-full rounded bg-white/20" style={{ width: `${p.progress}%` }} />
-                                                    <span className="absolute inset-0 flex items-center justify-center text-[9px] text-white font-medium">
-                                                        {p.progress}%
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                            {/* Today line */}
-                            <div className="relative mt-2 border-t border-border/30 pt-1">
-                                <p className="text-[10px] text-muted-foreground">
-                                    {filtered.filter(p => !p.startDate || !p.endDate).length > 0 &&
-                                        `${filtered.filter(p => !p.startDate || !p.endDate).length} project(s) without dates not shown`}
-                                </p>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="text-center py-12">
-                            <GanttChart className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-                            <h3 className="text-sm font-semibold mb-1">No Gantt data</h3>
-                            <p className="text-xs text-muted-foreground">
-                                Add start &amp; end dates to your projects to see the timeline
-                            </p>
-                        </div>
-                    )}
-                </Card>
-            )}
+            {view === "gantt" && <ProjectGantt />}
 
             {/* Empty state */}
             {filtered.length === 0 && !loading && (
