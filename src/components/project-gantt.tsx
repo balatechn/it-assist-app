@@ -297,7 +297,7 @@ export default function ProjectGantt() {
     // ─── Loading skeleton ─────────────────────────────────
     if (loading) {
         return (
-            <div className="border rounded-xl overflow-hidden bg-card" style={{ height: "calc(100vh - 240px)" }}>
+            <div className="border rounded-xl overflow-hidden bg-card" style={{ height: "calc(100vh - 175px)" }}>
                 <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
                     <div className="flex gap-2">
                         <div className="h-7 w-14 bg-muted rounded animate-pulse" />
@@ -342,7 +342,7 @@ export default function ProjectGantt() {
     }
 
     return (
-        <div className="border rounded-xl overflow-hidden bg-card flex flex-col" style={{ height: "calc(100vh - 240px)" }}>
+        <div className="border rounded-xl overflow-hidden bg-card flex flex-col" style={{ height: "calc(100vh - 175px)" }}>
             {/* ─── Toolbar ──────────────────────────────── */}
             <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/20 shrink-0">
                 <div className="flex items-center gap-1.5">
@@ -396,21 +396,21 @@ export default function ProjectGantt() {
                     </div>
 
                     {/* Data rows */}
-                    {rows.map(row => {
+                    {rows.map((row, rowIdx) => {
                         const bar = barPos(row.start, row.end)
                         const isProject = row.type === "project"
                         const isTask = row.type === "task"
                         const hasKids = row.childCount > 0
 
                         return (
-                            <div key={row.key} className="flex group/row hover:bg-muted/30 transition-colors" style={{ height: ROW_H }}>
+                            <div key={row.key} className={cn("flex group/row hover:bg-muted/30 transition-colors", isProject && rowIdx > 0 && "border-t-2 border-muted-foreground/15")} style={{ height: ROW_H }}>
                                 {/* ─── Label cell (sticky) ── */}
                                 <div
                                     className={cn(
                                         "sticky left-0 z-10 bg-card group-hover/row:bg-muted/30 border-r border-b shrink-0 flex items-center gap-1.5 pr-2 transition-colors",
-                                        isProject && "bg-muted/[0.08]"
+                                        isProject && "bg-muted/[0.15]"
                                     )}
-                                    style={{ width: LABEL_W, paddingLeft: 12 + row.level * 20 }}
+                                    style={{ width: LABEL_W, paddingLeft: isProject ? 9 : 12 + row.level * 20, ...(isProject ? { borderLeft: `3px solid ${row.barColor}` } : {}) }}
                                 >
                                     {/* Expand/collapse toggle */}
                                     {hasKids ? (
@@ -436,7 +436,7 @@ export default function ProjectGantt() {
                                     {/* Name */}
                                     <span className={cn(
                                         "text-xs truncate flex-1 select-none",
-                                        isProject && "font-semibold text-[13px]",
+                                        isProject && "font-semibold text-[14px]",
                                         row.status === "DONE" && "line-through text-muted-foreground",
                                         row.status === "CANCELLED" && "line-through text-muted-foreground/60",
                                     )}>
@@ -477,7 +477,7 @@ export default function ProjectGantt() {
                                 </div>
 
                                 {/* ─── Timeline cell ──────── */}
-                                <div className="relative shrink-0 border-b" style={{ width: totalW, height: ROW_H }}>
+                                <div className={cn("relative shrink-0 border-b", isProject && "bg-muted/[0.06]")} style={{ width: totalW, height: ROW_H }}>
                                     {/* Grid lines */}
                                     <div className="absolute inset-0 flex pointer-events-none">
                                         {headers.map((h, i) => (
