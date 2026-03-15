@@ -362,7 +362,7 @@ export default function ProjectsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                             <label className="text-[11px] font-medium text-muted-foreground">Name *</label>
-                            <Input placeholder="Project name" value={quickForm.name} onChange={(e) => setQuickForm({ ...quickForm, name: e.target.value })} className="h-9 text-sm" autoFocus />
+                            <Input placeholder="Project name" value={quickForm.name} onChange={(e) => setQuickForm({ ...quickForm, name: e.target.value.replace(/\b\w/g, c => c.toUpperCase()) })} className="h-9 text-sm" autoFocus />
                         </div>
                         <div className="space-y-1.5">
                             <label className="text-[11px] font-medium text-muted-foreground">Client</label>

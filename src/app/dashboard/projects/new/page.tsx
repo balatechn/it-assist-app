@@ -102,7 +102,7 @@ export default function NewProjectPage() {
                             <Input
                                 placeholder="e.g. Website Redesign"
                                 value={form.name}
-                                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                                onChange={(e) => setForm({ ...form, name: e.target.value.replace(/\b\w/g, c => c.toUpperCase()) })}
                                 required
                             />
                         </div>

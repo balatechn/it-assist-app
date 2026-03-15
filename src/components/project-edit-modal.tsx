@@ -189,7 +189,7 @@ export function ProjectEditModal({ project, open, onOpenChange, onProjectUpdated
                         <Input
                             id="project-name"
                             value={name}
-                            onChange={(e) => setName(e.target.value)}
+                            onChange={(e) => setName(e.target.value.replace(/\b\w/g, c => c.toUpperCase()))}
                             disabled={!canEdit}
                             className="text-sm"
                         />
