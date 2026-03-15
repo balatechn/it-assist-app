@@ -859,25 +859,25 @@ export default function TasksPage() {
     // Loading skeleton
     if (loading) {
         return (
-            <div className="flex gap-4 animate-in fade-in duration-300" style={{ height: "calc(100vh - 180px)" }}>
-                <div className="w-full lg:w-[420px] space-y-3">
+            <div className="flex gap-3 animate-in fade-in duration-300" style={{ height: "calc(100vh - 140px)" }}>
+                <div className="w-full lg:w-[340px] space-y-2">
                     <div className="flex justify-between items-center">
-                        <div className="h-7 w-28 bg-muted rounded-md animate-pulse" />
-                        <div className="h-9 w-28 bg-muted rounded-md animate-pulse" />
+                        <div className="h-6 w-20 bg-muted rounded-md animate-pulse" />
+                        <div className="h-7 w-20 bg-muted rounded-md animate-pulse" />
                     </div>
-                    <div className="flex gap-2">
-                        {[...Array(4)].map((_, i) => <div key={i} className="h-8 w-16 bg-muted rounded-full animate-pulse" />)}
+                    <div className="flex gap-1">
+                        {[...Array(5)].map((_, i) => <div key={i} className="h-6 w-12 bg-muted rounded-md animate-pulse" />)}
                     </div>
-                    <div className="space-y-2">
-                        {[...Array(8)].map((_, i) => (
-                            <div key={i} className="h-16 bg-muted/50 rounded-xl animate-pulse" />
+                    <div className="space-y-1.5">
+                        {[...Array(10)].map((_, i) => (
+                            <div key={i} className="h-14 bg-muted/50 rounded-lg animate-pulse" />
                         ))}
                     </div>
                 </div>
                 <div className="hidden lg:flex flex-1 items-center justify-center rounded-xl border bg-muted/20">
                     <div className="text-center">
-                        <div className="h-10 w-10 bg-muted rounded-lg animate-pulse mx-auto mb-3" />
-                        <div className="h-4 w-32 bg-muted rounded animate-pulse mx-auto" />
+                        <div className="h-8 w-8 bg-muted rounded-lg animate-pulse mx-auto mb-2" />
+                        <div className="h-3 w-28 bg-muted rounded animate-pulse mx-auto" />
                     </div>
                 </div>
             </div>
@@ -886,35 +886,31 @@ export default function TasksPage() {
 
     return (
         <div className="animate-in fade-in duration-300">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-                <div>
-                    <h2 className="text-xl md:text-2xl font-bold tracking-tight">My Tasks</h2>
-                    <p className="text-sm text-muted-foreground mt-0.5">Project tasks &amp; Microsoft To Do</p>
+            {/* Compact Header: title + tabs + action in one row */}
+            <div className="flex items-center gap-3 mb-2">
+                <h2 className="text-lg font-bold tracking-tight shrink-0">Tasks</h2>
+                <div className="flex gap-0.5 bg-muted/50 p-0.5 rounded-md">
+                    <button onClick={() => setActiveTab("project")}
+                        className={cn("px-3 py-1 rounded text-[11px] font-medium transition-all",
+                            activeTab === "project" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
+                        <CheckSquare className="w-3 h-3 inline mr-1" />Project
+                    </button>
+                    <button onClick={() => setActiveTab("microsoft")}
+                        className={cn("px-3 py-1 rounded text-[11px] font-medium transition-all",
+                            activeTab === "microsoft" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
+                        <svg className="w-3 h-3 inline mr-1" viewBox="0 0 21 21" fill="none">
+                            <rect x="1" y="1" width="9" height="9" fill="#F25022"/><rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
+                            <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/><rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
+                        </svg>
+                        MS To Do
+                    </button>
                 </div>
+                <div className="flex-1" />
                 {activeTab === "project" && (
-                    <Button size="sm" className="gradient-primary text-white" onClick={() => setShowProjectTaskCreate(true)}>
-                        <Plus className="w-3.5 h-3.5 mr-1.5" /> New Task
+                    <Button size="sm" className="gradient-primary text-white h-7 text-xs" onClick={() => setShowProjectTaskCreate(true)}>
+                        <Plus className="w-3 h-3 mr-1" /> New Task
                     </Button>
                 )}
-            </div>
-
-            {/* Tab switcher */}
-            <div className="flex gap-1 bg-muted/50 p-1 rounded-lg w-fit mb-4">
-                <button onClick={() => setActiveTab("project")}
-                    className={cn("px-4 py-1.5 rounded-md text-xs font-medium transition-all",
-                        activeTab === "project" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
-                    <CheckSquare className="w-3.5 h-3.5 inline mr-1.5" /> Project Tasks
-                </button>
-                <button onClick={() => setActiveTab("microsoft")}
-                    className={cn("px-4 py-1.5 rounded-md text-xs font-medium transition-all",
-                        activeTab === "microsoft" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
-                    <svg className="w-3.5 h-3.5 inline mr-1.5" viewBox="0 0 21 21" fill="none">
-                        <rect x="1" y="1" width="9" height="9" fill="#F25022"/><rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
-                        <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/><rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
-                    </svg>
-                    Microsoft To Do
-                </button>
             </div>
 
             {activeTab === "project" ? (
@@ -978,26 +974,26 @@ export default function TasksPage() {
                     )}
 
                     {/* Search + Status Filters */}
-                    <div className="space-y-3 mb-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                            <Input ref={searchRef} placeholder="Search tasks... (press /)" value={searchQuery}
+                    <div className="space-y-2 mb-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
+                            <Input ref={searchRef} placeholder="Search... (/)" value={searchQuery}
                                 onChange={(e) => { setSearchQuery(e.target.value); setPage(1) }}
-                                className="h-9 text-sm sm:max-w-[200px]" />
-                            <div className="flex gap-1.5 flex-wrap flex-1">
+                                className="h-7 text-xs sm:max-w-[160px]" />
+                            <div className="flex gap-1 flex-wrap flex-1">
                                 {statusFilters.map((s) => (
                                     <button key={s.id} onClick={() => { setFilter(s.id); setPage(1) }}
-                                        className={cn("px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all",
+                                        className={cn("px-2 py-0.5 rounded-md text-[10px] font-medium transition-all",
                                             filter === s.id ? "bg-primary text-primary-foreground shadow-sm" : "bg-muted/50 text-muted-foreground hover:bg-muted")}>
                                         {s.label}{filter === s.id ? ` (${total})` : ""}
                                     </button>
                                 ))}
                             </div>
                             <Button variant="outline" size="sm"
-                                className={cn("h-8 text-xs gap-1.5 shrink-0", showFilters && "bg-primary/10 border-primary/30")}
+                                className={cn("h-7 text-[10px] gap-1 shrink-0 px-2", showFilters && "bg-primary/10 border-primary/30")}
                                 onClick={() => setShowFilters(!showFilters)}>
-                                <Filter className="w-3.5 h-3.5" /> Filters
+                                <Filter className="w-3 h-3" /> Filters
                                 {activeFilterCount > 0 && (
-                                    <span className="bg-primary text-primary-foreground rounded-full w-4 h-4 text-[10px] flex items-center justify-center">{activeFilterCount}</span>
+                                    <span className="bg-primary text-primary-foreground rounded-full w-3.5 h-3.5 text-[9px] flex items-center justify-center">{activeFilterCount}</span>
                                 )}
                             </Button>
                         </div>
@@ -1039,11 +1035,11 @@ export default function TasksPage() {
                     </div>
 
                     {/* SPLIT PANEL LAYOUT */}
-                    <div className="flex gap-4" style={{ height: "calc(100vh - 340px)", minHeight: 400 }}>
+                    <div className="flex gap-3" style={{ height: "calc(100vh - 240px)", minHeight: 400 }}>
                         {/* Left: Task List */}
                         <div className={cn(
                             "overflow-y-auto rounded-xl border bg-card transition-all",
-                            selectedTaskId ? "w-full lg:w-[380px] xl:w-[420px] shrink-0" : "w-full"
+                            selectedTaskId ? "w-full lg:w-[320px] xl:w-[340px] shrink-0" : "w-full"
                         )}>
                             {tasks.length > 0 ? (
                                 <div className="divide-y divide-border/30">
@@ -1125,9 +1121,9 @@ export default function TasksPage() {
                             )}
                         </div>
 
-                        {/* Right: Task Detail Panel */}
+                        {/* Right: Task Detail Panel — takes remaining space */}
                         {selectedTaskId ? (
-                            <div className="hidden lg:flex flex-1 rounded-xl border bg-card overflow-hidden">
+                            <div className="hidden lg:flex flex-1 min-w-0 rounded-xl border bg-card overflow-hidden">
                                 <div className="w-full">
                                     <TaskDetailPanel
                                         taskId={selectedTaskId}
